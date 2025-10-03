@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(del srccomponentsThreeScene.jsx)",
+      "Bash(rm:*)",
+      "WebFetch(domain:www.notion.so)",
+      "Bash(mkdir:*)",
+      "Bash(git init:*)",
+      "Bash(git remote set-url:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\PC01\\Documents",
+      "C:\\c\\Users\\PC01\\Documents"
+    ]
+  }
+}
