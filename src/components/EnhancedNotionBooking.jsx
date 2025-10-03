@@ -239,6 +239,11 @@ const EnhancedNotionBooking = () => {
       return 'booked';
     }
 
+    // 全日（火曜以外）15:00~16:00をブロック
+    if (dayOfWeek !== 2 && timeHour >= 15 && timeHour < 16) {
+      return 'booked';
+    }
+
     const dateString = date.toISOString().split('T')[0];
 
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
@@ -561,8 +566,8 @@ const EnhancedNotionBooking = () => {
                     <h2 className="text-3xl font-bold text-gradient mb-4">予約が完了しました！</h2>
                     
                     <div className="bg-pink-100 border-2 border-pink-300 rounded-xl p-3 mb-6">
-                      <p className="text-black text-sm font-semibold">
-                        この画面のスクリーンショットを担当者までお送りください
+                      <p className="text-black text-base font-bold">
+                        この画面のスクリーンショットを<br />担当者までお送りください
                       </p>
                     </div>
 
@@ -790,13 +795,11 @@ const EnhancedNotionBooking = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   {/* 説明文を表示 */}
-                  <div className="col-span-2 mb-4">
-                    <div className="relative p-6 rounded-2xl font-bold text-lg bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
-                      <div className="text-2xl mb-2">
-                        <i className="far fa-clock text-pink-500"></i>
-                      </div>
-                      <div className="text-xl font-bold text-gray-700">ご希望の時間を選択してください</div>
+                  <div className="relative p-6 rounded-2xl font-bold text-lg bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
+                    <div className="text-2xl mb-2">
+                      <i className="far fa-clock text-pink-500"></i>
                     </div>
+                    <div className="text-xl font-bold text-gray-700">ご希望の時間を選択してください</div>
                   </div>
                   {timeSlots.map((time) => {
                     const status = getBookingStatus(selectedDate, time);
