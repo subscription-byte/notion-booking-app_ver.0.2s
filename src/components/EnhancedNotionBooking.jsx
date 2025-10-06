@@ -45,17 +45,7 @@ const EnhancedNotionBooking = () => {
 
     const weekDates = [];
 
-    const isAugust30Week = () => {
-      const august30 = new Date('2025-08-30');
-      const weekStart = new Date(monday);
-      const weekEnd = new Date(monday);
-      weekEnd.setDate(monday.getDate() + 6);
-      return august30 >= weekStart && august30 <= weekEnd;
-    };
-
-    const daysToShow = isAugust30Week() ? 6 : 5;
-
-    for (let i = 0; i < daysToShow; i++) {
+    for (let i = 0; i < 5; i++) {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
       weekDates.push(date);
@@ -68,9 +58,6 @@ const EnhancedNotionBooking = () => {
                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                       String(date.getDate()).padStart(2, '0');
 
-    if (dateString === '2025-08-30') {
-      return false;
-    }
 
     return holidays2025.includes(dateString);
   };
@@ -495,6 +482,17 @@ const EnhancedNotionBooking = () => {
     }
   };
 
+  const getTimeTableDisplay = (date) => {
+    if (isHoliday(date)) return null;
+    
+    const timeStatuses = timeSlots.map(time => ({
+      time: time,
+      available: getBookingStatus(date, time) === 'available'
+    }));
+    
+    return timeStatuses;
+  };
+
   const getDateCardClass = (date) => {
     const status = getDateStatus(date);
     const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
@@ -575,8 +573,8 @@ const EnhancedNotionBooking = () => {
 
                     <h2 className="text-xl font-bold text-black mb-4">予約が完了しました！</h2>
                     
-                    <div className="bg-pink-100 border-2 border-pink-300 rounded-xl p-3 mb-6">
-                      <p className="text-pink-600 text-3xl font-bold">
+                    <div className="bg-pink-100 border-2 border-pink-300 rounded-xl p-4 mb-6">
+                      <p className="text-pink-600 text-2xl font-bold text-center">
                         この画面のスクリーンショットを<br />担当者までお送りください
                       </p>
                     </div>
@@ -765,13 +763,30 @@ const EnhancedNotionBooking = () => {
                                 {formatFullDate(date)}
                               </div>
                             </div>
-                            <div className="flex flex-col items-center">
-                              <div className="text-4xl mb-1">
-                                {(isInitialLoading || isWeekChanging) ? '⏳' : getDateStatusIcon(status)}
-                              </div>
-                              <div className="text-xs font-semibold text-gray-600">
-                                {(isInitialLoading || isWeekChanging) ? '確認中' : getDateStatusText(status)}
-                              </div>
+                            <div className="flex-1 px-3 flex justify-end">
+                              {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
+                                <div className="space-y-1">
+                                  <div className="text-xs text-gray-700 font-medium text-center">
+                                    ご予約可能な時間帯
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-1">
+                                    {[0, 1, 2].map(colIndex => (
+                                      <div key={colIndex} className="bg-white/80 rounded-lg border border-gray-200 overflow-hidden">
+                                        {getTimeTableDisplay(date).slice(colIndex * 3, (colIndex + 1) * 3).map((slot, idx) => (
+                                          <div key={idx} className={`grid grid-cols-2 text-xs border-b border-gray-100 ${idx === 2 ? 'border-b-0' : ''}`}>
+                                            <div className="px-2 py-1 text-left font-medium text-gray-700">
+                                              {slot.time}
+                                            </div>
+                                            <div className="px-2 py-1 text-center border-l border-gray-100">
+                                              {slot.available ? '✅' : '🚫'}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </button>
