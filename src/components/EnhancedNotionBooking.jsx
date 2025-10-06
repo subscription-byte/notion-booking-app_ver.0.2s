@@ -573,10 +573,10 @@ const EnhancedNotionBooking = () => {
                       </div>
                     </div>
 
-                    <h2 className="text-3xl font-bold text-gradient mb-4">予約が完了しました！</h2>
+                    <h2 className="text-xl font-bold text-black mb-4">予約が完了しました！</h2>
                     
                     <div className="bg-pink-100 border-2 border-pink-300 rounded-xl p-3 mb-6">
-                      <p className="text-black text-base font-bold">
+                      <p className="text-pink-600 text-3xl font-bold">
                         この画面のスクリーンショットを<br />担当者までお送りください
                       </p>
                     </div>
