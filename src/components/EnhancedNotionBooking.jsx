@@ -530,21 +530,21 @@ const EnhancedNotionBooking = () => {
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 192, 203, 0.3)'
           }}>
-            <div className="p-6" style={{
+            <div className="p-3" style={{
               background: 'linear-gradient(135deg, rgba(255, 192, 203, 0.2), rgba(255, 218, 185, 0.2))'
             }}>
               <div className="text-center">
-                <h1 className="text-4xl font-bold tracking-wider mb-2 animate-float" style={{
+                <h1 className="text-2xl font-bold tracking-wide mb-1 animate-float" style={{
                   background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  textShadow: '0 0 30px rgba(255, 105, 180, 0.3)'
+                  textShadow: '0 0 20px rgba(255, 105, 180, 0.3)'
                 }}>
-                  <i className="fas fa-calendar-alt mr-3" style={{color: '#ff69b4'}}></i>
+                  <i className="fas fa-calendar-alt mr-2" style={{color: '#ff69b4'}}></i>
                   {settings.systemTitle}
                 </h1>
-                <p className="text-pink-600 text-sm font-light tracking-wide">{settings.description}</p>
+                <p className="text-pink-600 text-xs font-light tracking-wide">{settings.description}</p>
               </div>
             </div>
 
@@ -673,9 +673,13 @@ const EnhancedNotionBooking = () => {
                     <button
                       onClick={() => handleWeekChange(weekOffset - 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-6 py-3 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                      <i className="fas fa-chevron-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-                      前週
+                      className="group px-4 py-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <div className="text-center">
+                        <div className="text-xs">前週</div>
+                        <div className="text-lg">
+                          <i className="fas fa-chevron-left group-hover:-translate-x-1 transition-transform"></i>
+                        </div>
+                      </div>
                     </button>
 
                     <div className="text-center">
@@ -688,34 +692,38 @@ const EnhancedNotionBooking = () => {
                     <button
                       onClick={() => handleWeekChange(weekOffset + 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                      翌週
-                      <i className="fas fa-chevron-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                      className="group px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <div className="text-center">
+                        <div className="text-xs">翌週</div>
+                        <div className="text-lg">
+                          <i className="fas fa-chevron-right group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                      </div>
                     </button>
                   </div>
                 </div>
 
                 {/* 凡例 */}
-                <div className="rounded-2xl p-4 shadow-lg" style={{
+                <div className="rounded-xl p-2 shadow-md" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
                 }}>
-                  <div className="grid grid-cols-4 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">✅</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">✅</span>
                       <span className="text-xs font-medium text-gray-700">空あり</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">⚠️</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">⚠️</span>
                       <span className="text-xs font-medium text-gray-700">残少</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">❌</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">❌</span>
                       <span className="text-xs font-medium text-gray-700">満員</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">🚫</span>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-lg">🚫</span>
                       <span className="text-xs font-medium text-gray-700">休業</span>
                     </div>
                   </div>
@@ -723,8 +731,8 @@ const EnhancedNotionBooking = () => {
 
                 {/* 日付選択 */}
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-gradient flex items-center">
-                    <i className="fas fa-calendar-day mr-3"></i>
+                  <h2 className="text-xl font-bold text-gradient flex items-center">
+                    <i className="fas fa-calendar-day mr-2"></i>
                     日付を選択
                   </h2>
 
@@ -741,7 +749,7 @@ const EnhancedNotionBooking = () => {
                     </div>
                   )}
 
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {weekDates.map((date, index) => {
                       const status = getDateStatus(date);
                       const isDisabled = isInitialLoading || isWeekChanging || isHoliday(date) || status === 'full';
@@ -751,22 +759,18 @@ const EnhancedNotionBooking = () => {
                           key={index}
                           onClick={() => handleDateSelect(date)}
                           disabled={isDisabled}
-                          className={`w-full p-6 rounded-2xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'transform hover:scale-[1.02]'}`}
+                          className={`w-full p-3 rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'transform hover:scale-[1.02]'}`}
                         >
-                          <div className="flex justify-between items-center">
-                            <div className="text-left">
-                              <div className="text-2xl font-bold text-gray-800 mb-1">
-                                {formatDate(date)}
-                                <span className="text-lg font-medium text-gray-600 ml-2">({getDayName(date)})</span>
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {formatFullDate(date)}
-                              </div>
+                          <div className="flex items-center">
+                            <div className="text-left px-3">
+                              <div className="text-sm font-medium text-gray-500">2025年</div>
+                              <div className="text-lg font-bold text-gray-800">{formatDate(date)}</div>
+                              <div className="text-sm font-medium text-gray-600 text-center">({getDayName(date)})</div>
                             </div>
-                            <div className="flex-1 px-3 flex justify-end">
+                            <div className="flex-1 pl-6 pr-3">
                               {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
-                                <div className="space-y-1">
-                                  <div className="text-xs text-gray-700 font-medium text-center">
+                                <div className="w-full">
+                                  <div className="text-xs text-gray-700 font-medium text-center mb-1">
                                     ご予約可能な時間帯
                                   </div>
                                   <div className="grid grid-cols-3 gap-1">
@@ -774,11 +778,11 @@ const EnhancedNotionBooking = () => {
                                       <div key={colIndex} className="bg-white/80 rounded-lg border border-gray-200 overflow-hidden">
                                         {getTimeTableDisplay(date).slice(colIndex * 3, (colIndex + 1) * 3).map((slot, idx) => (
                                           <div key={idx} className={`grid grid-cols-2 text-xs border-b border-gray-100 ${idx === 2 ? 'border-b-0' : ''}`}>
-                                            <div className="px-2 py-1 text-left font-medium text-gray-700">
+                                            <div className="px-1 py-0.5 text-center font-medium text-gray-700">
                                               {slot.time}
                                             </div>
-                                            <div className="px-2 py-1 text-center border-l border-gray-100">
-                                              {slot.available ? '✅' : '🚫'}
+                                            <div className="px-1 py-0.5 text-center border-l border-gray-100">
+                                              {slot.available ? '✅' : '❌'}
                                             </div>
                                           </div>
                                         ))}
@@ -799,7 +803,7 @@ const EnhancedNotionBooking = () => {
 
             {/* 時間選択画面 */}
             {showTimeSlots && !showBookingForm && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex items-center">
                   <button
                     onClick={() => {
@@ -811,20 +815,20 @@ const EnhancedNotionBooking = () => {
                     <i className="fas fa-arrow-left"></i>
                   </button>
                   <div className="ml-4">
-                    <h2 className="text-2xl font-bold text-gradient">時間を選択</h2>
+                    <h2 className="text-xl font-bold text-gradient">時間を選択</h2>
                     <p className="text-sm text-gray-600">
                       {selectedDate && formatFullDate(selectedDate)} ({selectedDate && getDayName(selectedDate)})
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {/* 説明文を表示 */}
-                  <div className="relative p-6 rounded-2xl font-bold text-lg bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
-                    <div className="text-2xl mb-2">
+                  <div className="relative p-4 rounded-xl font-bold text-base bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
+                    <div className="text-xl mb-2">
                       <i className="far fa-clock text-pink-500"></i>
                     </div>
-                    <div className="text-xl font-bold text-gray-700">ご希望の時間を選択してください</div>
+                    <div className="text-lg font-bold text-gray-700">ご希望の時間を選択してください</div>
                   </div>
                   {timeSlots.map((time) => {
                     const status = getBookingStatus(selectedDate, time);
@@ -835,16 +839,16 @@ const EnhancedNotionBooking = () => {
                         key={time}
                         onClick={() => handleTimeSelect(time)}
                         disabled={!isAvailable}
-                        className={`relative p-6 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
+                        className={`relative p-4 rounded-xl font-bold text-base transition-all duration-300 transform ${
                           isAvailable
                             ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer'
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
                         }`}
                       >
-                        <div className="text-2xl mb-2">
+                        <div className="text-xl mb-2">
                           <i className={`far ${isAvailable ? 'fa-clock' : 'fa-times-circle'}`}></i>
                         </div>
-                        <div className="text-xl font-bold">{time}</div>
+                        <div className="text-lg font-bold">{time}</div>
                         <div className="text-xs mt-1 opacity-90">
                           {isAvailable ? '予約可能' : '予約済み'}
                         </div>
