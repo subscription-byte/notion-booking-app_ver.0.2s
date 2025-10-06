@@ -64,7 +64,9 @@ const EnhancedNotionBooking = () => {
   };
 
   const isHoliday = (date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = date.getFullYear() + '-' + 
+                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(date.getDate()).padStart(2, '0');
 
     if (dateString === '2025-08-30') {
       return false;
@@ -106,8 +108,12 @@ const EnhancedNotionBooking = () => {
           filter: {
             property: '予定日',
             date: {
-              on_or_after: datesForQuery[0].toISOString().split('T')[0],
-              on_or_before: datesForQuery[4].toISOString().split('T')[0]
+              on_or_after: datesForQuery[0].getFullYear() + '-' + 
+                          String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(datesForQuery[0].getDate()).padStart(2, '0'),
+              on_or_before: datesForQuery[4].getFullYear() + '-' + 
+                           String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(datesForQuery[4].getDate()).padStart(2, '0')
             }
           }
         })
@@ -244,7 +250,9 @@ const EnhancedNotionBooking = () => {
       return 'booked';
     }
 
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = date.getFullYear() + '-' + 
+                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(date.getDate()).padStart(2, '0');
 
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
@@ -387,7 +395,9 @@ const EnhancedNotionBooking = () => {
 
     try {
       const bookingDataObj = {
-        date: selectedDate.toISOString().split('T')[0],
+        date: selectedDate.getFullYear() + '-' + 
+              String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+              String(selectedDate.getDate()).padStart(2, '0'),
         time: selectedTime,
         customerName: customerName,
         xLink: xLink,
