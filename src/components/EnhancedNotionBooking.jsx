@@ -555,7 +555,7 @@ const EnhancedNotionBooking = () => {
           </div>
 
           {/* メインコンテンツ */}
-          <div className="p-6 space-y-6">
+          <div className="p-3 space-y-2">
             {/* 予約完了画面 */}
             {showConfirmation && completedBooking && (
               <div className="space-y-6">
@@ -673,17 +673,17 @@ const EnhancedNotionBooking = () => {
                     <button
                       onClick={() => handleWeekChange(weekOffset - 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-4 py-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="group px-3 py-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
                       <div className="text-center">
                         <div className="text-xs">前週</div>
-                        <div className="text-lg">
+                        <div className="text-sm">
                           <i className="fas fa-chevron-left group-hover:-translate-x-1 transition-transform"></i>
                         </div>
                       </div>
                     </button>
 
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gradient mb-1">
+                      <div className="text-lg font-bold text-gradient">
                         {weekDates && weekDates.length > 0 ? `${formatDate(weekDates[0])} - ${formatDate(weekDates[4])}` : '読み込み中...'}
                       </div>
                       <div className="text-xs text-gray-500 font-light">平日のみ表示</div>
@@ -692,10 +692,10 @@ const EnhancedNotionBooking = () => {
                     <button
                       onClick={() => handleWeekChange(weekOffset + 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="group px-3 py-1 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
                       <div className="text-center">
                         <div className="text-xs">翌週</div>
-                        <div className="text-lg">
+                        <div className="text-sm">
                           <i className="fas fa-chevron-right group-hover:translate-x-1 transition-transform"></i>
                         </div>
                       </div>
@@ -730,11 +730,7 @@ const EnhancedNotionBooking = () => {
                 </div>
 
                 {/* 日付選択 */}
-                <div className="space-y-4">
-                  <h2 className="text-xl font-bold text-gradient flex items-center">
-                    <i className="fas fa-calendar-day mr-2"></i>
-                    日付を選択
-                  </h2>
+                <div className="space-y-2">
 
                   {(isInitialLoading || isWeekChanging) && (
                     <div className="rounded-2xl p-8 text-center animate-pulse" style={{
@@ -810,12 +806,12 @@ const EnhancedNotionBooking = () => {
                       setShowTimeSlots(false);
                       setSelectedDate(null);
                     }}
-                    className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
+                    className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
                     <i className="fas fa-arrow-left"></i>
                   </button>
                   <div className="ml-4">
-                    <h2 className="text-xl font-bold text-gradient">時間を選択</h2>
+                    <h2 className="text-lg font-bold text-gradient">時間を選択</h2>
                     <p className="text-sm text-gray-600">
                       {selectedDate && formatFullDate(selectedDate)} ({selectedDate && getDayName(selectedDate)})
                     </p>
@@ -824,11 +820,11 @@ const EnhancedNotionBooking = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   {/* 説明文を表示 */}
-                  <div className="relative p-4 rounded-xl font-bold text-base bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
-                    <div className="text-xl mb-2">
+                  <div className="relative p-3 rounded-xl font-bold text-base bg-gradient-to-br from-pink-100 to-purple-100 border-2 border-pink-200">
+                    <div className="text-lg mb-1">
                       <i className="far fa-clock text-pink-500"></i>
                     </div>
-                    <div className="text-lg font-bold text-gray-700">ご希望の時間を選択してください</div>
+                    <div className="text-sm font-bold text-gray-700">ご希望の時間を選択してください</div>
                   </div>
                   {timeSlots.map((time) => {
                     const status = getBookingStatus(selectedDate, time);
@@ -839,13 +835,13 @@ const EnhancedNotionBooking = () => {
                         key={time}
                         onClick={() => handleTimeSelect(time)}
                         disabled={!isAvailable}
-                        className={`relative p-4 rounded-xl font-bold text-base transition-all duration-300 transform ${
+                        className={`relative p-3 rounded-xl font-bold text-base transition-all duration-300 transform ${
                           isAvailable
                             ? 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer'
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
                         }`}
                       >
-                        <div className="text-xl mb-2">
+                        <div className="text-lg mb-1">
                           <i className={`far ${isAvailable ? 'fa-clock' : 'fa-times-circle'}`}></i>
                         </div>
                         <div className="text-lg font-bold">{time}</div>
