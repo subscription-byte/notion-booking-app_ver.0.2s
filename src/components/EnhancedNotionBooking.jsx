@@ -93,15 +93,24 @@ const EnhancedNotionBooking = () => {
         body: JSON.stringify({
           databaseId: CALENDAR_DATABASE_ID,
           filter: {
-            property: '予定日',
-            date: {
-              on_or_after: datesForQuery[0].getFullYear() + '-' + 
-                          String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(datesForQuery[0].getDate()).padStart(2, '0'),
-              on_or_before: datesForQuery[4].getFullYear() + '-' + 
-                           String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' + 
-                           String(datesForQuery[4].getDate()).padStart(2, '0')
-            }
+            and: [
+              {
+                property: '予定日',
+                date: {
+                  on_or_after: datesForQuery[0].getFullYear() + '-' +
+                              String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' +
+                              String(datesForQuery[0].getDate()).padStart(2, '0')
+                }
+              },
+              {
+                property: '予定日',
+                date: {
+                  on_or_before: datesForQuery[4].getFullYear() + '-' +
+                               String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' +
+                               String(datesForQuery[4].getDate()).padStart(2, '0')
+                }
+              }
+            ]
           }
         })
       });
@@ -116,6 +125,11 @@ const EnhancedNotionBooking = () => {
     } catch (error) {
       console.error('Notionカレンダーの取得に失敗:', error);
       setNotionEvents([]);
+      
+      // ネットワークエラーの場合はユーザーに通知
+      if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
+        alert('ただいまサイト情報の更新中です。お手数をおかけいたしますが、数分後に再度お試しください。');
+      }
     } finally {
       setIsLoading(false);
       setIsInitialLoading(false);
@@ -426,7 +440,13 @@ const EnhancedNotionBooking = () => {
       }
     } catch (error) {
       console.error('予約エラー:', error);
-      alert('予約の作成に失敗しました。もう一度お試しください。');
+      
+      // ネットワークエラーやデプロイ中の場合
+      if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
+        alert('ただいまサイト情報の更新中です。お手数をおかけいたしますが、数分後に再度お試しください。');
+      } else {
+        alert('予約の作成に失敗しました。もう一度お試しください。');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -785,6 +805,13 @@ const EnhancedNotionBooking = () => {
                                       </div>
                                     ))}
                                   </div>
+                                </div>
+                              )}
+                              {/* 祝日・満員表示 */}
+                              {(isHoliday(date) || status === 'full') && (
+                                <div className="flex flex-col items-center justify-center text-center">
+                                  <span className="text-3xl mb-1">{getDateStatusIcon(status)}</span>
+                                  <span className="text-xs font-medium text-gray-600">{getDateStatusText(status)}</span>
                                 </div>
                               )}
                             </div>
