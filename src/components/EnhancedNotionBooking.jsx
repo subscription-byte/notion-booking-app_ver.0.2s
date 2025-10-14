@@ -18,6 +18,11 @@ const EnhancedNotionBooking = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
+  const [systemStatus, setSystemStatus] = useState({
+    healthy: true,
+    message: '',
+    lastChecked: null
+  });
 
 
   const settings = {
@@ -36,6 +41,61 @@ const EnhancedNotionBooking = () => {
   ];
 
   const CALENDAR_DATABASE_ID = '1fa44ae2d2c780a5b27dc7aae5bae1aa';
+
+  const validateNotionData = (data, expectedDateRange, isInitialLoad) => {
+    // API接続失敗
+    if (!data || !data.results) {
+      return { valid: false, reason: 'データ取得に失敗しました' };
+    }
+
+    // 初回ロード時（今週）でデータ0件は異常
+    if (isInitialLoad && data.results.length === 0) {
+      return { valid: false, reason: 'データの取得に問題が発生しています' };
+    }
+
+    // データがある場合、範囲外のデータが含まれていないかチェック
+    if (data.results.length > 0) {
+      const outOfRangeData = data.results.filter(event => {
+        const eventDate = event.properties['予定日']?.date?.start;
+        if (!eventDate) return false;
+
+        const date = new Date(eventDate);
+        const startDate = new Date(expectedDateRange.start);
+        const endDate = new Date(expectedDateRange.end);
+
+        // 時刻を無視して日付のみで比較
+        date.setHours(0, 0, 0, 0);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        return date < startDate || date > endDate;
+      });
+
+      // 範囲外データが全体の50%以上 = フィルター失敗
+      if (outOfRangeData.length > data.results.length * 0.5) {
+        return {
+          valid: false,
+          reason: '予期しないデータが検出されました'
+        };
+      }
+    }
+
+    return { valid: true };
+  };
+
+  const sendChatWorkAlert = async (alertData) => {
+    try {
+      await fetch('/.netlify/functions/chatwork-notify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(alertData)
+      });
+    } catch (error) {
+      console.error('ChatWork notification failed:', error);
+    }
+  };
 
   const getCurrentWeekDates = () => {
     const today = new Date();
@@ -120,11 +180,61 @@ const EnhancedNotionBooking = () => {
       }
 
       const data = await response.json();
+
+      // データ検証
+      const validation = validateNotionData(
+        data,
+        {
+          start: datesForQuery[0],
+          end: datesForQuery[4]
+        },
+        isInitialLoading
+      );
+
+      if (!validation.valid) {
+        setSystemStatus({
+          healthy: false,
+          message: validation.reason,
+          lastChecked: new Date()
+        });
+
+        // ChatWork通知
+        await sendChatWorkAlert({
+          type: 'system_error',
+          data: {
+            errorMessage: validation.reason,
+            timestamp: new Date().toLocaleString('ja-JP')
+          }
+        });
+
+        return;
+      }
+
       setNotionEvents(data.results || []);
+      setSystemStatus({
+        healthy: true,
+        message: '',
+        lastChecked: new Date()
+      });
 
     } catch (error) {
       console.error('Notionカレンダーの取得に失敗:', error);
       setNotionEvents([]);
+
+      setSystemStatus({
+        healthy: false,
+        message: 'システムエラーが発生しました',
+        lastChecked: new Date()
+      });
+
+      // ChatWork通知
+      await sendChatWorkAlert({
+        type: 'system_error',
+        data: {
+          errorMessage: error.message,
+          timestamp: new Date().toLocaleString('ja-JP')
+        }
+      });
       
       // ネットワークエラーの場合はユーザーに通知
       if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
@@ -408,6 +518,34 @@ const EnhancedNotionBooking = () => {
       const success = await createNotionEvent(bookingDataObj);
 
       if (success) {
+        // 日付ズレ検知: Notionから最新データを取得して確認
+        await fetchNotionCalendar();
+
+        // 作成した予定を探す（名前とXリンクで特定）
+        const justCreatedEvent = notionEvents.find(event =>
+          event.properties['名前']?.title?.[0]?.text?.content === customerName &&
+          event.properties['X']?.url === xLink
+        );
+
+        if (justCreatedEvent) {
+          const registeredDate = new Date(justCreatedEvent.properties['予定日']?.date?.start);
+          const selectedDateStr = selectedDate.toISOString().split('T')[0];
+          const registeredDateStr = registeredDate.toISOString().split('T')[0];
+
+          // 日付ズレ検知
+          if (selectedDateStr !== registeredDateStr) {
+            await sendChatWorkAlert({
+              type: 'date_mismatch',
+              data: {
+                selectedDate: bookingDataObj.date,
+                registeredDate: registeredDateStr,
+                customerName: customerName,
+                time: selectedTime
+              }
+            });
+          }
+        }
+
         const bookingKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}-${selectedTime}`;
         setBookingData(prev => ({
           ...prev,
@@ -433,8 +571,6 @@ const EnhancedNotionBooking = () => {
         setShowBookingForm(false);
         setShowTimeSlots(false);
         setShowConfirmation(true);
-
-        await fetchNotionCalendar();
       } else {
         alert('予約の作成に失敗しました。もう一度お試しください。');
       }
@@ -576,6 +712,35 @@ const EnhancedNotionBooking = () => {
 
           {/* メインコンテンツ */}
           <div className="p-3 space-y-2">
+            {/* システムエラー画面 */}
+            {!systemStatus.healthy && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+                <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl">
+                  <div className="text-6xl mb-4">⚠️</div>
+                  <h2 className="text-2xl font-bold text-red-600 mb-4">
+                    システムメンテナンス中
+                  </h2>
+                  <p className="text-gray-700 mb-6">
+                    {systemStatus.message}<br/>
+                    ただいまシステムの不具合により、予約を一時停止しております。<br/>
+                    しばらく時間をおいてから再度アクセスしてください。
+                  </p>
+                  {systemStatus.lastChecked && (
+                    <p className="text-sm text-gray-500 mb-4">
+                      最終確認: {systemStatus.lastChecked.toLocaleTimeString('ja-JP')}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <i className="fas fa-sync-alt mr-2"></i>
+                    再読み込み
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 予約完了画面 */}
             {showConfirmation && completedBooking && (
               <div className="space-y-6">
@@ -807,8 +972,8 @@ const EnhancedNotionBooking = () => {
                                   </div>
                                 </div>
                               )}
-                              {/* 祝日・満員表示 */}
-                              {(isHoliday(date) || status === 'full') && (
+                              {/* 祝日表示のみ */}
+                              {isHoliday(date) && (
                                 <div className="flex flex-col items-center justify-center text-center">
                                   <span className="text-3xl mb-1">{getDateStatusIcon(status)}</span>
                                   <span className="text-xs font-medium text-gray-600">{getDateStatusText(status)}</span>
