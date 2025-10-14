@@ -441,8 +441,8 @@ const EnhancedNotionBooking = () => {
         existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
       }
 
-      const blockStart = new Date(existingStart.getTime() - 2 * 60 * 60 * 1000);
-      const blockEnd = new Date(existingEnd.getTime() + 2 * 60 * 60 * 1000);
+      const blockStart = new Date(existingStart.getTime() - 3 * 60 * 60 * 1000);
+      const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
 
       const isBlocked = (blockStart < slotEnd && blockEnd > slotStart);
       return isBlocked;
@@ -471,7 +471,7 @@ const EnhancedNotionBooking = () => {
       dayStart.setHours(0, 0, 0, 0);
 
       const blockStart = dayStart;
-      const blockEnd = new Date(existingEnd.getTime() + 2 * 60 * 60 * 1000);
+      const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
 
       const isBlocked = (blockStart < slotEnd && blockEnd > slotStart);
       return isBlocked;
