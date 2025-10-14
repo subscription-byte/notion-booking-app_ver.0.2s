@@ -217,6 +217,36 @@ const EnhancedNotionBooking = () => {
         lastChecked: new Date()
       });
 
+      // テスト通知検知（厳密一致のみ）
+      const testEvents = data.results.filter(event => {
+        const name = event.properties['名前']?.title?.[0]?.text?.content;
+        return name === 'テスト：システムエラー' || name === 'テスト：日付ズレ';
+      });
+
+      for (const testEvent of testEvents) {
+        const name = testEvent.properties['名前']?.title?.[0]?.text?.content;
+
+        if (name === 'テスト：システムエラー') {
+          await sendChatWorkAlert({
+            type: 'system_error',
+            data: {
+              errorMessage: 'これはテスト通知です（システムエラー）',
+              timestamp: new Date().toLocaleString('ja-JP')
+            }
+          });
+        } else if (name === 'テスト：日付ズレ') {
+          await sendChatWorkAlert({
+            type: 'date_mismatch',
+            data: {
+              selectedDate: '2025-10-10',
+              registeredDate: '2025-10-11',
+              customerName: 'テストユーザー',
+              time: '14:00'
+            }
+          });
+        }
+      }
+
     } catch (error) {
       console.error('Notionカレンダーの取得に失敗:', error);
       setNotionEvents([]);
