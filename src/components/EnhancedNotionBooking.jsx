@@ -180,6 +180,7 @@ const EnhancedNotionBooking = () => {
       }
 
       const data = await response.json();
+      const fetchedEvents = data.results || [];
 
       // データ検証
       const validation = validateNotionData(
@@ -210,7 +211,7 @@ const EnhancedNotionBooking = () => {
         return;
       }
 
-      setNotionEvents(data.results || []);
+      setNotionEvents(fetchedEvents);
       setSystemStatus({
         healthy: true,
         message: '',
@@ -218,7 +219,7 @@ const EnhancedNotionBooking = () => {
       });
 
       // テスト通知検知（厳密一致のみ、1回のみ送信）
-      const testEvents = data.results.filter(event => {
+      const testEvents = fetchedEvents.filter(event => {
         const name = event.properties['名前']?.title?.[0]?.text?.content;
         return name === 'テスト：システムエラー' || name === 'テスト：日付ズレ';
       });
@@ -296,6 +297,8 @@ const EnhancedNotionBooking = () => {
       if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
         alert('ただいまサイト情報の更新中です。お手数をおかけいたしますが、数分後に再度お試しください。');
       }
+
+      return [];
     } finally {
       setIsLoading(false);
       setIsInitialLoading(false);
@@ -394,7 +397,8 @@ const EnhancedNotionBooking = () => {
     }
   }, [weekDates, isInitialLoading]);
 
-  const getBookingStatus = (date, time) => {
+  const getBookingStatus = (date, time, eventsToCheck = null) => {
+    const events = eventsToCheck || notionEvents;
     if (isHoliday(date)) {
       return 'holiday';
     }
@@ -424,8 +428,8 @@ const EnhancedNotionBooking = () => {
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
 
-    // 対面通話の前後2時間をブロック
-    const hasBlockedTimeForInPerson = notionEvents.some(event => {
+    // 対面通話の前後3時間をブロック
+    const hasBlockedTimeForInPerson = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
       const callMethod = event.properties['通話方法']?.select?.name;
@@ -444,14 +448,14 @@ const EnhancedNotionBooking = () => {
       const blockStart = new Date(existingStart.getTime() - 3 * 60 * 60 * 1000);
       const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
 
-      const isBlocked = (blockStart < slotEnd && blockEnd > slotStart);
+      const isBlocked = (blockStart <= slotEnd && blockEnd >= slotStart);
       return isBlocked;
     });
 
     if (hasBlockedTimeForInPerson) return 'booked';
 
-    // 撮影の前はすべて・後は2時間をブロック
-    const hasBlockedTimeForShooting = notionEvents.some(event => {
+    // 撮影の前はすべて・後は3時間をブロック
+    const hasBlockedTimeForShooting = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
       const callMethod = event.properties['通話方法']?.select?.name;
@@ -473,13 +477,13 @@ const EnhancedNotionBooking = () => {
       const blockStart = dayStart;
       const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
 
-      const isBlocked = (blockStart < slotEnd && blockEnd > slotStart);
+      const isBlocked = (blockStart <= slotEnd && blockEnd >= slotStart);
       return isBlocked;
     });
 
     if (hasBlockedTimeForShooting) return 'booked';
 
-    const hasNotionEvent = notionEvents.some(event => {
+    const hasNotionEvent = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
 
@@ -539,7 +543,7 @@ const EnhancedNotionBooking = () => {
   };
 
   const handleBooking = async () => {
-    await fetchNotionCalendar();
+    const latestEvents = await fetchNotionCalendar();
 
     if (isHoliday(selectedDate)) {
       alert('エラー: 祝日は予約できません。');
@@ -550,7 +554,7 @@ const EnhancedNotionBooking = () => {
       return;
     }
 
-    const currentStatus = getBookingStatus(selectedDate, selectedTime);
+    const currentStatus = getBookingStatus(selectedDate, selectedTime, latestEvents);
     if (currentStatus !== 'available') {
       alert('エラー: 選択した時間帯は既に予約済みです。他の時間を選択してください。');
       setShowBookingForm(false);
