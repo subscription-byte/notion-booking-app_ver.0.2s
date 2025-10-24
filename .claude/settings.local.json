@@ -14,7 +14,8 @@
       "Bash(npm start)",
       "Bash(cp:*)",
       "Read(//c/Users/ikoi2/Desktop/myfans関連/FantiaDM/DM可否判定/**)",
-      "Read(//c/Users/ikoi2/ZOOMログ/**)"
+      "Read(//c/Users/ikoi2/ZOOMログ/**)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": [],

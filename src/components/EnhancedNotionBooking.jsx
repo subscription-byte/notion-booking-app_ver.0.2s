@@ -411,8 +411,8 @@ const EnhancedNotionBooking = () => {
       return 'booked';
     }
 
-    // 水曜日12:00~14:00をブロック
-    if (dayOfWeek === 3 && timeHour >= 12 && timeHour < 14) {
+    // 水曜日13:00のみブロック
+    if (dayOfWeek === 3 && timeHour === 13) {
       return 'booked';
     }
 
