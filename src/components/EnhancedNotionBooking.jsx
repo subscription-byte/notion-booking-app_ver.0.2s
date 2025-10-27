@@ -361,13 +361,9 @@ const EnhancedNotionBooking = () => {
       // 経路タグがある場合は追加
       if (bookingData.routeTag) {
         properties['経路'] = {
-          rich_text: [
-            {
-              text: {
-                content: bookingData.routeTag
-              }
-            }
-          ]
+          select: {
+            name: bookingData.routeTag
+          }
         };
       }
 
