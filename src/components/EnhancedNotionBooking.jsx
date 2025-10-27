@@ -33,7 +33,7 @@ const EnhancedNotionBooking = () => {
     if (ref === 'personA') {
       setRouteTag('公認X');
     } else if (ref === 'personB') {
-      setRouteTag('まゆ紹介or加藤');
+      setRouteTag('まゆ紹介');
     }
   }, []);
 
@@ -1189,6 +1189,7 @@ const EnhancedNotionBooking = () => {
                       <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
                       Xリンク <span className="text-red-500 ml-1">*</span>
                     </label>
+                    <p className="text-sm text-gray-600 mb-2">（Xをお持ちでない場合はmyfansのリンクをご記入ください）</p>
                     <input
                       type="url"
                       value={xLink}
