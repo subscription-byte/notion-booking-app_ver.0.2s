@@ -24,6 +24,17 @@ const EnhancedNotionBooking = () => {
     lastChecked: null
   });
 
+  // URLパラメータから営業者タグを取得
+  const [salesPersonTag, setSalesPersonTag] = useState('');
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      setSalesPersonTag(ref);
+    }
+  }, []);
+
 
   const settings = {
     immediateButtonText: '今すぐ予約する',
@@ -345,6 +356,19 @@ const EnhancedNotionBooking = () => {
         }
       };
 
+      // 営業者タグがある場合は追加
+      if (bookingData.salesPersonTag) {
+        properties['営業者'] = {
+          rich_text: [
+            {
+              text: {
+                content: bookingData.salesPersonTag
+              }
+            }
+          ]
+        };
+      }
+
       const response = await fetch('/.netlify/functions/notion-create', {
         method: 'POST',
         headers: {
@@ -566,13 +590,14 @@ const EnhancedNotionBooking = () => {
 
     try {
       const bookingDataObj = {
-        date: selectedDate.getFullYear() + '-' + 
-              String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+        date: selectedDate.getFullYear() + '-' +
+              String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' +
               String(selectedDate.getDate()).padStart(2, '0'),
         time: selectedTime,
         customerName: customerName,
         xLink: xLink,
-        remarks: remarks
+        remarks: remarks,
+        salesPersonTag: salesPersonTag
       };
 
       const success = await createNotionEvent(bookingDataObj);
