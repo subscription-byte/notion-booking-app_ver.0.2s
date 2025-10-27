@@ -24,14 +24,16 @@ const EnhancedNotionBooking = () => {
     lastChecked: null
   });
 
-  // URLパラメータから営業者タグを取得
-  const [salesPersonTag, setSalesPersonTag] = useState('');
+  // URLパラメータから経路タグを取得
+  const [routeTag, setRouteTag] = useState('');
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
-    if (ref) {
-      setSalesPersonTag(ref);
+    if (ref === 'personA') {
+      setRouteTag('公認X');
+    } else if (ref === 'personB') {
+      setRouteTag('まゆ紹介or加藤');
     }
   }, []);
 
@@ -356,13 +358,13 @@ const EnhancedNotionBooking = () => {
         }
       };
 
-      // 営業者タグがある場合は追加
-      if (bookingData.salesPersonTag) {
-        properties['営業者'] = {
+      // 経路タグがある場合は追加
+      if (bookingData.routeTag) {
+        properties['経路'] = {
           rich_text: [
             {
               text: {
-                content: bookingData.salesPersonTag
+                content: bookingData.routeTag
               }
             }
           ]
@@ -597,7 +599,7 @@ const EnhancedNotionBooking = () => {
         customerName: customerName,
         xLink: xLink,
         remarks: remarks,
-        salesPersonTag: salesPersonTag
+        routeTag: routeTag
       };
 
       const success = await createNotionEvent(bookingDataObj);
