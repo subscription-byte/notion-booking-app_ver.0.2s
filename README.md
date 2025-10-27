@@ -1,6 +1,34 @@
-# Getting Started with Create React App
+# 予約システム - Notion連携予約アプリ
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## 最新の変更点 (2025年10月27日)
+
+### 営業者ごとのタグ付け機能を追加
+
+複数の営業者が同じ予約ツールを使用できるよう、URLパスで営業者を識別し、Notionに自動でタグを付ける機能を実装しました。
+
+**機能概要**:
+- URLパスで営業者を識別
+- Notionの「経路」列（select型）に自動タグ付け
+- 同じコードベースで複数の営業経路に対応
+
+**アクセスURL**:
+- 通常: `https://mfagencybooking.netlify.app/` → タグなし
+- PersonA: `https://mfagencybooking.netlify.app/personA` → 「公認X」タグ
+- PersonB: `https://mfagencybooking.netlify.app/personB` → 「まゆ紹介or加藤」タグ
+
+**実装内容**:
+1. `public/_redirects` ファイルでNetlifyリダイレクト設定
+2. URLパラメータ `ref` を取得してタグに変換
+3. Notion APIでselectプロパティとして送信
+
+**技術的詳細**:
+- Notionのselectプロパティは `{ select: { name: "値" } }` の形式
+- rich_textプロパティは `{ rich_text: [{ text: { content: "値" } }] }` の形式
+- リダイレクトステータス: 302（一時的リダイレクト）
+
+---
 
 ## Available Scripts
 
