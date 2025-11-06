@@ -10,6 +10,7 @@ const NotionBookingSystem = () => {
   const [remarks, setRemarks] = useState(''); 
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
+  const [showConfirmScreen, setShowConfirmScreen] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedBooking, setCompletedBooking] = useState(null);
 
@@ -159,6 +160,13 @@ const NotionBookingSystem = () => {
   };
 
   const createNotionEvent = async (bookingData) => {
+    // 開発環境では常に成功を返す
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('開発環境: Notion API呼び出しをスキップ', bookingData);
+      await new Promise(resolve => setTimeout(resolve, 500)); // 疑似遅延
+      return true;
+    }
+
     try {
       const properties = {
         '名前': {
@@ -421,10 +429,11 @@ const NotionBookingSystem = () => {
       alert('データを読み込み中です。しばらくお待ちください。');
       return;
     }
-    
+
     const status = getBookingStatus(selectedDate, time);
     if (status === 'available') {
       setSelectedTime(time);
+      setShowTimeSlots(false);
       setShowBookingForm(true);
     } else {
       alert('選択した時間帯は予約できません。他の時間を選択してください。');
@@ -606,6 +615,135 @@ const NotionBookingSystem = () => {
 
         {/* メインコンテンツ */}
         <div className="p-6 space-y-6">
+          {/* 確認画面 */}
+          {showConfirmScreen && !showConfirmation && (
+            <div className="space-y-6">
+              <div className="flex items-center">
+                <button
+                  onClick={() => {
+                    setShowConfirmScreen(false);
+                    setShowBookingForm(true);
+                  }}
+                  className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
+                >
+                  <i className="fas fa-arrow-left"></i>
+                </button>
+                <h2 className="ml-4 text-2xl font-bold text-gradient">予約内容の確認</h2>
+              </div>
+
+              <div className="glassmorphism rounded-2xl p-8 shadow-2xl">
+                <div className="space-y-4 bg-white/50 backdrop-blur rounded-xl p-6">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 flex items-center">
+                      <i className="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                      日付
+                    </span>
+                    <span className="text-lg font-bold text-gray-800">
+                      {selectedDate && `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 (${getDayName(selectedDate)})`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 flex items-center">
+                      <i className="fas fa-clock mr-2 text-purple-500"></i>
+                      時間
+                    </span>
+                    <span className="text-lg font-bold text-gray-800">
+                      {selectedTime}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 flex items-center">
+                      <i className="fas fa-user mr-2 text-purple-500"></i>
+                      お名前
+                    </span>
+                    <span className="text-lg font-bold text-gray-800">
+                      {customerName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 flex items-center">
+                      <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
+                      Xリンク
+                    </span>
+                    <a
+                      href={xLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors break-all"
+                    >
+                      <i className="fas fa-external-link-alt mr-1 text-sm"></i>
+                      リンクを開く
+                    </a>
+                  </div>
+
+                  {remarks && (
+                    <div className="py-3">
+                      <span className="font-semibold text-gray-700 flex items-center mb-2">
+                        <i className="fas fa-comment-dots mr-2 text-purple-500"></i>
+                        備考
+                      </span>
+                      <p className="text-gray-800 bg-gray-50 rounded-lg p-3">
+                        {remarks}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* スクショ送付案内 */}
+                <div className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-300 rounded-xl p-6">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                        <i className="fas fa-camera text-white text-xl"></i>
+                      </div>
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <h3 className="text-lg font-bold text-orange-900 mb-2">
+                        重要：次のページのスクリーンショットを撮影してください
+                      </h3>
+                      <p className="text-orange-800 leading-relaxed">
+                        予約確定後に表示される完了画面のスクリーンショットを撮影し、担当者にお送りください。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowConfirmScreen(false);
+                    setShowBookingForm(true);
+                  }}
+                  className="flex-1 py-4 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-100 transition-all duration-300"
+                >
+                  <i className="fas fa-edit mr-2"></i>
+                  修正する
+                </button>
+                <button
+                  onClick={handleBooking}
+                  disabled={isLoading}
+                  className="flex-1 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+                >
+                  {isLoading ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin mr-2"></i>
+                      処理中...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check-circle mr-2"></i>
+                      予約を確定する
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* 予約完了画面 */}
           {showConfirmation && completedBooking && (
             <div className="space-y-6">
@@ -679,6 +817,32 @@ const NotionBookingSystem = () => {
                     )}
                   </div>
 
+                  {/* スクショ送付案内 */}
+                  <div className="mt-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-2xl p-6 shadow-xl">
+                    <div className="flex items-start mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                          <i className="fas fa-camera text-white text-2xl"></i>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-xl font-bold text-orange-900 mb-3">
+                          この画面のスクリーンショットを担当者へお送りください
+                        </h3>
+                        <div className="space-y-2 text-orange-800">
+                          <p className="flex items-start">
+                            <i className="fas fa-check-circle mt-1 mr-2 flex-shrink-0"></i>
+                            <span>この画面全体をスクリーンショットで撮影</span>
+                          </p>
+                          <p className="flex items-start">
+                            <i className="fas fa-check-circle mt-1 mr-2 flex-shrink-0"></i>
+                            <span>撮影した画像を担当者にお送りください</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="mt-8">
                     <button
                       onClick={() => {
@@ -701,7 +865,7 @@ const NotionBookingSystem = () => {
             </div>
           )}
 
-          {!showTimeSlots && !showBookingForm && !showConfirmation && (
+          {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
             <>
               {/* 週選択 */}
               <div className="glassmorphism rounded-2xl p-4 shadow-xl">
@@ -946,28 +1110,26 @@ const NotionBookingSystem = () => {
 
                 <div className="flex space-x-4">
                   <button
-                    onClick={() => setShowBookingForm(false)}
+                    onClick={() => {
+                      setShowBookingForm(false);
+                      setShowTimeSlots(true);
+                    }}
                     className="flex-1 py-4 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-100 transition-all duration-300"
                   >
                     <i className="fas fa-times mr-2"></i>
                     キャンセル
                   </button>
                   <button
-                    onClick={handleBooking}
-                    disabled={!customerName.trim() || !xLink.trim() || isLoading}
+                    onClick={() => {
+                      if (!customerName.trim() || !xLink.trim()) return;
+                      setShowBookingForm(false);
+                      setShowConfirmScreen(true);
+                    }}
+                    disabled={!customerName.trim() || !xLink.trim()}
                     className="flex-1 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
                   >
-                    {isLoading ? (
-                      <>
-                        <i className="fas fa-spinner fa-spin mr-2"></i>
-                        処理中...
-                      </>
-                    ) : (
-                      <>
-                        <i className="fas fa-check-circle mr-2"></i>
-                        予約確定
-                      </>
-                    )}
+                    <i className="fas fa-arrow-right mr-2"></i>
+                    確認画面へ
                   </button>
                 </div>
               </div>
