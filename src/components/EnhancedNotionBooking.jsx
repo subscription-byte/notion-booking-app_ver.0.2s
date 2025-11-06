@@ -786,7 +786,7 @@ const EnhancedNotionBooking = () => {
   };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overscroll-none">
       {/* Fluid Background Canvas */}
       <FluidCanvas />
 
@@ -1017,80 +1017,74 @@ const EnhancedNotionBooking = () => {
             {/* 予約完了画面 */}
             {showConfirmation && completedBooking && (
               <div className="space-y-6">
-                <div className="rounded-2xl p-8 shadow-2xl" style={{
+                <div className="rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
                 }}>
                   <div className="text-center">
-                    <div className="mb-6">
-                      <div className="w-24 h-24 bg-gradient-to-br from-pink-400 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-xl">
-                        <i className="fas fa-check text-white text-5xl"></i>
+                    <div className="mb-3 sm:mb-6">
+                      <div className="w-12 h-12 sm:w-24 sm:h-24 bg-gradient-to-br from-pink-400 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                        <i className="fas fa-check text-white text-2xl sm:text-5xl"></i>
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-bold text-black mb-4">予約が完了しました！</h2>
-                    
-                    <div className="bg-pink-100 border-2 border-pink-300 rounded-xl p-4 mb-6">
-                      <p className="text-pink-600 text-2xl font-bold text-center">
-                        この画面のスクリーンショットを<br />担当者までお送りください
-                      </p>
-                    </div>
+                    <h2 className="text-base sm:text-xl font-bold text-black mb-2 sm:mb-4">予約が完了しました！</h2>
 
-                    <div className="space-y-4 text-left bg-white/50 backdrop-blur rounded-xl p-6 mt-6">
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                    <div className="space-y-2 sm:space-y-4 text-left bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6 mt-3 sm:mt-6">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
+                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
+                          <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           日付
                         </span>
-                        <span className="text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg font-bold text-gray-800">
                           {completedBooking.year}年{completedBooking.month}月{completedBooking.day}日 ({completedBooking.dayName})
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-clock mr-2 text-purple-500"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
+                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
+                          <i className="fas fa-clock mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           時間
                         </span>
-                        <span className="text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg font-bold text-gray-800">
                           {completedBooking.time}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-user mr-2 text-purple-500"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
+                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
+                          <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           お名前
                         </span>
-                        <span className="text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg font-bold text-gray-800">
                           {completedBooking.customerName}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <span className="font-semibold text-gray-700 flex items-center">
-                          <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
+                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
+                          <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           Xリンク
                         </span>
                         <a
                           href={completedBooking.xLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                          className="text-sm sm:text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors"
                         >
-                          <i className="fas fa-external-link-alt mr-1 text-sm"></i>
+                          <i className="fas fa-external-link-alt mr-1 text-xs"></i>
                           リンクを開く
                         </a>
                       </div>
 
                       {completedBooking.remarks && (
-                        <div className="py-3">
-                          <span className="font-semibold text-gray-700 flex items-center mb-2">
-                            <i className="fas fa-comment-dots mr-2 text-purple-500"></i>
+                        <div className="py-1.5 sm:py-3">
+                          <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center mb-1 sm:mb-2">
+                            <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                             備考
                           </span>
-                          <p className="text-gray-800 bg-gray-50 rounded-lg p-3">
+                          <p className="text-xs sm:text-base text-gray-800 bg-gray-50 rounded-lg p-2 sm:p-3">
                             {completedBooking.remarks}
                           </p>
                         </div>
@@ -1098,19 +1092,19 @@ const EnhancedNotionBooking = () => {
                     </div>
 
                     {/* 共有ボタン */}
-                    <div className="mt-6 sm:mt-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl">
+                    <div className="mt-3 sm:mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 sm:border-3 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
                       <div className="text-center">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
-                          <i className="fas fa-share-alt text-white text-2xl sm:text-3xl"></i>
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
+                          <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                         </div>
-                        <h3 className="text-lg sm:text-xl font-bold text-orange-900 mb-2 sm:mb-3">
+                        <h3 className="text-sm sm:text-lg font-bold text-orange-900 mb-1.5 sm:mb-2">
                           予約情報を担当者へお送りください
                         </h3>
-                        <p className="text-sm sm:text-base text-orange-800 mb-3 sm:mb-4">
+                        <p className="text-xs sm:text-sm text-orange-800 mb-2 sm:mb-3">
                           下のボタンから予約情報をコピーして、担当者に送信できます
                         </p>
 
-                        <div className="space-y-2 sm:space-y-3">
+                        <div className="space-y-1.5 sm:space-y-2">
                           {/* コピーボタン */}
                           <button
                             onClick={() => {
@@ -1119,9 +1113,9 @@ const EnhancedNotionBooking = () => {
                               setShowCopyNotification(true);
                               setTimeout(() => setShowCopyNotification(false), 3000);
                             }}
-                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
+                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                           >
-                            <i className="fas fa-copy mr-2"></i>
+                            <i className="fas fa-copy mr-1 sm:mr-2"></i>
                             予約情報をコピー
                           </button>
 
@@ -1136,9 +1130,9 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 備考: ${completedBooking.remarks}` : ''}`;
                               window.open(`https://line.me/R/msg/text/?${encodeURIComponent(bookingText)}`, '_blank');
                             }}
-                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
+                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                           >
-                            <i className="fab fa-line mr-2"></i>
+                            <i className="fab fa-line mr-1 sm:mr-2"></i>
                             LINEで送る
                           </button>
 
@@ -1150,16 +1144,16 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                               alert('予約情報をコピーしました！\n\nこの後XのDM画面が開きます。\nメッセージ入力欄に貼り付けて送信してください。');
                               window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
                             }}
-                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
+                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                           >
-                            <i className="fab fa-x-twitter mr-2"></i>
+                            <i className="fab fa-x-twitter mr-1 sm:mr-2"></i>
                             Xで送る
                           </button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-8">
+                    <div className="mt-3 sm:mt-6">
                       <button
                         onClick={() => {
                           setShowConfirmation(false);
@@ -1170,9 +1164,9 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           setXLink('');
                           setRemarks('');
                         }}
-                        className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+                        className="px-4 sm:px-8 py-2 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                       >
-                        <i className="fas fa-home mr-2"></i>
+                        <i className="fas fa-home mr-1 sm:mr-2"></i>
                         トップに戻る
                       </button>
                     </div>
@@ -1184,7 +1178,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <>
                 {/* 週選択 */}
-                <div className="rounded-2xl p-4 shadow-xl" style={{
+                <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
@@ -1193,17 +1187,17 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     <button
                       onClick={() => handleWeekChange(weekOffset - 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-3 py-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="group px-2 sm:px-3 py-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95">
                       <div className="text-center">
                         <div className="text-xs">前週</div>
-                        <div className="text-sm">
-                          <i className="fas fa-chevron-left group-hover:-translate-x-1 transition-transform"></i>
+                        <div className="text-xs sm:text-sm">
+                          <i className="fas fa-chevron-left sm:group-hover:-translate-x-1 transition-transform"></i>
                         </div>
                       </div>
                     </button>
 
                     <div className="text-center">
-                      <div className="text-lg font-bold text-gradient">
+                      <div className="text-sm sm:text-lg font-bold text-gradient">
                         {weekDates && weekDates.length > 0 ? `${formatDate(weekDates[0])} - ${formatDate(weekDates[4])}` : '読み込み中...'}
                       </div>
                       <div className="text-xs text-gray-500 font-light">平日のみ表示</div>
@@ -1212,11 +1206,11 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     <button
                       onClick={() => handleWeekChange(weekOffset + 1)}
                       disabled={isInitialLoading || isWeekChanging}
-                      className="group px-3 py-1 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-lg text-sm font-medium shadow-lg hover:shadow-xl transform transition-all duration-300 hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="group px-2 sm:px-3 py-1 bg-gradient-to-r from-pink-500 to-pink-400 text-white rounded-lg text-xs sm:text-sm font-medium shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95">
                       <div className="text-center">
                         <div className="text-xs">翌週</div>
-                        <div className="text-sm">
-                          <i className="fas fa-chevron-right group-hover:translate-x-1 transition-transform"></i>
+                        <div className="text-xs sm:text-sm">
+                          <i className="fas fa-chevron-right sm:group-hover:translate-x-1 transition-transform"></i>
                         </div>
                       </div>
                     </button>
@@ -1224,48 +1218,48 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 {/* 凡例 */}
-                <div className="rounded-xl p-2 shadow-md" style={{
+                <div className="rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-md" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
                 }}>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-1 sm:gap-2">
                     <div className="flex items-center space-x-1">
-                      <span className="text-lg">✅</span>
+                      <span className="text-sm sm:text-lg">✅</span>
                       <span className="text-xs font-medium text-gray-700">空あり</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <span className="text-lg">⚠️</span>
+                      <span className="text-sm sm:text-lg">⚠️</span>
                       <span className="text-xs font-medium text-gray-700">残少</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <span className="text-lg">❌</span>
+                      <span className="text-sm sm:text-lg">❌</span>
                       <span className="text-xs font-medium text-gray-700">満員</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <span className="text-lg">🚫</span>
+                      <span className="text-sm sm:text-lg">🚫</span>
                       <span className="text-xs font-medium text-gray-700">休業</span>
                     </div>
                   </div>
                 </div>
 
                 {/* 日付選択 */}
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
 
                   {(isInitialLoading || isWeekChanging) && (
-                    <div className="rounded-2xl p-8 text-center animate-pulse" style={{
+                    <div className="rounded-lg sm:rounded-xl p-4 sm:p-8 text-center animate-pulse" style={{
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 192, 203, 0.3)'
                     }}>
                       <div className="inline-block">
-                        <div className="w-16 h-16 border-4 border-pink-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-gradient font-semibold">データを読み込んでいます...</p>
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-pink-400 border-t-transparent rounded-full animate-spin mx-auto mb-2 sm:mb-4"></div>
+                        <p className="text-gradient font-semibold text-xs sm:text-base">データを読み込んでいます...</p>
                       </div>
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {weekDates.map((date, index) => {
                       const status = getDateStatus(date);
                       const isDisabled = isInitialLoading || isWeekChanging || isHoliday(date) || status === 'full';
@@ -1275,12 +1269,12 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           key={index}
                           onClick={() => handleDateSelect(date)}
                           disabled={isDisabled}
-                          className={`w-full p-3 rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'transform hover:scale-[1.02]'}`}
+                          className={`w-full p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'active:scale-[0.98] sm:hover:scale-[1.02]'}`}
                         >
                           <div className="flex items-center">
-                            <div className="text-left px-3">
-                              <div className="text-sm font-medium text-gray-500">2025年</div>
-                              <div className="text-lg font-bold text-gray-800">{formatDate(date)}</div>
+                            <div className="text-left px-2 sm:px-3">
+                              <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
+                              <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
                               <div className="text-sm font-medium text-gray-600 text-center">({getDayName(date)})</div>
                             </div>
                             <div className="flex-1 pl-6 pr-3">
