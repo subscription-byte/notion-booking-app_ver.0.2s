@@ -829,7 +829,7 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
+        <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto', transform: 'scale(0.85)', transformOrigin: 'top center' }}>
           {/* ヘッダー */}
           <div className="sticky top-0 z-50 shadow-2xl" style={{
             background: 'rgba(255, 255, 255, 0.95)',
@@ -1386,89 +1386,89 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 予約フォーム */}
             {showBookingForm && (
-              <div className="space-y-6">
+              <div className="space-y-3 sm:space-y-6">
                 <div className="flex items-center">
                   <button
                     onClick={() => {
                       setShowBookingForm(false);
                       setSelectedTime(null);
                     }}
-                    className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
+                    className="p-2 sm:p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95 sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-110"
                   >
-                    <i className="fas fa-arrow-left"></i>
+                    <i className="fas fa-arrow-left text-sm sm:text-base"></i>
                   </button>
-                  <h2 className="ml-4 text-2xl font-bold text-gradient">予約情報入力</h2>
+                  <h2 className="ml-2 sm:ml-4 text-base sm:text-2xl font-bold text-gradient">予約情報入力</h2>
                 </div>
 
-                <div className="glassmorphism rounded-2xl p-6 shadow-xl">
-                  <div className="text-lg font-bold text-purple-800 mb-3">予約内容確認</div>
-                  <div className="space-y-2 text-gray-700">
+                <div className="glassmorphism rounded-lg sm:rounded-2xl p-3 sm:p-6 shadow-xl">
+                  <div className="text-sm sm:text-lg font-bold text-purple-800 mb-2 sm:mb-3">予約内容確認</div>
+                  <div className="space-y-1 sm:space-y-2 text-gray-700 text-xs sm:text-base">
                     <div className="flex items-center">
-                      <i className="fas fa-calendar-alt mr-3 text-purple-500"></i>
+                      <i className="fas fa-calendar-alt mr-2 sm:mr-3 text-purple-500 text-xs sm:text-base"></i>
                       {selectedDate && formatFullDate(selectedDate)} ({selectedDate && getDayName(selectedDate)})
                     </div>
                     <div className="flex items-center">
-                      <i className="fas fa-clock mr-3 text-purple-500"></i>
+                      <i className="fas fa-clock mr-2 sm:mr-3 text-purple-500 text-xs sm:text-base"></i>
                       {selectedTime}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-3 sm:space-y-6">
                   <div>
-                    <label className="block text-gray-700 font-bold mb-3 flex items-center">
-                      <i className="fas fa-user mr-2 text-purple-500"></i>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                       お名前 <span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full p-4 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-lg bg-white/80 backdrop-blur"
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
                       placeholder="お名前を入力してください"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-bold mb-3 flex items-center">
-                      <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                       Xリンク <span className="text-red-500 ml-1">*</span>
                     </label>
-                    <p className="text-sm text-gray-600 mb-2">（Xをお持ちでない場合はmyfansのリンクをご記入ください）</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">（Xをお持ちでない場合はmyfansのリンクをご記入ください）</p>
                     <input
                       type="url"
                       value={xLink}
                       onChange={(e) => setXLink(e.target.value)}
-                      className="w-full p-4 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-lg bg-white/80 backdrop-blur"
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
                       placeholder="https://x.com/username"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-bold mb-3 flex items-center">
-                      <i className="fas fa-comment-dots mr-2 text-purple-500"></i>
-                      備考 <span className="text-gray-400 text-sm ml-2">(任意)</span>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      備考 <span className="text-gray-400 text-xs sm:text-sm ml-2">(任意)</span>
                     </label>
                     <textarea
                       value={remarks}
                       onChange={(e) => setRemarks(e.target.value)}
-                      className="w-full p-4 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-lg bg-white/80 backdrop-blur resize-none"
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur resize-none"
                       placeholder="ご要望や連絡事項がありましたらご記入ください"
                       rows="3"
                     />
                   </div>
 
-                  <div className="flex space-x-4">
+                  <div className="flex space-x-2 sm:space-x-4">
                     <button
                       onClick={() => {
                         setShowBookingForm(false);
                         setShowTimeSlots(true);
                       }}
-                      className="flex-1 py-4 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-100 transition-all duration-300"
+                      className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-sm sm:text-lg active:bg-gray-100 sm:hover:bg-gray-100 transition-all duration-300"
                     >
-                      <i className="fas fa-times mr-2"></i>
+                      <i className="fas fa-times mr-1 sm:mr-2"></i>
                       キャンセル
                     </button>
                     <button
@@ -1478,9 +1478,9 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         setShowConfirmScreen(true);
                       }}
                       disabled={!customerName.trim() || !xLink.trim()}
-                      className="flex-1 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+                      className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
-                      <i className="fas fa-arrow-right mr-2"></i>
+                      <i className="fas fa-arrow-right mr-1 sm:mr-2"></i>
                       確認画面へ
                     </button>
                   </div>
