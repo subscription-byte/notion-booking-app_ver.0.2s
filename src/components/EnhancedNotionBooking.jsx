@@ -829,7 +829,7 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-lg mx-auto" style={{ pointerEvents: 'auto' }}>
+        <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
           {/* ヘッダー */}
           <div className="sticky top-0 z-50 shadow-2xl" style={{
             background: 'rgba(255, 255, 255, 0.95)',
@@ -837,21 +837,21 @@ const EnhancedNotionBooking = () => {
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 192, 203, 0.3)'
           }}>
-            <div className="p-3" style={{
+            <div className="p-3 sm:p-4" style={{
               background: 'linear-gradient(135deg, rgba(255, 192, 203, 0.2), rgba(255, 218, 185, 0.2))'
             }}>
               <div className="text-center">
-                <h1 className="text-2xl font-bold tracking-wide mb-1 animate-float" style={{
+                <h1 className="text-xl sm:text-2xl font-bold tracking-wide mb-1 animate-float" style={{
                   background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
                   textShadow: '0 0 20px rgba(255, 105, 180, 0.3)'
                 }}>
-                  <i className="fas fa-calendar-alt mr-2" style={{color: '#ff69b4'}}></i>
+                  <i className="fas fa-calendar-alt mr-2 text-sm sm:text-base" style={{color: '#ff69b4'}}></i>
                   {settings.systemTitle}
                 </h1>
-                <p className="text-pink-600 text-xs font-light tracking-wide">{settings.description}</p>
+                <p className="text-pink-600 text-xs sm:text-sm font-light tracking-wide">{settings.description}</p>
               </div>
             </div>
 
@@ -862,7 +862,7 @@ const EnhancedNotionBooking = () => {
           </div>
 
           {/* メインコンテンツ */}
-          <div className="p-3 space-y-2">
+          <div className="p-2 sm:p-4 space-y-3 sm:space-y-4">
             {/* システムエラー画面 */}
             {!systemStatus.healthy && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
@@ -1098,19 +1098,19 @@ const EnhancedNotionBooking = () => {
                     </div>
 
                     {/* 共有ボタン */}
-                    <div className="mt-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-2xl p-6 shadow-xl">
+                    <div className="mt-6 sm:mt-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl">
                       <div className="text-center">
-                        <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                          <i className="fas fa-share-alt text-white text-3xl"></i>
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+                          <i className="fas fa-share-alt text-white text-2xl sm:text-3xl"></i>
                         </div>
-                        <h3 className="text-xl font-bold text-orange-900 mb-3">
+                        <h3 className="text-lg sm:text-xl font-bold text-orange-900 mb-2 sm:mb-3">
                           予約情報を担当者へお送りください
                         </h3>
-                        <p className="text-orange-800 mb-4">
+                        <p className="text-sm sm:text-base text-orange-800 mb-3 sm:mb-4">
                           下のボタンから予約情報をコピーして、担当者に送信できます
                         </p>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {/* コピーボタン */}
                           <button
                             onClick={() => {
@@ -1119,7 +1119,7 @@ const EnhancedNotionBooking = () => {
                               setShowCopyNotification(true);
                               setTimeout(() => setShowCopyNotification(false), 3000);
                             }}
-                            className="w-full py-4 px-6 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
                           >
                             <i className="fas fa-copy mr-2"></i>
                             予約情報をコピー
@@ -1136,7 +1136,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 備考: ${completedBooking.remarks}` : ''}`;
                               window.open(`https://line.me/R/msg/text/?${encodeURIComponent(bookingText)}`, '_blank');
                             }}
-                            className="w-full py-4 px-6 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
                           >
                             <i className="fab fa-line mr-2"></i>
                             LINEで送る
@@ -1150,7 +1150,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                               alert('予約情報をコピーしました！\n\nこの後XのDM画面が開きます。\nメッセージ入力欄に貼り付けて送信してください。');
                               window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
                             }}
-                            className="w-full py-4 px-6 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+                            className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 active:scale-95 sm:hover:scale-105"
                           >
                             <i className="fab fa-x-twitter mr-2"></i>
                             Xで送る
