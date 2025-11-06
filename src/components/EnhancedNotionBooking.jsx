@@ -837,18 +837,18 @@ const EnhancedNotionBooking = () => {
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 192, 203, 0.3)'
           }}>
-            <div className="p-3 sm:p-4" style={{
+            <div className="p-2 sm:p-4" style={{
               background: 'linear-gradient(135deg, rgba(255, 192, 203, 0.2), rgba(255, 218, 185, 0.2))'
             }}>
               <div className="text-center">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-wide mb-1 animate-float" style={{
+                <h1 className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1 animate-float" style={{
                   background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
                   textShadow: '0 0 20px rgba(255, 105, 180, 0.3)'
                 }}>
-                  <i className="fas fa-calendar-alt mr-2 text-sm sm:text-base" style={{color: '#ff69b4'}}></i>
+                  <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-sm sm:text-base" style={{color: '#ff69b4'}}></i>
                   {settings.systemTitle}
                 </h1>
                 <p className="text-pink-600 text-xs sm:text-sm font-light tracking-wide">{settings.description}</p>
@@ -862,7 +862,7 @@ const EnhancedNotionBooking = () => {
           </div>
 
           {/* メインコンテンツ */}
-          <div className="p-2 sm:p-4 space-y-3 sm:space-y-4">
+          <div className="p-1.5 sm:p-4 space-y-2 sm:space-y-4">
             {/* システムエラー画面 */}
             {!systemStatus.healthy && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
@@ -905,51 +905,51 @@ const EnhancedNotionBooking = () => {
                   >
                     <i className="fas fa-arrow-left"></i>
                   </button>
-                  <h2 className="ml-4 text-2xl font-bold text-gradient">予約内容の確認</h2>
+                  <h2 className="ml-3 sm:ml-4 text-lg sm:text-2xl font-bold text-gradient">予約内容の確認</h2>
                 </div>
 
-                <div className="glassmorphism rounded-2xl p-8 shadow-2xl">
-                  <div className="space-y-4 bg-white/50 backdrop-blur rounded-xl p-6">
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                      <span className="font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
+                  <div className="space-y-2 sm:space-y-4 bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-calendar-alt mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         日付
                       </span>
-                      <span className="text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg font-bold text-gray-800">
                         {selectedDate && `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 (${getDayName(selectedDate)})`}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                      <span className="font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-clock mr-2 text-purple-500"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-clock mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         時間
                       </span>
-                      <span className="text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg font-bold text-gray-800">
                         {selectedTime}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                      <span className="font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-user mr-2 text-purple-500"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-user mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         お名前
                       </span>
-                      <span className="text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg font-bold text-gray-800">
                         {customerName}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                      <span className="font-semibold text-gray-700 flex items-center">
-                        <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         Xリンク
                       </span>
                       <a
                         href={xLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors break-all"
+                        className="text-sm sm:text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors break-all"
                       >
                         <i className="fas fa-external-link-alt mr-1 text-sm"></i>
                         リンクを開く
@@ -970,33 +970,33 @@ const EnhancedNotionBooking = () => {
                   </div>
 
                   {/* 共有案内 */}
-                  <div className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-300 rounded-xl p-6">
+                  <div className="mt-3 sm:mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-300 rounded-lg sm:rounded-xl p-3 sm:p-6">
                     <div className="text-center">
-                      <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <i className="fas fa-share-alt text-white text-2xl"></i>
+                      <div className="w-10 h-10 sm:w-14 sm:h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
+                        <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                       </div>
-                      <p className="text-orange-800 leading-relaxed">
+                      <p className="text-sm sm:text-base text-orange-800 leading-relaxed">
                         予約情報は次のページの共有ボタンより<br />担当者までお送りください
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex space-x-4">
+                <div className="flex space-x-2 sm:space-x-4">
                   <button
                     onClick={() => {
                       setShowConfirmScreen(false);
                       setShowBookingForm(true);
                     }}
-                    className="flex-1 py-4 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:bg-gray-100 transition-all duration-300"
+                    className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-sm sm:text-lg hover:bg-gray-100 transition-all duration-300"
                   >
-                    <i className="fas fa-edit mr-2"></i>
+                    <i className="fas fa-edit mr-1 sm:mr-2 text-xs sm:text-base"></i>
                     修正する
                   </button>
                   <button
                     onClick={handleBooking}
                     disabled={isLoading}
-                    className="flex-1 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+                    className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 active:scale-95 sm:hover:scale-105 disabled:hover:scale-100"
                   >
                     {isLoading ? (
                       <>
