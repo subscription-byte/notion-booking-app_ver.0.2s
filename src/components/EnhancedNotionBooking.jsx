@@ -829,7 +829,7 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto', transform: 'scale(0.85)', transformOrigin: 'top center' }}>
+        <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
           {/* ヘッダー */}
           <div className="sticky top-0 z-50 shadow-2xl" style={{
             background: 'rgba(255, 255, 255, 0.95)',
@@ -1176,7 +1176,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             )}
 
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
-              <>
+              <div style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -1315,7 +1315,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     })}
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {/* 時間選択画面 */}
