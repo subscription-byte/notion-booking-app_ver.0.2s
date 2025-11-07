@@ -2,13 +2,20 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## 最新の変更点 (2025年10月27日)
+## 概要
 
-### 営業者ごとのタグ付け機能を追加
+Notion APIと連携したモバイルファースト対応の予約システムです。URLパスで営業者を識別し、自動でNotionに予約データを登録・管理できます。
 
-複数の営業者が同じ予約ツールを使用できるよう、URLパスで営業者を識別し、Notionに自動でタグを付ける機能を実装しました。
+## 主な機能
 
-**機能概要**:
+### 📅 予約管理
+- 平日のみ予約可能（祝日を自動除外）
+- 1時間単位の時間枠管理
+- リアルタイムで予約状況を表示
+- 固定ブロック時間設定（火曜11:00-16:00など）
+- 対面通話・撮影の前後ブロック機能
+
+### 🏷️ 営業経路タグ付け
 - URLパスで営業者を識別
 - Notionの「経路」列（select型）に自動タグ付け
 - 同じコードベースで複数の営業経路に対応
@@ -16,17 +23,96 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 **アクセスURL**:
 - 通常: `https://mfagencybooking.netlify.app/` → タグなし
 - PersonA: `https://mfagencybooking.netlify.app/personA` → 「公認X」タグ
-- PersonB: `https://mfagencybooking.netlify.app/personB` → 「まゆ紹介or加藤」タグ
+- PersonB: `https://mfagencybooking.netlify.app/personB` → 「まゆ紹介」タグ
 
-**実装内容**:
-1. `public/_redirects` ファイルでNetlifyリダイレクト設定
-2. URLパラメータ `ref` を取得してタグに変換
-3. Notion APIでselectプロパティとして送信
+### 📱 レスポンシブUI
+- モバイルファースト設計
+- ガラスモーフィズムデザイン
+- Fluid背景アニメーション
+- タッチ操作最適化
 
-**技術的詳細**:
-- Notionのselectプロパティは `{ select: { name: "値" } }` の形式
-- rich_textプロパティは `{ rich_text: [{ text: { content: "値" } }] }` の形式
-- リダイレクトステータス: 302（一時的リダイレクト）
+### 🔔 エラー検知・通知
+- システムエラー検知
+- 日付ズレ検知
+- ChatWork通知連携
+- データ検証機能
+
+### 📤 予約情報共有
+- LINE・X（Twitter）共有ボタン
+- ワンタップコピー機能
+- 予約完了画面から直接共有可能
+
+## 技術スタック
+
+### フロントエンド
+- **React** 19.1.0
+- **Tailwind CSS** 3.4.17
+- **Lucide React** (アイコン)
+- **Create React App** 5.0.1
+
+### バックエンド（Netlify Functions）
+- **Notion API** (データベース操作)
+- **ChatWork API** (通知機能)
+- Serverless Functions
+
+### ホスティング
+- **Netlify**
+- リダイレクト機能でURLパス管理
+
+## プロジェクト構成
+
+```
+booking-app/
+├── src/
+│   ├── components/
+│   │   ├── EnhancedNotionBooking.jsx  # メイン予約コンポーネント
+│   │   ├── FluidCanvas.jsx            # 背景アニメーション
+│   │   └── FluidBackground.jsx        # 背景ラッパー
+│   ├── App.js                          # アプリエントリーポイント
+│   └── index.js
+├── netlify/
+│   └── functions/
+│       ├── notion-create.js            # Notion予約作成API
+│       ├── notion-query.js             # Notionデータ取得API
+│       ├── notion-archive.js           # Notion予定削除API
+│       └── chatwork-notify.js          # ChatWork通知API
+├── public/
+│   └── _redirects                      # Netlifyリダイレクト設定
+└── package.json
+```
+
+## 環境変数
+
+`.env.local` に以下を設定:
+
+```
+NOTION_TOKEN=your_notion_integration_token
+CHATWORK_API_TOKEN=your_chatwork_api_token
+CHATWORK_ROOM_ID=your_chatwork_room_id
+```
+
+## Notion データベース構造
+
+**必須プロパティ**:
+- `名前` (title) - 予約者名
+- `予定日` (date) - 予約日時
+- `X` (url) - Xまたはmyfansリンク
+- `備考` (rich_text) - 備考
+- `経路` (select) - 営業経路タグ
+- `対応者` (people) - 担当者
+- `通話方法` (select) - 対面/撮影などの区分
+
+## 予約ロジック
+
+### ブロック時間ルール
+1. **火曜日**: 11:00-16:00 常にブロック
+2. **水曜日**: 13:00のみブロック
+3. **全日（火曜以外）**: 15:00-16:00ブロック
+4. **対面通話**: 前後3時間ブロック
+5. **撮影**: 当日すべて + 後3時間ブロック
+
+### 祝日管理
+2025年の祝日データをハードコーディング（[EnhancedNotionBooking.jsx](src/components/EnhancedNotionBooking.jsx):51-56）
 
 ---
 

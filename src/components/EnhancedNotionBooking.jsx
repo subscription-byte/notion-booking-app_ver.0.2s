@@ -480,13 +480,18 @@ const EnhancedNotionBooking = () => {
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
 
-    // 対面通話の前後3時間をブロック
+    // 対面通話の前後3時間をブロック（通話方法が「対面」または名前に「対面」が含まれる）
     const hasBlockedTimeForInPerson = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
       const callMethod = event.properties['通話方法']?.select?.name;
+      const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
 
-      if (!eventStart || callMethod !== '対面') return false;
+      if (!eventStart) return false;
+
+      // 通話方法が「対面」または名前に「対面」が含まれる
+      const isInPerson = callMethod === '対面' || eventName.includes('対面');
+      if (!isInPerson) return false;
 
       const existingStart = new Date(eventStart);
       let existingEnd;
@@ -506,13 +511,18 @@ const EnhancedNotionBooking = () => {
 
     if (hasBlockedTimeForInPerson) return 'booked';
 
-    // 撮影の前はすべて・後は3時間をブロック
+    // 撮影の前はすべて（12:00から）・後は3時間をブロック（通話方法が「撮影」または名前に「撮影」が含まれる）
     const hasBlockedTimeForShooting = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
       const callMethod = event.properties['通話方法']?.select?.name;
+      const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
 
-      if (!eventStart || callMethod !== '撮影') return false;
+      if (!eventStart) return false;
+
+      // 通話方法が「撮影」または名前に「撮影」が含まれる
+      const isShooting = callMethod === '撮影' || eventName.includes('撮影');
+      if (!isShooting) return false;
 
       const existingStart = new Date(eventStart);
       let existingEnd;
@@ -523,8 +533,9 @@ const EnhancedNotionBooking = () => {
         existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
       }
 
+      // 12:00から撮影終了時刻まで + 後3時間をブロック
       const dayStart = new Date(existingStart);
-      dayStart.setHours(0, 0, 0, 0);
+      dayStart.setHours(12, 0, 0, 0);
 
       const blockStart = dayStart;
       const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
