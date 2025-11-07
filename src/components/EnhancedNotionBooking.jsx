@@ -797,7 +797,7 @@ const EnhancedNotionBooking = () => {
   };
 
   return (
-    <div className="min-h-screen relative overscroll-none">
+    <div className="min-h-screen relative overflow-hidden overscroll-none touch-pan-y" style={{ overscrollBehavior: 'none' }}>
       {/* Fluid Background Canvas */}
       <FluidCanvas />
 
@@ -1187,7 +1187,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             )}
 
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
-              <div style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
+              <div className="scale-90 sm:scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -1331,7 +1331,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 時間選択画面 */}
             {showTimeSlots && !showBookingForm && (
-              <div className="space-y-4">
+              <div className="space-y-4 scale-90 sm:scale-100" style={{ transformOrigin: 'top center' }}>
                 <div className="flex items-center">
                   <button
                     onClick={() => {
@@ -1413,13 +1413,13 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                 <div className="glassmorphism rounded-lg sm:rounded-2xl p-3 sm:p-6 shadow-xl">
                   <div className="text-sm sm:text-lg font-bold text-purple-800 mb-2 sm:mb-3">予約内容確認</div>
-                  <div className="space-y-1 sm:space-y-2 text-gray-700 text-xs sm:text-base">
-                    <div className="flex items-center">
-                      <i className="fas fa-calendar-alt mr-2 sm:mr-3 text-purple-500 text-xs sm:text-base"></i>
+                  <div className="space-y-1 sm:space-y-2 text-gray-700">
+                    <div className="flex items-center text-base sm:text-lg">
+                      <i className="fas fa-calendar-alt mr-2 sm:mr-3 text-purple-500"></i>
                       {selectedDate && formatFullDate(selectedDate)} ({selectedDate && getDayName(selectedDate)})
                     </div>
-                    <div className="flex items-center">
-                      <i className="fas fa-clock mr-2 sm:mr-3 text-purple-500 text-xs sm:text-base"></i>
+                    <div className="flex items-center text-base sm:text-lg">
+                      <i className="fas fa-clock mr-2 sm:mr-3 text-purple-500"></i>
                       {selectedTime}
                     </div>
                   </div>
@@ -1498,20 +1498,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
               </div>
             )}
-          </div>
-
-          {/* フッター */}
-          <div className="mt-12 p-6 glassmorphism">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-gray-600">
-                <i className="fas fa-info-circle mr-2"></i>
-                予約は1時間単位です（平日のみ）
-              </p>
-              <p className="text-sm text-gray-600">
-                <i className="fas fa-clock mr-2"></i>
-                営業時間：{settings.startHour}:00 - {settings.endHour}:00
-              </p>
-            </div>
           </div>
         </div>
       </div>
