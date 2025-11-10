@@ -6,6 +6,19 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 Notion APIと連携したモバイルファースト対応の予約システムです。URLパスで営業者を識別し、自動でNotionに予約データを登録・管理できます。
 
+## 最新の変更履歴
+
+### 2025年11月10日
+- 名前欄に「撮影」「対面」が含まれる場合もブロック判定を適用
+- スマホ表示を90%縮小（PCは100%）
+- スクロールバウンスエフェクトを無効化
+- 予約情報入力画面の日時表示を拡大
+- フッター説明文を削除
+
+### 2025年10月27日
+- 営業者ごとのタグ付け機能を追加
+- URLパスで「公認X」「まゆ紹介」タグの自動設定
+
 ## 主な機能
 
 ### 📅 予約管理
@@ -113,6 +126,60 @@ CHATWORK_ROOM_ID=your_chatwork_room_id
 
 ### 祝日管理
 2025年の祝日データをハードコーディング（[EnhancedNotionBooking.jsx](src/components/EnhancedNotionBooking.jsx):51-56）
+
+---
+
+## 今後の追加予定機能
+
+### 🔐 LINEログイン認証
+- LINE Login APIを使用した認証システム
+- プロフィール情報（名前、アイコン）の自動取得
+- ユーザーIDをNotionに自動保存
+- 名前欄の自動入力（入力不要）
+
+**必要なもの**:
+- LINE Developers アカウント
+- LINE Messaging API チャネル作成
+- OAuth 2.0 フロー実装
+
+**影響範囲**:
+- 新規コンポーネント: `LineLogin.jsx`
+- 新規関数: `netlify/functions/line-auth.js`
+- 既存修正: `EnhancedNotionBooking.jsx`（30行程度の追加）
+
+### 🔔 予約完了通知の自動返送
+- LINE Messaging APIで予約完了時に自動通知
+- 予約情報をLINEメッセージで送信
+
+**必要なもの**:
+- ユーザーがLINE公式アカウントを友だち追加
+- LINE Messaging API（無料枠: 月1000通まで）
+
+**影響範囲**:
+- 新規関数: `netlify/functions/line-notify.js`
+- 既存修正: `EnhancedNotionBooking.jsx`（5-10行程度の追加）
+
+### ⏰ 予約リマインド機能
+- 予約日前日の通知
+- 予約日当日15分前の通知
+- Notion定期スクリーニング + LINE通知
+
+**実装方法**:
+- **GitHub Actions**（推奨・無料）
+  - 毎日定期実行でNotionをチェック
+  - 該当予約にLINE通知送信
+- **Netlify Scheduled Functions**（有料プラン必要）
+- **外部サービス**（Zapier/Make.com）
+
+**影響範囲**:
+- 新規ファイル: `.github/workflows/reminder.yml`
+- 新規スクリプト: `scripts/send-reminder.js`
+- 既存コードへの影響: **なし**（完全独立システム）
+
+### 💰 コスト概算
+- LINE Messaging API: 無料枠あり（月1000通まで）
+- GitHub Actions: 完全無料
+- Netlify Scheduled Functions: 有料プラン（月$19〜）※使用しない場合
 
 ---
 
