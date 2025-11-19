@@ -932,43 +932,43 @@ const EnhancedNotionBooking = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2 sm:space-y-4 bg-gray-100/70 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                  <div className="space-y-2 sm:space-y-4 bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
                       <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
-                        <i className="fas fa-calendar-alt mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                        <i className="fas fa-calendar-alt mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         日付
                       </span>
-                      <span className="text-sm sm:text-lg text-gray-600">
+                      <span className="text-sm sm:text-lg text-gray-500">
                         {selectedDate && `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 (${getDayName(selectedDate)})`}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
                       <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
-                        <i className="fas fa-clock mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                        <i className="fas fa-clock mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         時間
                       </span>
-                      <span className="text-sm sm:text-lg text-gray-600">
+                      <span className="text-sm sm:text-lg text-gray-500">
                         {selectedTime}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
                       <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
-                        <i className="fas fa-user mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                        <i className="fas fa-user mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         お名前
                       </span>
-                      <span className="text-sm sm:text-lg text-gray-600">
+                      <span className="text-sm sm:text-lg text-gray-500">
                         {customerName}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
                       <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
-                        <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                        <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         Xリンク
                       </span>
-                      <span className="text-xs sm:text-sm text-blue-500 break-all max-w-[60%] text-right">
+                      <span className="text-xs sm:text-sm text-blue-400 break-all max-w-[60%] text-right">
                         {xLink}
                       </span>
                     </div>
@@ -976,10 +976,10 @@ const EnhancedNotionBooking = () => {
                     {remarks && (
                       <div className="py-3">
                         <span className="font-semibold text-gray-500 flex items-center mb-2">
-                          <i className="fas fa-comment-dots mr-2 text-gray-400"></i>
+                          <i className="fas fa-comment-dots mr-2 text-purple-500"></i>
                           備考
                         </span>
-                        <p className="text-gray-600 bg-gray-50 rounded-lg p-3">
+                        <p className="text-gray-500 bg-gray-50 rounded-lg p-3">
                           {remarks}
                         </p>
                       </div>
@@ -1098,43 +1098,43 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       </div>
                     </div>
 
-                    <div className="space-y-2 sm:space-y-4 text-left bg-gray-100/70 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                    <div className="space-y-2 sm:space-y-4 text-left bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
                         <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
-                          <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                          <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           日付
                         </span>
-                        <span className="text-sm sm:text-lg text-gray-600">
+                        <span className="text-sm sm:text-lg text-gray-500">
                           {completedBooking.year}年{completedBooking.month}月{completedBooking.day}日 ({completedBooking.dayName})
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
                         <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
-                          <i className="fas fa-clock mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                          <i className="fas fa-clock mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           時間
                         </span>
-                        <span className="text-sm sm:text-lg text-gray-600">
+                        <span className="text-sm sm:text-lg text-gray-500">
                           {completedBooking.time}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
                         <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
-                          <i className="fas fa-user mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                          <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           お名前
                         </span>
-                        <span className="text-sm sm:text-lg text-gray-600">
+                        <span className="text-sm sm:text-lg text-gray-500">
                           {completedBooking.customerName}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
                         <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
-                          <i className="fab fa-x-twitter mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                          <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                           Xリンク
                         </span>
-                        <span className="text-xs sm:text-sm text-blue-500 break-all max-w-[60%] text-right">
+                        <span className="text-xs sm:text-sm text-blue-400 break-all max-w-[60%] text-right">
                           {completedBooking.xLink}
                         </span>
                       </div>
@@ -1142,10 +1142,10 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       {completedBooking.remarks && (
                         <div className="py-1.5 sm:py-3">
                           <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center mb-1 sm:mb-2">
-                            <i className="fas fa-comment-dots mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
+                            <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                             備考
                           </span>
-                          <p className="text-xs sm:text-base text-gray-600 bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <p className="text-xs sm:text-base text-gray-500 bg-gray-50 rounded-lg p-2 sm:p-3">
                             {completedBooking.remarks}
                           </p>
                         </div>
