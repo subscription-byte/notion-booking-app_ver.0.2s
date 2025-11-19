@@ -921,71 +921,65 @@ const EnhancedNotionBooking = () => {
 
                 <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
                   {/* 共有案内（最上部） */}
-                  <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-300 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                  <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg">
                     <div className="text-center">
                       <div className="w-10 h-10 sm:w-14 sm:h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
                         <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                       </div>
-                      <p className="text-sm sm:text-base text-orange-800 leading-relaxed font-bold">
-                        予約情報は次のページの共有ボタンより<br />担当者までお送りください
+                      <p className="text-base sm:text-lg text-black leading-relaxed font-bold">
+                        予約情報は<br />次ページ共有ボタンより<br />担当者へお送りください
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-2 sm:space-y-4 bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
-                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-calendar-alt mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                  <div className="space-y-2 sm:space-y-4 bg-gray-100/70 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                      <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
+                        <i className="fas fa-calendar-alt mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                         日付
                       </span>
-                      <span className="text-sm sm:text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg text-gray-600">
                         {selectedDate && `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 (${getDayName(selectedDate)})`}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
-                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-clock mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                      <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
+                        <i className="fas fa-clock mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                         時間
                       </span>
-                      <span className="text-sm sm:text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg text-gray-600">
                         {selectedTime}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
-                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
-                        <i className="fas fa-user mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                      <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
+                        <i className="fas fa-user mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                         お名前
                       </span>
-                      <span className="text-sm sm:text-lg font-bold text-gray-800">
+                      <span className="text-sm sm:text-lg text-gray-600">
                         {customerName}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
-                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
-                        <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-300">
+                      <span className="text-sm sm:text-base font-semibold text-gray-500 flex items-center">
+                        <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                         Xリンク
                       </span>
-                      <a
-                        href={xLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm sm:text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors break-all"
-                      >
-                        <i className="fas fa-external-link-alt mr-1 text-sm"></i>
-                        リンクを開く
-                      </a>
+                      <span className="text-xs sm:text-sm text-blue-500 break-all max-w-[60%] text-right">
+                        {xLink}
+                      </span>
                     </div>
 
                     {remarks && (
                       <div className="py-3">
-                        <span className="font-semibold text-gray-700 flex items-center mb-2">
-                          <i className="fas fa-comment-dots mr-2 text-purple-500"></i>
+                        <span className="font-semibold text-gray-500 flex items-center mb-2">
+                          <i className="fas fa-comment-dots mr-2 text-gray-400"></i>
                           備考
                         </span>
-                        <p className="text-gray-800 bg-gray-50 rounded-lg p-3">
+                        <p className="text-gray-600 bg-gray-50 rounded-lg p-3">
                           {remarks}
                         </p>
                       </div>
