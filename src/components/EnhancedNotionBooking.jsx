@@ -1037,16 +1037,16 @@ const EnhancedNotionBooking = () => {
                     <h2 className="text-base sm:text-xl font-bold text-black mb-2 sm:mb-4">予約が完了しました！</h2>
 
                     {/* 共有案内（最上部） */}
-                    <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 sm:border-3 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
+                    <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-3 border-orange-400 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-xl">
                       <div className="text-center">
                         <div className="w-8 h-8 sm:w-12 sm:h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
                           <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                         </div>
-                        <h3 className="text-sm sm:text-lg font-bold text-orange-900 mb-1.5 sm:mb-2">
+                        <h3 className="text-base sm:text-lg font-bold text-black mb-1.5 sm:mb-2">
                           予約情報を担当者へお送りください
                         </h3>
-                        <p className="text-xs sm:text-sm text-orange-800 mb-2 sm:mb-3">
-                          下のボタンから予約情報をコピーして、担当者に送信できます
+                        <p className="text-sm sm:text-base text-black mb-2 sm:mb-3">
+                          下のボタンから予約情報をコピーして<br />担当者に送信してください
                         </p>
 
                         <div className="space-y-1.5 sm:space-y-2">
@@ -1098,60 +1098,54 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       </div>
                     </div>
 
-                    <div className="space-y-2 sm:space-y-4 text-left bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
-                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                    <div className="space-y-2 sm:space-y-4 text-left bg-gray-100/70 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                        <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
+                          <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                           日付
                         </span>
-                        <span className="text-sm sm:text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg text-gray-600">
                           {completedBooking.year}年{completedBooking.month}月{completedBooking.day}日 ({completedBooking.dayName})
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
-                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-clock mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                        <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
+                          <i className="fas fa-clock mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                           時間
                         </span>
-                        <span className="text-sm sm:text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg text-gray-600">
                           {completedBooking.time}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
-                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
-                          <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                        <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
+                          <i className="fas fa-user mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                           お名前
                         </span>
-                        <span className="text-sm sm:text-lg font-bold text-gray-800">
+                        <span className="text-sm sm:text-lg text-gray-600">
                           {completedBooking.customerName}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
-                        <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center">
-                          <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-300">
+                        <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center">
+                          <i className="fab fa-x-twitter mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                           Xリンク
                         </span>
-                        <a
-                          href={completedBooking.xLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm sm:text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          <i className="fas fa-external-link-alt mr-1 text-xs"></i>
-                          リンクを開く
-                        </a>
+                        <span className="text-xs sm:text-sm text-blue-500 break-all max-w-[60%] text-right">
+                          {completedBooking.xLink}
+                        </span>
                       </div>
 
                       {completedBooking.remarks && (
                         <div className="py-1.5 sm:py-3">
-                          <span className="text-xs sm:text-base font-semibold text-gray-700 flex items-center mb-1 sm:mb-2">
-                            <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                          <span className="text-xs sm:text-base font-semibold text-gray-500 flex items-center mb-1 sm:mb-2">
+                            <i className="fas fa-comment-dots mr-1 sm:mr-2 text-gray-400 text-xs sm:text-base"></i>
                             備考
                           </span>
-                          <p className="text-xs sm:text-base text-gray-800 bg-gray-50 rounded-lg p-2 sm:p-3">
+                          <p className="text-xs sm:text-base text-gray-600 bg-gray-50 rounded-lg p-2 sm:p-3">
                             {completedBooking.remarks}
                           </p>
                         </div>
