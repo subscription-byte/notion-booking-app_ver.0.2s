@@ -443,10 +443,124 @@ const EnhancedNotionBooking = () => {
     ]);
   };
 
-  useEffect(() => {
-    if (weekDates && weekDates.length > 0 && isInitialLoading) {
-      fetchNotionCalendar(false);
+  // 指定した週に空きがあるかチェックする関数
+  const checkWeekHasAvailability = (dates, events) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const date of dates) {
+      // 今日より前の日付はスキップ
+      if (date < today) continue;
+
+      // 祝日はスキップ
+      if (isHoliday(date)) continue;
+
+      // その日の各時間枠をチェック
+      for (const time of timeSlots) {
+        const status = getBookingStatus(date, time, events);
+        if (status === 'available') {
+          return true;
+        }
+      }
     }
+    return false;
+  };
+
+  // 空きのある週を探す関数
+  const findWeekWithAvailability = async (startOffset = 0, maxWeeks = 12) => {
+    for (let offset = startOffset; offset < startOffset + maxWeeks; offset++) {
+      const today = new Date();
+      const currentDay = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+
+      const testWeekDates = [];
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        testWeekDates.push(date);
+      }
+
+      // この週のデータを取得
+      try {
+        const response = await fetch('/.netlify/functions/notion-query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            databaseId: CALENDAR_DATABASE_ID,
+            filter: {
+              and: [
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_after: testWeekDates[0].getFullYear() + '-' +
+                                String(testWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                                String(testWeekDates[0].getDate()).padStart(2, '0')
+                  }
+                },
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_before: testWeekDates[4].getFullYear() + '-' +
+                                 String(testWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                                 String(testWeekDates[4].getDate()).padStart(2, '0')
+                  }
+                }
+              ]
+            }
+          })
+        });
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const events = data.results || [];
+
+        // この週に空きがあるかチェック
+        if (checkWeekHasAvailability(testWeekDates, events)) {
+          return { offset, events, weekDates: testWeekDates };
+        }
+      } catch (error) {
+        console.error('週のチェックに失敗:', error);
+        continue;
+      }
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const initializeWithAvailableWeek = async () => {
+      if (!weekDates || weekDates.length === 0 || !isInitialLoading) return;
+
+      // 開発環境では通常通り
+      if (process.env.NODE_ENV !== 'production') {
+        fetchNotionCalendar(false);
+        return;
+      }
+
+      // 本番環境: 空きのある週を探す
+      const result = await findWeekWithAvailability(0);
+
+      if (result && result.offset !== 0) {
+        // 今週以外に空きが見つかった場合
+        setWeekOffset(result.offset);
+        setNotionEvents(result.events);
+        setSystemStatus({
+          healthy: true,
+          message: '',
+          lastChecked: new Date()
+        });
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      } else {
+        // 今週に空きがある、または見つからなかった場合は通常通り
+        fetchNotionCalendar(false);
+      }
+    };
+
+    initializeWithAvailableWeek();
   }, [weekDates, isInitialLoading]);
 
   const getBookingStatus = (date, time, eventsToCheck = null) => {
