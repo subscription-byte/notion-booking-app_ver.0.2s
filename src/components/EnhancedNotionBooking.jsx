@@ -17,6 +17,8 @@ const EnhancedNotionBooking = () => {
   const [showCopyNotification, setShowCopyNotification] = useState(false);
 
   const [notionEvents, setNotionEvents] = useState([]);
+  const [prevWeekEvents, setPrevWeekEvents] = useState([]);
+  const [nextWeekEvents, setNextWeekEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
@@ -25,6 +27,11 @@ const EnhancedNotionBooking = () => {
     message: '',
     lastChecked: null
   });
+
+  // スワイプ用のstate
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const swipeContainerRef = useRef(null);
 
   // URLパラメータから経路タグを取得
   const [routeTag, setRouteTag] = useState('');
@@ -149,6 +156,121 @@ const EnhancedNotionBooking = () => {
   const weekDates = getCurrentWeekDates();
   const timeSlots = generateTimeSlots(settings.startHour, settings.endHour);
 
+  // 前週・翌週の日付を計算
+  const getPrevWeekDates = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + 1 + ((weekOffset - 1) * 7));
+
+    const weekDates = [];
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      weekDates.push(date);
+    }
+    return weekDates;
+  };
+
+  const getNextWeekDates = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + 1 + ((weekOffset + 1) * 7));
+
+    const weekDates = [];
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      weekDates.push(date);
+    }
+    return weekDates;
+  };
+
+  const prevWeekDates = getPrevWeekDates();
+  const nextWeekDates = getNextWeekDates();
+
+  // 前週・翌週のデータを取得する関数
+  const fetchAdjacentWeeksData = async () => {
+    if (process.env.NODE_ENV !== 'production') {
+      setPrevWeekEvents([]);
+      setNextWeekEvents([]);
+      return;
+    }
+
+    try {
+      // 前週のデータ取得
+      const prevResponse = await fetch('/.netlify/functions/notion-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          databaseId: CALENDAR_DATABASE_ID,
+          filter: {
+            and: [
+              {
+                property: '予定日',
+                date: {
+                  on_or_after: prevWeekDates[0].getFullYear() + '-' +
+                              String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                              String(prevWeekDates[0].getDate()).padStart(2, '0')
+                }
+              },
+              {
+                property: '予定日',
+                date: {
+                  on_or_before: prevWeekDates[4].getFullYear() + '-' +
+                               String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                               String(prevWeekDates[4].getDate()).padStart(2, '0')
+                }
+              }
+            ]
+          }
+        })
+      });
+
+      if (prevResponse.ok) {
+        const prevData = await prevResponse.json();
+        setPrevWeekEvents(prevData.results || []);
+      }
+
+      // 翌週のデータ取得
+      const nextResponse = await fetch('/.netlify/functions/notion-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          databaseId: CALENDAR_DATABASE_ID,
+          filter: {
+            and: [
+              {
+                property: '予定日',
+                date: {
+                  on_or_after: nextWeekDates[0].getFullYear() + '-' +
+                              String(nextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                              String(nextWeekDates[0].getDate()).padStart(2, '0')
+                }
+              },
+              {
+                property: '予定日',
+                date: {
+                  on_or_before: nextWeekDates[4].getFullYear() + '-' +
+                               String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                               String(nextWeekDates[4].getDate()).padStart(2, '0')
+                }
+              }
+            ]
+          }
+        })
+      });
+
+      if (nextResponse.ok) {
+        const nextData = await nextResponse.json();
+        setNextWeekEvents(nextData.results || []);
+      }
+    } catch (error) {
+      console.error('前後週データの取得に失敗:', error);
+    }
+  };
+
   const fetchNotionCalendar = async (isWeekChange = false, targetWeekDates = null) => {
     // 開発環境ではNotion API呼び出しをスキップ
     if (process.env.NODE_ENV !== 'production') {
@@ -253,6 +375,9 @@ const EnhancedNotionBooking = () => {
         message: '',
         lastChecked: new Date()
       });
+
+      // 前後週のデータも取得
+      fetchAdjacentWeeksData();
 
       // テスト通知検知（厳密一致のみ、1回のみ送信）
       const testEvents = fetchedEvents.filter(event => {
@@ -441,6 +566,35 @@ const EnhancedNotionBooking = () => {
         resolve();
       })
     ]);
+  };
+
+  // スワイプハンドラー
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && !isInitialLoading && !isWeekChanging) {
+      // 左スワイプ = 翌週
+      handleWeekChange(weekOffset + 1);
+    }
+    if (isRightSwipe && !isInitialLoading && !isWeekChanging) {
+      // 右スワイプ = 前週
+      handleWeekChange(weekOffset - 1);
+    }
   };
 
   // 指定した週に空きがあるかチェックする関数
@@ -956,7 +1110,7 @@ const EnhancedNotionBooking = () => {
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
         <div className="relative max-w-lg mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
           {/* ヘッダー */}
-          <div className="sticky top-0 z-50 shadow-2xl" style={{
+          <div className="sticky top-0 z-50 shadow-2xl mx-9" style={{
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
@@ -966,7 +1120,7 @@ const EnhancedNotionBooking = () => {
               background: 'linear-gradient(135deg, rgba(255, 192, 203, 0.2), rgba(255, 218, 185, 0.2))'
             }}>
               <div className="text-center">
-                <h1 className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1 animate-float" style={{
+                <h1 className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1" style={{
                   background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
@@ -1304,7 +1458,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <div className="scale-90 sm:scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
-                <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl" style={{
+                <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-9" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
@@ -1344,7 +1498,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 {/* 凡例 */}
-                <div className="rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-md" style={{
+                <div className="rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-md mx-9" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
@@ -1370,7 +1524,59 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 {/* 日付選択 */}
-                <div className="space-y-1.5 sm:space-y-2 mt-2 sm:mt-3">
+                <div
+                  className="mt-2 sm:mt-3 relative"
+                  ref={swipeContainerRef}
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
+                >
+                  {/* カスタムアニメーション用のスタイル */}
+                  <style>{`
+                    @keyframes arrowPulse {
+                      0%, 100% {
+                        opacity: 0.75;
+                        transform: scale(1);
+                      }
+                      50% {
+                        opacity: 0.5;
+                        transform: scale(0.9);
+                      }
+                    }
+                    .arrow-pulse {
+                      animation: arrowPulse 2s ease-in-out infinite;
+                    }
+                    @keyframes sidePulse {
+                      0%, 100% {
+                        opacity: 0.75;
+                      }
+                      50% {
+                        opacity: 0.5;
+                      }
+                    }
+                    .side-pulse {
+                      animation: sidePulse 2s ease-in-out infinite;
+                    }
+                  `}</style>
+
+                  {/* 左矢印 */}
+                  <div
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 cursor-pointer"
+                    onClick={() => !isInitialLoading && !isWeekChanging && handleWeekChange(weekOffset - 1)}
+                  >
+                    <span className="text-pink-500 text-3xl arrow-pulse">◀</span>
+                  </div>
+
+                  {/* 右矢印 */}
+                  <div
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 cursor-pointer"
+                    onClick={() => !isInitialLoading && !isWeekChanging && handleWeekChange(weekOffset + 1)}
+                  >
+                    <span className="text-pink-500 text-3xl arrow-pulse">▶</span>
+                  </div>
+
+                  {/* メインコンテンツ */}
+                  <div className="space-y-1.5 sm:space-y-2">
 
                   {(isInitialLoading || isWeekChanging) && (
                     <div className="rounded-lg sm:rounded-xl p-4 sm:p-8 text-center animate-pulse" style={{
@@ -1385,7 +1591,65 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </div>
                   )}
 
-                  <div className="space-y-1.5 sm:space-y-2">
+                  {/* 状態に応じた色を取得 */}
+                  {(() => {
+                    const getStatusColor = (s) => {
+                      switch (s) {
+                        case 'holiday': return 'bg-gray-200';
+                        case 'full': return 'bg-red-100';
+                        case 'few': return 'bg-orange-100';
+                        case 'available': return 'bg-green-100';
+                        default: return 'bg-green-100';
+                      }
+                    };
+
+                    const getPrevDateStatus = (idx) => {
+                      const prevDate = prevWeekDates[idx];
+                      if (isHoliday(prevDate)) return 'holiday';
+                      const availableSlots = timeSlots.filter(time =>
+                        getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
+                      ).length;
+                      if (availableSlots === 0) return 'full';
+                      if (availableSlots <= 3) return 'few';
+                      return 'available';
+                    };
+
+                    const getNextDateStatus = (idx) => {
+                      const nextDate = nextWeekDates[idx];
+                      if (isHoliday(nextDate)) return 'holiday';
+                      const availableSlots = timeSlots.filter(time =>
+                        getBookingStatus(nextDate, time, nextWeekEvents) === 'available'
+                      ).length;
+                      if (availableSlots === 0) return 'full';
+                      if (availableSlots <= 3) return 'few';
+                      return 'available';
+                    };
+
+                    return null;
+                  })()}
+
+                  <div className="flex" style={{ perspective: '1000px' }}>
+                    {/* 左側の板（前週の状態） */}
+                    <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
+                      {[0, 1, 2, 3, 4].map(idx => {
+                        const prevDate = prevWeekDates[idx];
+                        let status = 'available';
+                        if (isHoliday(prevDate)) {
+                          status = 'holiday';
+                        } else {
+                          const availableSlots = timeSlots.filter(time =>
+                            getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
+                          ).length;
+                          if (availableSlots === 0) status = 'full';
+                          else if (availableSlots <= 3) status = 'few';
+                        }
+                        const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
+                        return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
+                      })}
+                    </div>
+
+                    {/* メインコンテンツ */}
+                    <div className="flex-1 space-y-1.5 sm:space-y-2">
                     {weekDates.map((date, index) => {
                       const status = getDateStatus(date);
                       const isDisabled = isInitialLoading || isWeekChanging || isHoliday(date) || status === 'full';
@@ -1397,48 +1661,69 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           disabled={isDisabled}
                           className={`w-full p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'active:scale-[0.98] sm:hover:scale-[1.02]'}`}
                         >
-                          <div className="flex items-center">
-                            <div className="text-left px-2 sm:px-3">
-                              <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
-                              <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
-                              <div className="text-sm font-medium text-gray-600 text-center">({getDayName(date)})</div>
-                            </div>
-                            <div className="flex-1 pl-6 pr-3">
-                              {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
-                                <div className="w-full">
-                                  <div className="text-xs text-gray-700 font-medium text-center mb-1">
-                                    ご予約可能な時間帯
-                                  </div>
-                                  <div className="grid grid-cols-3 gap-1">
-                                    {[0, 1, 2].map(colIndex => (
-                                      <div key={colIndex} className="bg-white/80 rounded-lg border border-gray-200 overflow-hidden">
-                                        {getTimeTableDisplay(date).slice(colIndex * 3, (colIndex + 1) * 3).map((slot, idx) => (
-                                          <div key={idx} className={`grid grid-cols-2 text-xs border-b border-gray-100 ${idx === 2 ? 'border-b-0' : ''}`}>
-                                            <div className="px-1 py-0.5 text-center font-medium text-gray-700">
-                                              {slot.time}
+                            <div className="flex items-center">
+                              <div className="text-left px-2 sm:px-3">
+                                <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
+                                <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
+                                <div className="text-sm font-medium text-gray-600 text-center">({getDayName(date)})</div>
+                              </div>
+                              <div className="flex-1 pl-6 pr-3">
+                                {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
+                                  <div className="w-full">
+                                    <div className="text-xs text-gray-700 font-medium text-center mb-1">
+                                      ご予約可能な時間帯
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-1">
+                                      {[0, 1, 2].map(colIndex => (
+                                        <div key={colIndex} className="bg-white/80 rounded-lg border border-gray-200 overflow-hidden">
+                                          {getTimeTableDisplay(date).slice(colIndex * 3, (colIndex + 1) * 3).map((slot, idx) => (
+                                            <div key={idx} className={`grid grid-cols-2 text-xs border-b border-gray-100 ${idx === 2 ? 'border-b-0' : ''}`}>
+                                              <div className="px-1 py-0.5 text-center font-medium text-gray-700">
+                                                {slot.time}
+                                              </div>
+                                              <div className="px-1 py-0.5 text-center border-l border-gray-100">
+                                                {slot.available ? '✅' : '❌'}
+                                              </div>
                                             </div>
-                                            <div className="px-1 py-0.5 text-center border-l border-gray-100">
-                                              {slot.available ? '✅' : '❌'}
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    ))}
+                                          ))}
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                              {/* 祝日表示のみ */}
-                              {isHoliday(date) && (
-                                <div className="flex flex-col items-center justify-center text-center">
-                                  <span className="text-3xl mb-1">{getDateStatusIcon(status)}</span>
-                                  <span className="text-xs font-medium text-gray-600">{getDateStatusText(status)}</span>
-                                </div>
-                              )}
+                                )}
+                                {/* 祝日表示のみ */}
+                                {isHoliday(date) && (
+                                  <div className="flex flex-col items-center justify-center text-center">
+                                    <span className="text-3xl mb-1">{getDateStatusIcon(status)}</span>
+                                    <span className="text-xs font-medium text-gray-600">{getDateStatusText(status)}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </button>
+                          </button>
                       );
                     })}
+                    </div>
+
+                    {/* 右側の板（翌週の状態） */}
+                    <div className="w-8 flex-shrink-0 ml-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(45deg)', transformOrigin: 'left center' }}>
+                      {[0, 1, 2, 3, 4].map(idx => {
+                        const nextDate = nextWeekDates[idx];
+                        let status = 'available';
+                        if (isHoliday(nextDate)) {
+                          status = 'holiday';
+                        } else {
+                          const availableSlots = timeSlots.filter(time =>
+                            getBookingStatus(nextDate, time, nextWeekEvents) === 'available'
+                          ).length;
+                          if (availableSlots === 0) status = 'full';
+                          else if (availableSlots <= 3) status = 'few';
+                        }
+                        const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
+                        return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
+                      })}
+                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
