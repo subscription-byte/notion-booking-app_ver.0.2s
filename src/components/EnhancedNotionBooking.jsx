@@ -319,7 +319,7 @@ const EnhancedNotionBooking = () => {
     }
   };
 
-  const fetchNotionCalendar = async (isWeekChange = false, targetWeekDates = null) => {
+  const fetchNotionCalendar = async (isWeekChange = false, targetWeekDates = null, currentWeekOffset = null) => {
     // 開発環境ではNotion API呼び出しをスキップ
     if (process.env.NODE_ENV !== 'production') {
       console.log('開発環境: Notion APIカレンダー取得をスキップ');
@@ -425,12 +425,13 @@ const EnhancedNotionBooking = () => {
       });
 
       // 現在の週のデータをキャッシュに保存
-      const currentWeekKey = `${weekOffset}`;
-      console.log('キャッシュに保存:', { weekKey: currentWeekKey, dataCount: fetchedEvents.length });
+      const actualOffset = currentWeekOffset !== null ? currentWeekOffset : weekOffset;
+      const currentWeekKey = `${actualOffset}`;
+      console.log('キャッシュに保存:', { weekKey: currentWeekKey, actualOffset, dataCount: fetchedEvents.length });
       setAllWeeksData(prev => ({ ...prev, [currentWeekKey]: fetchedEvents }));
 
-      // 前後週のデータも取得（weekOffsetを明示的に渡す）
-      await fetchAdjacentWeeksData(weekOffset);
+      // 前後週のデータも取得（actualOffsetを明示的に渡す）
+      await fetchAdjacentWeeksData(actualOffset);
 
       // テスト通知検知（厳密一致のみ、1回のみ送信）
       const testEvents = fetchedEvents.filter(event => {
@@ -631,7 +632,7 @@ const EnhancedNotionBooking = () => {
     } else {
       // API呼び出し
       console.log('APIから新規取得');
-      await fetchNotionCalendar(true, newWeekDates);
+      await fetchNotionCalendar(true, newWeekDates, newOffset);
     }
   };
 
