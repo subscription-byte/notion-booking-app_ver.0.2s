@@ -1493,7 +1493,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             )}
 
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
-              <div className="scale-90 sm:scale-100" style={{ transformOrigin: 'top center' }}>
+              <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-9" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
@@ -1768,7 +1768,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 時間選択画面 */}
             {showTimeSlots && !showBookingForm && (
-              <div className="space-y-4 scale-90 sm:scale-100" style={{ transformOrigin: 'top center' }}>
+              <div className="space-y-4 scale-100" style={{ transformOrigin: 'top center' }}>
                 <div className="flex items-center">
                   <button
                     onClick={() => {
