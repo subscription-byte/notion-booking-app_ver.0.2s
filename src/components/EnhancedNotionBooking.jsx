@@ -19,6 +19,7 @@ const EnhancedNotionBooking = () => {
   const [notionEvents, setNotionEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
   const [nextWeekEvents, setNextWeekEvents] = useState([]);
+  const [allWeeksData, setAllWeeksData] = useState({}); // 全週データのキャッシュ
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
@@ -187,10 +188,7 @@ const EnhancedNotionBooking = () => {
     return weekDates;
   };
 
-  const prevWeekDates = getPrevWeekDates();
-  const nextWeekDates = getNextWeekDates();
-
-  // 前週・翌週のデータを取得する関数
+  // 前週・翌週のデータを取得する関数（キャッシュ付き）
   const fetchAdjacentWeeksData = async () => {
     if (process.env.NODE_ENV !== 'production') {
       setPrevWeekEvents([]);
@@ -198,73 +196,94 @@ const EnhancedNotionBooking = () => {
       return;
     }
 
-    try {
-      // 前週のデータ取得
-      const prevResponse = await fetch('/.netlify/functions/notion-query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          databaseId: CALENDAR_DATABASE_ID,
-          filter: {
-            and: [
-              {
-                property: '予定日',
-                date: {
-                  on_or_after: prevWeekDates[0].getFullYear() + '-' +
-                              String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                              String(prevWeekDates[0].getDate()).padStart(2, '0')
-                }
-              },
-              {
-                property: '予定日',
-                date: {
-                  on_or_before: prevWeekDates[4].getFullYear() + '-' +
-                               String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                               String(prevWeekDates[4].getDate()).padStart(2, '0')
-                }
-              }
-            ]
-          }
-        })
-      });
+    const prevWeekKey = `${weekOffset - 1}`;
+    const nextWeekKey = `${weekOffset + 1}`;
 
-      if (prevResponse.ok) {
-        const prevData = await prevResponse.json();
-        setPrevWeekEvents(prevData.results || []);
+    // 現在のweekOffsetに基づいて前週・翌週の日付を計算
+    const prevWeekDates = getPrevWeekDates();
+    const nextWeekDates = getNextWeekDates();
+
+    try {
+      // キャッシュに前週データがあるか確認
+      if (allWeeksData[prevWeekKey]) {
+        setPrevWeekEvents(allWeeksData[prevWeekKey]);
+      } else {
+        // 前週のデータ取得
+        const prevResponse = await fetch('/.netlify/functions/notion-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            databaseId: CALENDAR_DATABASE_ID,
+            filter: {
+              and: [
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_after: prevWeekDates[0].getFullYear() + '-' +
+                                String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                                String(prevWeekDates[0].getDate()).padStart(2, '0')
+                  }
+                },
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_before: prevWeekDates[4].getFullYear() + '-' +
+                                 String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                                 String(prevWeekDates[4].getDate()).padStart(2, '0')
+                  }
+                }
+              ]
+            }
+          })
+        });
+
+        if (prevResponse.ok) {
+          const prevData = await prevResponse.json();
+          const prevEvents = prevData.results || [];
+          setPrevWeekEvents(prevEvents);
+          setAllWeeksData(prev => ({ ...prev, [prevWeekKey]: prevEvents }));
+        }
       }
 
-      // 翌週のデータ取得
-      const nextResponse = await fetch('/.netlify/functions/notion-query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          databaseId: CALENDAR_DATABASE_ID,
-          filter: {
-            and: [
-              {
-                property: '予定日',
-                date: {
-                  on_or_after: nextWeekDates[0].getFullYear() + '-' +
-                              String(nextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                              String(nextWeekDates[0].getDate()).padStart(2, '0')
+      // キャッシュに翌週データがあるか確認
+      if (allWeeksData[nextWeekKey]) {
+        setNextWeekEvents(allWeeksData[nextWeekKey]);
+      } else {
+        // 翌週のデータ取得
+        const nextResponse = await fetch('/.netlify/functions/notion-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            databaseId: CALENDAR_DATABASE_ID,
+            filter: {
+              and: [
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_after: nextWeekDates[0].getFullYear() + '-' +
+                                String(nextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                                String(nextWeekDates[0].getDate()).padStart(2, '0')
+                  }
+                },
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_before: nextWeekDates[4].getFullYear() + '-' +
+                                 String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                                 String(nextWeekDates[4].getDate()).padStart(2, '0')
+                  }
                 }
-              },
-              {
-                property: '予定日',
-                date: {
-                  on_or_before: nextWeekDates[4].getFullYear() + '-' +
-                               String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                               String(nextWeekDates[4].getDate()).padStart(2, '0')
-                }
-              }
-            ]
-          }
-        })
-      });
+              ]
+            }
+          })
+        });
 
-      if (nextResponse.ok) {
-        const nextData = await nextResponse.json();
-        setNextWeekEvents(nextData.results || []);
+        if (nextResponse.ok) {
+          const nextData = await nextResponse.json();
+          const nextEvents = nextData.results || [];
+          setNextWeekEvents(nextEvents);
+          setAllWeeksData(prev => ({ ...prev, [nextWeekKey]: nextEvents }));
+        }
       }
     } catch (error) {
       console.error('前後週データの取得に失敗:', error);
@@ -375,6 +394,10 @@ const EnhancedNotionBooking = () => {
         message: '',
         lastChecked: new Date()
       });
+
+      // 現在の週のデータをキャッシュに保存
+      const currentWeekKey = `${weekOffset}`;
+      setAllWeeksData(prev => ({ ...prev, [currentWeekKey]: fetchedEvents }));
 
       // 前後週のデータも取得
       fetchAdjacentWeeksData();
@@ -559,13 +582,27 @@ const EnhancedNotionBooking = () => {
       newWeekDates.push(date);
     }
 
-    await Promise.all([
-      fetchNotionCalendar(true, newWeekDates),
-      new Promise(resolve => {
-        setWeekOffset(newOffset);
-        resolve();
-      })
-    ]);
+    // キャッシュに該当週のデータがあるか確認
+    const weekKey = `${newOffset}`;
+    if (allWeeksData[weekKey]) {
+      // キャッシュから取得
+      setNotionEvents(allWeeksData[weekKey]);
+      setWeekOffset(newOffset);
+      // 前後週のデータも更新（weekOffsetが変わったので）
+      setTimeout(() => {
+        fetchAdjacentWeeksData();
+        setIsWeekChanging(false);
+      }, 0);
+    } else {
+      // API呼び出し
+      await Promise.all([
+        fetchNotionCalendar(true, newWeekDates),
+        new Promise(resolve => {
+          setWeekOffset(newOffset);
+          resolve();
+        })
+      ]);
+    }
   };
 
   // スワイプハンドラー
@@ -1108,7 +1145,7 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-xl mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
+        <div className="relative max-w-2xl mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
           {/* ヘッダー */}
           <div className="sticky top-0 z-50 shadow-2xl mx-9" style={{
             background: 'rgba(255, 255, 255, 0.95)',
@@ -1604,7 +1641,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     };
 
                     const getPrevDateStatus = (idx) => {
-                      const prevDate = prevWeekDates[idx];
+                      const prevDate = getPrevWeekDates()[idx];
                       if (isHoliday(prevDate)) return 'holiday';
                       const availableSlots = timeSlots.filter(time =>
                         getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
@@ -1615,7 +1652,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     };
 
                     const getNextDateStatus = (idx) => {
-                      const nextDate = nextWeekDates[idx];
+                      const nextDate = getNextWeekDates()[idx];
                       if (isHoliday(nextDate)) return 'holiday';
                       const availableSlots = timeSlots.filter(time =>
                         getBookingStatus(nextDate, time, nextWeekEvents) === 'available'
@@ -1632,7 +1669,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     {/* 左側の板（前週の状態） */}
                     <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
                       {[0, 1, 2, 3, 4].map(idx => {
-                        const prevDate = prevWeekDates[idx];
+                        const prevDate = getPrevWeekDates()[idx];
                         let status = 'available';
                         if (isHoliday(prevDate)) {
                           status = 'holiday';
@@ -1662,12 +1699,12 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           className={`w-full p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'active:scale-[0.98] sm:hover:scale-[1.02]'}`}
                         >
                             <div className="flex items-center">
-                              <div className="text-left px-2 sm:px-3">
+                              <div className="text-center px-2 sm:px-3 w-20 sm:w-24 flex-shrink-0">
                                 <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
                                 <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
-                                <div className="text-sm font-medium text-gray-600 text-center">({getDayName(date)})</div>
+                                <div className="text-sm font-medium text-gray-600">({getDayName(date)})</div>
                               </div>
-                              <div className="flex-1 pl-6 pr-3">
+                              <div className="flex-1 pl-2 sm:pl-4 pr-2 sm:pr-3 min-w-0">
                                 {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
                                   <div className="w-full">
                                     <div className="text-xs text-gray-700 font-medium text-center mb-1">
@@ -1708,7 +1745,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     {/* 右側の板（翌週の状態） */}
                     <div className="w-8 flex-shrink-0 ml-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(45deg)', transformOrigin: 'left center' }}>
                       {[0, 1, 2, 3, 4].map(idx => {
-                        const nextDate = nextWeekDates[idx];
+                        const nextDate = getNextWeekDates()[idx];
                         let status = 'available';
                         if (isHoliday(nextDate)) {
                           status = 'holiday';
