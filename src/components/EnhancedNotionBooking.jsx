@@ -603,18 +603,19 @@ const EnhancedNotionBooking = () => {
       newWeekDates.push(date);
     }
 
+    // 先にweekOffsetを更新
+    setWeekOffset(newOffset);
+
     // キャッシュに該当週のデータがあるか確認
     const weekKey = `${newOffset}`;
     if (allWeeksData[weekKey]) {
       // キャッシュから取得
       setNotionEvents(allWeeksData[weekKey]);
-      setWeekOffset(newOffset);
       // 前後週のデータも更新（newOffsetを渡す）
       await fetchAdjacentWeeksData(newOffset);
       setIsWeekChanging(false);
     } else {
       // API呼び出し
-      setWeekOffset(newOffset);
       await fetchNotionCalendar(true, newWeekDates);
     }
   };
