@@ -189,19 +189,40 @@ const EnhancedNotionBooking = () => {
   };
 
   // 前週・翌週のデータを取得する関数（キャッシュ付き）
-  const fetchAdjacentWeeksData = async () => {
+  const fetchAdjacentWeeksData = async (currentOffset = null) => {
     if (process.env.NODE_ENV !== 'production') {
       setPrevWeekEvents([]);
       setNextWeekEvents([]);
       return;
     }
 
-    const prevWeekKey = `${weekOffset - 1}`;
-    const nextWeekKey = `${weekOffset + 1}`;
+    const offset = currentOffset !== null ? currentOffset : weekOffset;
+    const prevWeekKey = `${offset - 1}`;
+    const nextWeekKey = `${offset + 1}`;
 
-    // 現在のweekOffsetに基づいて前週・翌週の日付を計算
-    const prevWeekDates = getPrevWeekDates();
-    const nextWeekDates = getNextWeekDates();
+    // 現在のoffsetに基づいて前週・翌週の日付を計算
+    const today = new Date();
+    const currentDay = today.getDay();
+
+    // 前週の日付
+    const prevMonday = new Date(today);
+    prevMonday.setDate(today.getDate() - currentDay + 1 + ((offset - 1) * 7));
+    const prevWeekDates = [];
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(prevMonday);
+      date.setDate(prevMonday.getDate() + i);
+      prevWeekDates.push(date);
+    }
+
+    // 翌週の日付
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() - currentDay + 1 + ((offset + 1) * 7));
+    const nextWeekDates = [];
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(nextMonday);
+      date.setDate(nextMonday.getDate() + i);
+      nextWeekDates.push(date);
+    }
 
     try {
       // キャッシュに前週データがあるか確認
@@ -588,20 +609,13 @@ const EnhancedNotionBooking = () => {
       // キャッシュから取得
       setNotionEvents(allWeeksData[weekKey]);
       setWeekOffset(newOffset);
-      // 前後週のデータも更新（weekOffsetが変わったので）
-      setTimeout(() => {
-        fetchAdjacentWeeksData();
-        setIsWeekChanging(false);
-      }, 0);
+      // 前後週のデータも更新（newOffsetを渡す）
+      await fetchAdjacentWeeksData(newOffset);
+      setIsWeekChanging(false);
     } else {
       // API呼び出し
-      await Promise.all([
-        fetchNotionCalendar(true, newWeekDates),
-        new Promise(resolve => {
-          setWeekOffset(newOffset);
-          resolve();
-        })
-      ]);
+      setWeekOffset(newOffset);
+      await fetchNotionCalendar(true, newWeekDates);
     }
   };
 
@@ -1145,9 +1159,9 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-2xl mx-auto px-2 sm:px-4" style={{ pointerEvents: 'auto' }}>
+        <div className="relative max-w-full px-0 sm:px-4" style={{ pointerEvents: 'auto', margin: '0 auto' }}>
           {/* ヘッダー */}
-          <div className="sticky top-0 z-50 shadow-2xl mx-9" style={{
+          <div className="sticky top-0 z-50 shadow-2xl mx-5 sm:mx-9" style={{
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
@@ -1210,7 +1224,7 @@ const EnhancedNotionBooking = () => {
 
             {/* 確認画面 */}
             {showConfirmScreen && !showConfirmation && (
-              <div className="space-y-6">
+              <div className="space-y-6 px-3 sm:px-0">
                 <div className="flex items-center">
                   <button
                     onClick={() => {
@@ -1332,7 +1346,7 @@ const EnhancedNotionBooking = () => {
 
             {/* 予約完了画面 */}
             {showConfirmation && completedBooking && (
-              <div className="space-y-6">
+              <div className="space-y-6 px-3 sm:px-0">
                 <div className="rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
@@ -1495,7 +1509,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
             {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
-                <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-9" style={{
+                <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-5 sm:mx-9" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
@@ -1535,7 +1549,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 {/* 凡例 */}
-                <div className="rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-md mx-9" style={{
+                <div className="rounded-lg sm:rounded-xl p-1.5 sm:p-2 shadow-md mx-5 sm:mx-9" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
@@ -1562,7 +1576,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                 {/* 日付選択 */}
                 <div
-                  className="mt-2 sm:mt-3 relative"
+                  className="mt-2 sm:mt-3 relative sm:mx-0"
+                  style={{ marginLeft: '-22px', marginRight: '-22px' }}
                   ref={swipeContainerRef}
                   onTouchStart={onTouchStart}
                   onTouchMove={onTouchMove}
@@ -1667,7 +1682,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                   <div className="flex" style={{ perspective: '1000px' }}>
                     {/* 左側の板（前週の状態） */}
-                    <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
+                    <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
                       {[0, 1, 2, 3, 4].map(idx => {
                         const prevDate = getPrevWeekDates()[idx];
                         let status = 'available';
@@ -1686,7 +1701,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </div>
 
                     {/* メインコンテンツ */}
-                    <div className="flex-1 space-y-1.5 sm:space-y-2">
+                    <div className="flex-1 space-y-1 sm:space-y-2">
                     {weekDates.map((date, index) => {
                       const status = getDateStatus(date);
                       const isDisabled = isInitialLoading || isWeekChanging || isHoliday(date) || status === 'full';
@@ -1696,10 +1711,10 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           key={index}
                           onClick={() => handleDateSelect(date)}
                           disabled={isDisabled}
-                          className={`w-full p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'active:scale-[0.98] sm:hover:scale-[1.02]'}`}
+                          className={`w-full p-1.5 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${getDateCardClass(date)} ${isDisabled ? '' : 'active:scale-[0.98] sm:hover:scale-[1.02]'}`}
                         >
                             <div className="flex items-center">
-                              <div className="text-center px-2 sm:px-3 w-20 sm:w-24 flex-shrink-0">
+                              <div className="text-center px-0 sm:px-3 w-16 sm:w-24 flex-shrink-0">
                                 <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
                                 <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
                                 <div className="text-sm font-medium text-gray-600">({getDayName(date)})</div>
@@ -1707,9 +1722,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                               <div className="flex-1 pl-2 sm:pl-4 pr-2 sm:pr-3 min-w-0">
                                 {!isInitialLoading && !isWeekChanging && getTimeTableDisplay(date) && (
                                   <div className="w-full">
-                                    <div className="text-xs text-gray-700 font-medium text-center mb-1">
-                                      ご予約可能な時間帯
-                                    </div>
                                     <div className="grid grid-cols-3 gap-1">
                                       {[0, 1, 2].map(colIndex => (
                                         <div key={colIndex} className="bg-white/80 rounded-lg border border-gray-200 overflow-hidden">
@@ -1743,7 +1755,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </div>
 
                     {/* 右側の板（翌週の状態） */}
-                    <div className="w-8 flex-shrink-0 ml-1 side-pulse flex flex-col space-y-1.5 sm:space-y-2" style={{ transform: 'rotateY(45deg)', transformOrigin: 'left center' }}>
+                    <div className="w-8 flex-shrink-0 ml-1 side-pulse flex flex-col space-y-1 sm:space-y-2" style={{ transform: 'rotateY(45deg)', transformOrigin: 'left center' }}>
                       {[0, 1, 2, 3, 4].map(idx => {
                         const nextDate = getNextWeekDates()[idx];
                         let status = 'available';
@@ -1768,7 +1780,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 時間選択画面 */}
             {showTimeSlots && !showBookingForm && (
-              <div className="space-y-4 scale-100" style={{ transformOrigin: 'top center' }}>
+              <div className="space-y-4 scale-100 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
                 <div className="flex items-center">
                   <button
                     onClick={() => {
@@ -1834,7 +1846,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 予約フォーム */}
             {showBookingForm && (
-              <div className="space-y-3 sm:space-y-6">
+              <div className="space-y-3 sm:space-y-6 px-3 sm:px-0">
                 <div className="flex items-center">
                   <button
                     onClick={() => {
