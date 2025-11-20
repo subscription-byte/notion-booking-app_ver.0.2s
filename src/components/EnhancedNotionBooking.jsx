@@ -133,6 +133,12 @@ const EnhancedNotionBooking = () => {
       date.setDate(monday.getDate() + i);
       weekDates.push(date);
     }
+
+    console.log('現在表示中の週:', {
+      weekOffset,
+      dates: weekDates.map(d => `${d.getMonth()+1}/${d.getDate()}`).join(', ')
+    });
+
     return weekDates;
   };
 
@@ -615,8 +621,10 @@ const EnhancedNotionBooking = () => {
 
     if (allWeeksData[weekKey]) {
       // キャッシュから取得
-      console.log('キャッシュから取得:', allWeeksData[weekKey].length, '件');
-      setNotionEvents(allWeeksData[weekKey]);
+      const cachedData = allWeeksData[weekKey];
+      console.log('キャッシュから取得:', cachedData.length, '件');
+      console.log('キャッシュデータの日付:', cachedData.map(e => e.properties?.['予定日']?.date?.start).filter(Boolean));
+      setNotionEvents(cachedData);
       // 前後週のデータも更新（newOffsetを渡す）
       await fetchAdjacentWeeksData(newOffset);
       setIsWeekChanging(false);
