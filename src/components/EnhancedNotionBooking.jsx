@@ -261,6 +261,7 @@ const EnhancedNotionBooking = () => {
         if (prevResponse.ok) {
           const prevData = await prevResponse.json();
           const prevEvents = prevData.results || [];
+          console.log('前週データ取得&保存:', { weekKey: prevWeekKey, dataCount: prevEvents.length });
           setPrevWeekEvents(prevEvents);
           setAllWeeksData(prev => ({ ...prev, [prevWeekKey]: prevEvents }));
         }
@@ -302,6 +303,7 @@ const EnhancedNotionBooking = () => {
         if (nextResponse.ok) {
           const nextData = await nextResponse.json();
           const nextEvents = nextData.results || [];
+          console.log('翌週データ取得&保存:', { weekKey: nextWeekKey, dataCount: nextEvents.length });
           setNextWeekEvents(nextEvents);
           setAllWeeksData(prev => ({ ...prev, [nextWeekKey]: nextEvents }));
         }
@@ -418,10 +420,11 @@ const EnhancedNotionBooking = () => {
 
       // 現在の週のデータをキャッシュに保存
       const currentWeekKey = `${weekOffset}`;
+      console.log('キャッシュに保存:', { weekKey: currentWeekKey, dataCount: fetchedEvents.length });
       setAllWeeksData(prev => ({ ...prev, [currentWeekKey]: fetchedEvents }));
 
-      // 前後週のデータも取得
-      fetchAdjacentWeeksData();
+      // 前後週のデータも取得（weekOffsetを明示的に渡す）
+      await fetchAdjacentWeeksData(weekOffset);
 
       // テスト通知検知（厳密一致のみ、1回のみ送信）
       const testEvents = fetchedEvents.filter(event => {
@@ -608,14 +611,18 @@ const EnhancedNotionBooking = () => {
 
     // キャッシュに該当週のデータがあるか確認
     const weekKey = `${newOffset}`;
+    console.log('週遷移:', { newOffset, weekKey, hasCache: !!allWeeksData[weekKey], cacheKeys: Object.keys(allWeeksData) });
+
     if (allWeeksData[weekKey]) {
       // キャッシュから取得
+      console.log('キャッシュから取得:', allWeeksData[weekKey].length, '件');
       setNotionEvents(allWeeksData[weekKey]);
       // 前後週のデータも更新（newOffsetを渡す）
       await fetchAdjacentWeeksData(newOffset);
       setIsWeekChanging(false);
     } else {
       // API呼び出し
+      console.log('APIから新規取得');
       await fetchNotionCalendar(true, newWeekDates);
     }
   };
