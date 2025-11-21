@@ -206,6 +206,12 @@ const EnhancedNotionBooking = () => {
     const prevWeekKey = `${offset - 1}`;
     const nextWeekKey = `${offset + 1}`;
 
+    // offset 0未満（過去の週）は取得しない
+    if (offset - 1 < 0) {
+      setPrevWeekEvents([]);
+      console.log('前週は過去なので取得スキップ');
+    }
+
     // 現在のoffsetに基づいて前週・翌週の日付を計算
     const today = new Date();
     const currentDay = today.getDay();
@@ -231,10 +237,12 @@ const EnhancedNotionBooking = () => {
     }
 
     try {
-      // キャッシュに前週データがあるか確認
-      if (allWeeksData[prevWeekKey]) {
-        setPrevWeekEvents(allWeeksData[prevWeekKey]);
-      } else {
+      // 前週データの取得（offset 0以上の場合のみ）
+      if (offset - 1 >= 0) {
+        // キャッシュに前週データがあるか確認
+        if (allWeeksData[prevWeekKey]) {
+          setPrevWeekEvents(allWeeksData[prevWeekKey]);
+        } else {
         // 前週のデータ取得
         const prevResponse = await fetch('/.netlify/functions/notion-query', {
           method: 'POST',
@@ -270,6 +278,7 @@ const EnhancedNotionBooking = () => {
           console.log('前週データ取得&保存:', { weekKey: prevWeekKey, dataCount: prevEvents.length });
           setPrevWeekEvents(prevEvents);
           setAllWeeksData(prev => ({ ...prev, [prevWeekKey]: prevEvents }));
+        }
         }
       }
 
@@ -659,8 +668,8 @@ const EnhancedNotionBooking = () => {
       // 左スワイプ = 翌週
       handleWeekChange(weekOffset + 1);
     }
-    if (isRightSwipe && !isInitialLoading && !isWeekChanging) {
-      // 右スワイプ = 前週
+    if (isRightSwipe && !isInitialLoading && !isWeekChanging && weekOffset > 0) {
+      // 右スワイプ = 前週（offset 0より大きい場合のみ）
       handleWeekChange(weekOffset - 1);
     }
   };
@@ -1622,7 +1631,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   <div className="flex justify-between items-center">
                     <button
                       onClick={() => handleWeekChange(weekOffset - 1)}
-                      disabled={isInitialLoading || isWeekChanging}
+                      disabled={isInitialLoading || isWeekChanging || weekOffset === 0}
                       className="group px-2 sm:px-3 py-1 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-lg sm:hover:shadow-xl transition-all duration-300 sm:hover:-translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95">
                       <div className="text-center">
                         <div className="text-xs">前週</div>
@@ -1718,8 +1727,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                   {/* 左矢印 */}
                   <div
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 cursor-pointer"
-                    onClick={() => !isInitialLoading && !isWeekChanging && handleWeekChange(weekOffset - 1)}
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 ${weekOffset === 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => !isInitialLoading && !isWeekChanging && weekOffset > 0 && handleWeekChange(weekOffset - 1)}
                   >
                     <span className="text-pink-500 text-3xl arrow-pulse">◀</span>
                   </div>
