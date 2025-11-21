@@ -676,7 +676,10 @@ const EnhancedNotionBooking = () => {
     }
     if (isRightSwipe && !isInitialLoading && !isWeekChanging && weekOffset > 0) {
       // 右スワイプ = 前週（offset 0より大きい場合のみ）
+      console.log('右スワイプ検出 - 前週へ遷移:', weekOffset - 1);
       handleWeekChange(weekOffset - 1);
+    } else if (isRightSwipe && weekOffset === 0) {
+      console.log('右スワイプ検出 - offset 0のためブロック');
     }
   };
 
@@ -1801,26 +1804,24 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   })()}
 
                   <div className="flex" style={{ perspective: '1000px' }}>
-                    {/* 左側の板（前週の状態） - offset 0では非表示 */}
-                    {weekOffset > 0 && (
-                      <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
-                        {[0, 1, 2, 3, 4].map(idx => {
-                          const prevDate = getPrevWeekDates()[idx];
-                          let status = 'available';
-                          if (isHoliday(prevDate)) {
-                            status = 'holiday';
-                          } else {
-                            const availableSlots = timeSlots.filter(time =>
-                              getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
-                            ).length;
-                            if (availableSlots === 0) status = 'full';
-                            else if (availableSlots <= 3) status = 'few';
-                          }
-                          const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
-                          return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
-                        })}
-                      </div>
-                    )}
+                    {/* 左側の板（前週の状態） - offset 0では透明 */}
+                    <div className={`w-8 flex-shrink-0 mr-1 flex flex-col space-y-1 sm:space-y-2 transition-opacity duration-300 ${weekOffset === 0 ? 'opacity-0' : 'side-pulse'}`} style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
+                      {[0, 1, 2, 3, 4].map(idx => {
+                        const prevDate = getPrevWeekDates()[idx];
+                        let status = 'available';
+                        if (isHoliday(prevDate)) {
+                          status = 'holiday';
+                        } else {
+                          const availableSlots = timeSlots.filter(time =>
+                            getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
+                          ).length;
+                          if (availableSlots === 0) status = 'full';
+                          else if (availableSlots <= 3) status = 'few';
+                        }
+                        const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
+                        return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
+                      })}
+                    </div>
 
                     {/* メインコンテンツ */}
                     <div className="flex-1 space-y-1 sm:space-y-2">
