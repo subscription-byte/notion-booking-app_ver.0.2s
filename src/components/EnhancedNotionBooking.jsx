@@ -608,6 +608,12 @@ const EnhancedNotionBooking = () => {
   };
 
   const handleWeekChange = async (newOffset) => {
+    // offset 0未満への遷移を防止
+    if (newOffset < 0) {
+      console.log('過去の週への遷移はブロックされました:', newOffset);
+      return;
+    }
+
     setIsWeekChanging(true);
 
     const today = new Date();
@@ -1795,24 +1801,26 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   })()}
 
                   <div className="flex" style={{ perspective: '1000px' }}>
-                    {/* 左側の板（前週の状態） */}
-                    <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
-                      {[0, 1, 2, 3, 4].map(idx => {
-                        const prevDate = getPrevWeekDates()[idx];
-                        let status = 'available';
-                        if (isHoliday(prevDate)) {
-                          status = 'holiday';
-                        } else {
-                          const availableSlots = timeSlots.filter(time =>
-                            getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
-                          ).length;
-                          if (availableSlots === 0) status = 'full';
-                          else if (availableSlots <= 3) status = 'few';
-                        }
-                        const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
-                        return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
-                      })}
-                    </div>
+                    {/* 左側の板（前週の状態） - offset 0では非表示 */}
+                    {weekOffset > 0 && (
+                      <div className="w-8 flex-shrink-0 mr-1 side-pulse flex flex-col space-y-1 sm:space-y-2" style={{ transform: 'rotateY(-45deg)', transformOrigin: 'right center' }}>
+                        {[0, 1, 2, 3, 4].map(idx => {
+                          const prevDate = getPrevWeekDates()[idx];
+                          let status = 'available';
+                          if (isHoliday(prevDate)) {
+                            status = 'holiday';
+                          } else {
+                            const availableSlots = timeSlots.filter(time =>
+                              getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
+                            ).length;
+                            if (availableSlots === 0) status = 'full';
+                            else if (availableSlots <= 3) status = 'few';
+                          }
+                          const colorClass = status === 'holiday' ? 'bg-gray-200' : status === 'full' ? 'bg-red-100' : status === 'few' ? 'bg-orange-100' : 'bg-green-100';
+                          return <div key={idx} className={`flex-1 rounded-lg ${colorClass}`}></div>;
+                        })}
+                      </div>
+                    )}
 
                     {/* メインコンテンツ */}
                     <div className="flex-1 space-y-1 sm:space-y-2">
