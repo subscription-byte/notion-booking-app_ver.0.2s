@@ -1282,7 +1282,7 @@ const EnhancedNotionBooking = () => {
 
       {/* Main Content */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        <div className="relative max-w-full px-0 sm:px-4" style={{ pointerEvents: 'auto', margin: '0 auto' }}>
+        <div className="relative max-w-full sm:max-w-2xl px-0 sm:px-4" style={{ pointerEvents: 'auto', margin: '0 auto' }}>
           {/* ヘッダー */}
           <div className="sticky top-0 z-50 shadow-2xl mx-5 sm:mx-9" style={{
             background: 'rgba(255, 255, 255, 0.95)',
