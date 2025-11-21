@@ -762,13 +762,99 @@ const EnhancedNotionBooking = () => {
         return;
       }
 
-      // 本番環境: 空きのある週を探す
-      const result = await findWeekWithAvailability(0);
+      console.log('初回ロード: 4週分のデータを一括取得開始');
 
-      if (result && result.offset !== 0) {
-        // 今週以外に空きが見つかった場合
-        setWeekOffset(result.offset);
-        setNotionEvents(result.events);
+      // 本番環境: まず4週分のデータを一括取得してキャッシュ
+      try {
+        const today = new Date();
+        const currentDay = today.getDay();
+        const allWeeksCache = {};
+
+        // offset 0〜3までの4週分を取得
+        for (let offset = 0; offset <= 3; offset++) {
+          const monday = new Date(today);
+          monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+
+          const dates = [];
+          for (let i = 0; i < 5; i++) {
+            const date = new Date(monday);
+            date.setDate(monday.getDate() + i);
+            dates.push(date);
+          }
+
+          // API呼び出し
+          const response = await fetch('/.netlify/functions/notion-query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              databaseId: CALENDAR_DATABASE_ID,
+              filter: {
+                and: [
+                  {
+                    property: '予定日',
+                    date: {
+                      on_or_after: dates[0].getFullYear() + '-' +
+                                  String(dates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                                  String(dates[0].getDate()).padStart(2, '0')
+                    }
+                  },
+                  {
+                    property: '予定日',
+                    date: {
+                      on_or_before: dates[4].getFullYear() + '-' +
+                                   String(dates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                                   String(dates[4].getDate()).padStart(2, '0')
+                    }
+                  }
+                ]
+              }
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const events = data.results || [];
+            allWeeksCache[offset] = events;
+            console.log(`週${offset}のデータ取得完了:`, events.length, '件');
+          }
+        }
+
+        // キャッシュに一括保存
+        setAllWeeksData(allWeeksCache);
+        console.log('4週分のキャッシュ保存完了:', Object.keys(allWeeksCache));
+
+        // 空きのある週を探す（キャッシュから）
+        let targetOffset = 0;
+        for (let offset = 0; offset <= 3; offset++) {
+          const monday = new Date(today);
+          monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+
+          const dates = [];
+          for (let i = 0; i < 5; i++) {
+            const date = new Date(monday);
+            date.setDate(monday.getDate() + i);
+            dates.push(date);
+          }
+
+          if (checkWeekHasAvailability(dates, allWeeksCache[offset] || [])) {
+            targetOffset = offset;
+            console.log(`空きのある週を発見: offset ${offset}`);
+            break;
+          }
+        }
+
+        // 見つかった週に移動
+        setWeekOffset(targetOffset);
+        setNotionEvents(allWeeksCache[targetOffset] || []);
+
+        // 前後週データも設定
+        if (allWeeksCache[targetOffset - 1]) {
+          setPrevWeekEvents(allWeeksCache[targetOffset - 1]);
+        }
+        if (allWeeksCache[targetOffset + 1]) {
+          setNextWeekEvents(allWeeksCache[targetOffset + 1]);
+        }
+
         setSystemStatus({
           healthy: true,
           message: '',
@@ -776,8 +862,10 @@ const EnhancedNotionBooking = () => {
         });
         setIsLoading(false);
         setIsInitialLoading(false);
-      } else {
-        // 今週に空きがある、または見つからなかった場合は通常通り
+
+      } catch (error) {
+        console.error('初回データ取得エラー:', error);
+        // エラー時は通常のフローに戻す
         fetchNotionCalendar(false);
       }
     };
