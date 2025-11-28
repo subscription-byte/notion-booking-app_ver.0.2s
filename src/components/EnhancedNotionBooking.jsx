@@ -1003,7 +1003,7 @@ const EnhancedNotionBooking = () => {
         existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
       }
 
-      return (existingStart < slotEnd && existingEnd >= slotStart);
+      return (existingStart < slotEnd && existingEnd > slotStart);
     });
 
     if (hasNotionEvent) return 'booked';
