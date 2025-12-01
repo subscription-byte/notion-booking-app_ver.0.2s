@@ -84,7 +84,10 @@ const EnhancedNotionBooking = () => {
 
   // テストログイン処理
   const handleTestLogin = () => {
-    if (testLoginId === 'testuser_taijisakou' && testLoginPw === '19950825') {
+    const validId = process.env.REACT_APP_TEST_USER_ID;
+    const validPw = process.env.REACT_APP_TEST_USER_PW;
+
+    if (testLoginId === validId && testLoginPw === validPw) {
       setIsTestMode(true);
       localStorage.setItem('testMode', 'true');
       setShowTestLogin(false);
