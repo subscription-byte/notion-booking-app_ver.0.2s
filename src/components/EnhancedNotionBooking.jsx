@@ -1974,7 +1974,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   <button
                     onClick={() => {
                       setShowBookingForm(false);
-                      setSelectedTime(null);
+                      setShowTimeSlots(true);
                     }}
                     className="p-2 sm:p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95 sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-110"
                   >
