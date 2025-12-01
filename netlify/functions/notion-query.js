@@ -5,7 +5,16 @@ exports.handler = async (event, context) => {
 
   try {
     const { databaseId, filter } = JSON.parse(event.body);
-    
+
+    // セキュリティ: 許可されたデータベースIDのみアクセス可能
+    const ALLOWED_DATABASE_ID = '1fa44ae2d2c780a5b27dc7aae5bae1aa';
+    if (databaseId !== ALLOWED_DATABASE_ID) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'Forbidden: Invalid database ID' })
+      };
+    }
+
     const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
       method: 'POST',
       headers: {

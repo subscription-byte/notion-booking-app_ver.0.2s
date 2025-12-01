@@ -5,7 +5,31 @@ exports.handler = async (event, context) => {
 
   try {
     const requestBody = JSON.parse(event.body);
-    
+
+    // セキュリティ: 許可されたデータベースIDのみ書き込み可能
+    const ALLOWED_DATABASE_ID = '1fa44ae2d2c780a5b27dc7aae5bae1aa';
+    const targetDatabaseId = requestBody?.parent?.database_id;
+
+    if (targetDatabaseId !== ALLOWED_DATABASE_ID) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'Forbidden: Invalid database ID' })
+      };
+    }
+
+    // 必須フィールドの検証
+    const requiredFields = ['名前', '予定日', 'X'];
+    const properties = requestBody?.properties || {};
+
+    for (const field of requiredFields) {
+      if (!properties[field]) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: `Missing required field: ${field}` })
+        };
+      }
+    }
+
     const response = await fetch('https://api.notion.com/v1/pages', {
       method: 'POST',
       headers: {
