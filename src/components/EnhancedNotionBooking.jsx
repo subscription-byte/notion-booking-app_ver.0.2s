@@ -16,6 +16,14 @@ const EnhancedNotionBooking = () => {
   const [completedBooking, setCompletedBooking] = useState(null);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
 
+  // テストモード関連
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [showTestLogin, setShowTestLogin] = useState(false);
+  const [testLoginId, setTestLoginId] = useState('');
+  const [testLoginPw, setTestLoginPw] = useState('');
+  const [tapCount, setTapCount] = useState(0);
+  const tapTimerRef = useRef(null);
+
   const [notionEvents, setNotionEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
   const [nextWeekEvents, setNextWeekEvents] = useState([]);
@@ -45,7 +53,55 @@ const EnhancedNotionBooking = () => {
     } else if (ref === 'personB') {
       setRouteTag('まゆ紹介');
     }
+
+    // テストモードの永続化チェック
+    const savedTestMode = localStorage.getItem('testMode');
+    if (savedTestMode === 'true') {
+      setIsTestMode(true);
+    }
   }, []);
+
+  // 3回タップでテストログイン画面表示
+  const handleSecretTap = () => {
+    const newCount = tapCount + 1;
+    setTapCount(newCount);
+
+    // 既存のタイマーをクリア
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+
+    if (newCount === 3) {
+      setShowTestLogin(true);
+      setTapCount(0);
+    } else {
+      // 2秒以内に3回タップしないとリセット
+      tapTimerRef.current = setTimeout(() => {
+        setTapCount(0);
+      }, 2000);
+    }
+  };
+
+  // テストログイン処理
+  const handleTestLogin = () => {
+    if (testLoginId === 'testuser_taijisakou' && testLoginPw === '19950825') {
+      setIsTestMode(true);
+      localStorage.setItem('testMode', 'true');
+      setShowTestLogin(false);
+      setTestLoginId('');
+      setTestLoginPw('');
+      alert('🧪 テストモードを起動しました');
+    } else {
+      alert('IDまたはパスワードが間違っています');
+    }
+  };
+
+  // テストモード解除
+  const handleTestLogout = () => {
+    setIsTestMode(false);
+    localStorage.removeItem('testMode');
+    alert('テストモードを解除しました');
+  };
 
 
   const settings = {
@@ -1243,6 +1299,77 @@ const EnhancedNotionBooking = () => {
       {/* Fluid Background Canvas */}
       <FluidCanvas />
 
+      {/* テストモードバナー */}
+      {isTestMode && (
+        <div className="fixed top-0 left-0 right-0 bg-yellow-400 text-black px-4 py-2 text-center text-sm font-bold z-[60] flex items-center justify-between">
+          <div className="flex-1 text-center">
+            🧪 テストモード - 開発中機能が表示されています
+          </div>
+          <button
+            onClick={handleTestLogout}
+            className="bg-black text-yellow-400 px-3 py-1 rounded text-xs hover:bg-gray-800"
+          >
+            解除
+          </button>
+        </div>
+      )}
+
+      {/* テストログイン画面 */}
+      {showTestLogin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">🧪 テストモード</h2>
+              <p className="text-sm text-gray-600">開発者用ログイン</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">ID</label>
+                <input
+                  type="text"
+                  value={testLoginId}
+                  onChange={(e) => setTestLoginId(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="testuser_taijisakou"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <input
+                  type="password"
+                  value={testLoginPw}
+                  onChange={(e) => setTestLoginPw(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleTestLogin()}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowTestLogin(false);
+                  setTestLoginId('');
+                  setTestLoginPw('');
+                }}
+                className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleTestLogin}
+                className="flex-1 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:shadow-xl"
+              >
+                ログイン
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* コピー完了通知 */}
       {showCopyNotification && (
         <div
@@ -1294,13 +1421,17 @@ const EnhancedNotionBooking = () => {
               background: 'linear-gradient(135deg, rgba(255, 192, 203, 0.2), rgba(255, 218, 185, 0.2))'
             }}>
               <div className="text-center">
-                <h1 className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1" style={{
-                  background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 0 20px rgba(255, 105, 180, 0.3)'
-                }}>
+                <h1
+                  className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1 cursor-pointer select-none"
+                  onClick={handleSecretTap}
+                  style={{
+                    background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: '0 0 20px rgba(255, 105, 180, 0.3)'
+                  }}
+                >
                   <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-sm sm:text-base" style={{color: '#ff69b4'}}></i>
                   {settings.systemTitle}
                 </h1>
@@ -1605,6 +1736,24 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         </div>
                       )}
                     </div>
+
+                    {/* テストモード: LINE連携テストボタン */}
+                    {isTestMode && (
+                      <div className="mt-4 sm:mt-6 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl">
+                        <div className="text-center mb-3">
+                          <p className="text-sm font-bold text-yellow-800">🧪 テストモード専用機能</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            alert('LINE連携テスト機能（未実装）\n\nここにLINE Messaging APIの\n通知送信テストが入ります。');
+                          }}
+                          className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
+                        >
+                          <i className="fab fa-line mr-2"></i>
+                          LINE通知テスト送信
+                        </button>
+                      </div>
+                    )}
 
                     <div className="mt-3 sm:mt-6">
                       <button
