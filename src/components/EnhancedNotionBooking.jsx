@@ -741,6 +741,7 @@ const EnhancedNotionBooking = () => {
 
   // 指定した週に空きがあるかチェックする関数
   const checkWeekHasAvailability = (dates, events) => {
+    const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -751,8 +752,17 @@ const EnhancedNotionBooking = () => {
       // 祝日はスキップ
       if (isHoliday(date)) continue;
 
+      const isToday = date.getTime() === today.getTime();
+
       // その日の各時間枠をチェック
       for (const time of timeSlots) {
+        // 今日の場合は、現在時刻以前の枠はスキップ
+        if (isToday) {
+          const timeHour = parseInt(time.split(':')[0]);
+          const currentHour = now.getHours();
+          if (timeHour <= currentHour) continue;
+        }
+
         const status = getBookingStatus(date, time, events);
         if (status === 'available') {
           return true;
@@ -1331,7 +1341,7 @@ const EnhancedNotionBooking = () => {
                   value={testLoginId}
                   onChange={(e) => setTestLoginId(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                  placeholder="testuser_taijisakou"
+                  placeholder="ユーザーID"
                 />
               </div>
 
@@ -1343,7 +1353,7 @@ const EnhancedNotionBooking = () => {
                   onChange={(e) => setTestLoginPw(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleTestLogin()}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                  placeholder="••••••••"
+                  placeholder="パスワード"
                 />
               </div>
             </div>
@@ -1422,7 +1432,7 @@ const EnhancedNotionBooking = () => {
             }}>
               <div className="text-center">
                 <h1
-                  className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1 cursor-pointer select-none"
+                  className="text-lg sm:text-2xl font-bold tracking-wide mb-0.5 sm:mb-1 select-none"
                   onClick={handleSecretTap}
                   style={{
                     background: 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)',
