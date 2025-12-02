@@ -8,6 +8,8 @@ const EnhancedNotionBooking = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [xLink, setXLink] = useState('');
+  const [lineUserId, setLineUserId] = useState('');
+  const [lineName, setLineName] = useState('');
   const [remarks, setRemarks] = useState('');
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
@@ -52,6 +54,24 @@ const EnhancedNotionBooking = () => {
       setRouteTag('公認X');
     } else if (ref === 'personB') {
       setRouteTag('まゆ紹介');
+    }
+
+    // LINE連携のコールバック処理
+    const lineUserId = urlParams.get('line_user_id');
+    const lineName = urlParams.get('line_name');
+    const lineError = urlParams.get('line_error');
+
+    if (lineUserId && lineName) {
+      setLineUserId(lineUserId);
+      setLineName(lineName);
+      setCustomerName(lineName); // 名前を自動入力
+      alert(`✅ LINE連携成功！\n\nこんにちは、${lineName}さん\n予約完了時にLINE通知が届きます。`);
+
+      // URLパラメータをクリア
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (lineError) {
+      alert(`❌ LINE連携エラー\n\n${lineError}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     // テストモードの永続化チェック
@@ -644,6 +664,19 @@ const EnhancedNotionBooking = () => {
         };
       }
 
+      // LINE User IDがある場合は追加（Notionに「LINE User ID」列（rich_text型）が必要）
+      if (bookingData.lineUserId) {
+        properties['LINE User ID'] = {
+          rich_text: [
+            {
+              text: {
+                content: bookingData.lineUserId
+              }
+            }
+          ]
+        };
+      }
+
       const response = await fetch('/.netlify/functions/notion-create', {
         method: 'POST',
         headers: {
@@ -1148,7 +1181,8 @@ const EnhancedNotionBooking = () => {
         customerName: customerName,
         xLink: xLink,
         remarks: remarks,
-        routeTag: routeTag
+        routeTag: routeTag,
+        lineUserId: lineUserId || null
       };
 
       const success = await createNotionEvent(bookingDataObj);
@@ -1203,6 +1237,25 @@ const EnhancedNotionBooking = () => {
           xLink: xLink,
           remarks: remarks
         });
+
+        // LINE連携している場合は自動で通知を送信
+        if (lineUserId) {
+          try {
+            const lineMessage = `【予約完了】\n\n日付: ${year}年${month}月${day}日 (${dayName})\n時間: ${selectedTime}\nお名前: ${customerName}\n\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
+
+            await fetch('/.netlify/functions/line-notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: lineUserId,
+                message: lineMessage
+              })
+            });
+          } catch (error) {
+            console.error('LINE通知送信エラー:', error);
+            // LINE通知失敗しても予約は完了しているので、エラーを表示しない
+          }
+        }
 
         setShowBookingForm(false);
         setShowTimeSlots(false);
@@ -2197,6 +2250,32 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       placeholder="お名前を入力してください"
                       required
                     />
+
+                    {/* LINE連携ボタン */}
+                    {!lineUserId && process.env.REACT_APP_LINE_CHANNEL_ID && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const LINE_CHANNEL_ID = process.env.REACT_APP_LINE_CHANNEL_ID;
+                          const REDIRECT_URI = encodeURIComponent('https://mfagencybooking.netlify.app/.netlify/functions/line-callback');
+                          const STATE = Math.random().toString(36).substring(7);
+                          const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid`;
+                          window.location.href = lineAuthUrl;
+                        }}
+                        className="mt-2 w-full py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-all flex items-center justify-center text-sm sm:text-base"
+                      >
+                        <i className="fab fa-line mr-2"></i>
+                        LINEと連携して名前を自動入力
+                      </button>
+                    )}
+
+                    {/* LINE連携済み表示 */}
+                    {lineUserId && (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-300 rounded-lg text-sm text-green-700 flex items-center">
+                        <i className="fab fa-line mr-2"></i>
+                        LINE連携済み（予約完了時に通知が届きます）
+                      </div>
+                    )}
                   </div>
 
                   <div>
