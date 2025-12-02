@@ -1757,8 +1757,32 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           <p className="text-sm font-bold text-yellow-800">🧪 テストモード専用機能</p>
                         </div>
                         <button
-                          onClick={() => {
-                            alert('LINE連携テスト機能（未実装）\n\nここにLINE Messaging APIの\n通知送信テストが入ります。');
+                          onClick={async () => {
+                            const testUserId = prompt('テスト用LINE User IDを入力してください:\n\n※LINE公式アカウントの友だち追加が必要です');
+                            if (!testUserId) return;
+
+                            try {
+                              const testMessage = `【予約完了テスト通知】\n\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\n\nこれはテスト通知です。\n実際の予約完了時にこのような通知が送信されます。`;
+
+                              const response = await fetch('/.netlify/functions/line-notify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  userId: testUserId,
+                                  message: testMessage
+                                })
+                              });
+
+                              const result = await response.json();
+
+                              if (response.ok) {
+                                alert('✅ LINE通知送信成功！\n\nLINEアプリを確認してください。');
+                              } else {
+                                alert(`❌ LINE通知送信失敗\n\nエラー: ${result.error || '不明なエラー'}\n\n・LINE User IDが正しいか確認\n・友だち追加されているか確認\n・環境変数が設定されているか確認`);
+                              }
+                            } catch (error) {
+                              alert(`❌ 送信エラー: ${error.message}`);
+                            }
                           }}
                           className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
                         >
