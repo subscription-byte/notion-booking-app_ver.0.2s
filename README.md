@@ -8,6 +8,24 @@ Notion APIと連携したモバイルファースト対応の予約システム�
 
 ## 最新の変更履歴
 
+### 2025年12月2日
+- **機能追加**: LINE連携機能を実装（OAuth 2.0認証）
+  - LINE Loginチャネルを使用したユーザー認証
+  - LINEプロフィール情報（User ID、表示名）の自動取得
+  - 予約完了時にLINE通知を自動送信（LINE Messaging API）
+  - Notionデータベースに「LINE User ID」列を追加
+- **機能追加**: テストモード実装
+  - ヘッダー3回タップ + ID/PW認証で入室
+  - テストモード専用機能（LINE通知テストボタン）を追加
+  - 認証情報を環境変数化してセキュリティ強化
+- **セキュリティ強化**: Netlify Functions全般
+  - Notion API呼び出しにデータベースID検証を追加
+  - ChatWork通知APIに型ホワイトリスト・フィールド検証を追加
+  - データ削除時の所有権検証を追加
+- **トラブルシューティング**: 環境変数の埋め込み問題を解決
+  - `netlify.toml` に `[build.environment]` を追加して環境変数を明示的に設定
+  - React アプリの本番ビルドで `REACT_APP_LINE_CHANNEL_ID` が正しく埋め込まれるように修正
+
 ### 2025年12月1日
 - **重要**: 予約終了時刻の判定ロジックを修正（11月20日の変更で導入されたバグを修正）
   - 予約が13:00に終わる場合、13:00-14:00の枠が正しく予約可能に
@@ -87,6 +105,17 @@ Notion APIと連携したモバイルファースト対応の予約システム�
 - ワンタップコピー機能
 - 予約完了画面から直接共有可能
 
+### 🔐 LINE連携機能（実装済み）
+- LINE Login OAuth 2.0 認証
+- プロフィール情報の自動取得
+- 予約完了時のLINE通知送信
+- NotionへのLINE User ID保存
+
+### 🧪 テストモード
+- 隠しテストモード（ヘッダー3回タップ）
+- ID/PW認証でアクセス制限
+- 本番環境で開発機能をテスト可能
+
 ## 技術スタック
 
 ### フロントエンド
@@ -98,6 +127,8 @@ Notion APIと連携したモバイルファースト対応の予約システム�
 ### バックエンド（Netlify Functions）
 - **Notion API** (データベース操作)
 - **ChatWork API** (通知機能)
+- **LINE Messaging API** (通知送信)
+- **LINE Login API** (OAuth認証)
 - Serverless Functions
 
 ### ホスティング
@@ -120,7 +151,10 @@ booking-app/
 │       ├── notion-create.js            # Notion予約作成API
 │       ├── notion-query.js             # Notionデータ取得API
 │       ├── notion-archive.js           # Notion予定削除API
-│       └── chatwork-notify.js          # ChatWork通知API
+│       ├── chatwork-notify.js          # ChatWork通知API
+│       ├── line-callback.js            # LINE OAuth コールバック
+│       └── line-notify.js              # LINE通知送信API
+├── netlify.toml                         # Netlify ビルド設定
 ├── public/
 │   └── _redirects                      # Netlifyリダイレクト設定
 └── package.json
@@ -131,10 +165,27 @@ booking-app/
 `.env.local` に以下を設定:
 
 ```
+# Notion API
 NOTION_TOKEN=your_notion_integration_token
+
+# ChatWork API
 CHATWORK_API_TOKEN=your_chatwork_api_token
 CHATWORK_ROOM_ID=your_chatwork_room_id
+
+# LINE Messaging API（通知用）
+LINE_CHANNEL_ACCESS_TOKEN=your_line_channel_access_token
+
+# LINE Login（OAuth認証用）
+LINE_CHANNEL_ID=your_line_login_channel_id
+LINE_CHANNEL_SECRET=your_line_login_channel_secret
+
+# React アプリ用（フロントエンド）
+REACT_APP_LINE_CHANNEL_ID=your_line_login_channel_id
+REACT_APP_TEST_USER_ID=your_test_user_id
+REACT_APP_TEST_USER_PW=your_test_user_password
 ```
+
+**注意**: Netlifyの環境変数設定に加えて、`netlify.toml` の `[build.environment]` にも `REACT_APP_LINE_CHANNEL_ID` を設定する必要があります。
 
 ## Notion データベース構造
 
@@ -146,6 +197,7 @@ CHATWORK_ROOM_ID=your_chatwork_room_id
 - `経路` (select) - 営業経路タグ
 - `対応者` (people) - 担当者
 - `通話方法` (select) - 対面/撮影などの区分
+- `LINE User ID` (text) - LINE連携時のユーザーID
 
 ## 予約ロジック
 
@@ -161,35 +213,42 @@ CHATWORK_ROOM_ID=your_chatwork_room_id
 
 ---
 
+## LINE連携の設定手順
+
+### 1. LINE Developersコンソールで2つのチャネルを作成
+
+#### LINE Messaging API チャネル（通知用）
+1. プロバイダーを選択 → 新規チャネル作成 → **Messaging API**
+2. チャネル基本設定から以下を取得：
+   - **Channel Access Token** → `LINE_CHANNEL_ACCESS_TOKEN`
+
+#### LINE Login チャネル（認証用）
+1. プロバイダーを選択 → 新規チャネル作成 → **LINE Login**
+2. チャネル基本設定から以下を取得：
+   - **Channel ID** → `LINE_CHANNEL_ID` / `REACT_APP_LINE_CHANNEL_ID`
+   - **Channel Secret** → `LINE_CHANNEL_SECRET`
+3. LINE Login設定：
+   - **コールバックURL**: `https://mfagencybooking.netlify.app/.netlify/functions/line-callback`
+   - **OpenID Connect**: 有効化
+   - **公開設定**: 開発中（テスターを追加）または公開済み
+
+### 2. Netlifyに環境変数を設定
+- Site settings → Environment variables → Add a variable
+- 上記で取得した値を設定
+
+### 3. netlify.toml に環境変数を追加
+```toml
+[build.environment]
+  REACT_APP_LINE_CHANNEL_ID = "your_line_channel_id"
+```
+
+### 4. Notionデータベースに列を追加
+- 列名: `LINE User ID`
+- 型: テキスト
+
+---
+
 ## 今後の追加予定機能
-
-### 🔐 LINEログイン認証
-- LINE Login APIを使用した認証システム
-- プロフィール情報（名前、アイコン）の自動取得
-- ユーザーIDをNotionに自動保存
-- 名前欄の自動入力（入力不要）
-
-**必要なもの**:
-- LINE Developers アカウント
-- LINE Messaging API チャネル作成
-- OAuth 2.0 フロー実装
-
-**影響範囲**:
-- 新規コンポーネント: `LineLogin.jsx`
-- 新規関数: `netlify/functions/line-auth.js`
-- 既存修正: `EnhancedNotionBooking.jsx`（30行程度の追加）
-
-### 🔔 予約完了通知の自動返送
-- LINE Messaging APIで予約完了時に自動通知
-- 予約情報をLINEメッセージで送信
-
-**必要なもの**:
-- ユーザーがLINE公式アカウントを友だち追加
-- LINE Messaging API（無料枠: 月1000通まで）
-
-**影響範囲**:
-- 新規関数: `netlify/functions/line-notify.js`
-- 既存修正: `EnhancedNotionBooking.jsx`（5-10行程度の追加）
 
 ### ⏰ 予約リマインド機能
 - 予約日前日の通知
