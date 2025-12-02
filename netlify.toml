@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  REACT_APP_LINE_CHANNEL_ID = "2006634130"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
