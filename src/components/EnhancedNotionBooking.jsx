@@ -44,16 +44,22 @@ const EnhancedNotionBooking = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const swipeContainerRef = useRef(null);
 
-  // URLパラメータから経路タグを取得
+  // URLパラメータから経路タグとrefモードを取得
   const [routeTag, setRouteTag] = useState('');
+  const [refMode, setRefMode] = useState(''); // '', 'personA', 'personB'
+  const [showInitialForm, setShowInitialForm] = useState(true); // 最初の名前/LINE入力画面
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
     if (ref === 'personA') {
       setRouteTag('公認X');
+      setRefMode('personA');
     } else if (ref === 'personB') {
       setRouteTag('まゆ紹介');
+      setRefMode('personB');
+    } else {
+      setRefMode('');
     }
 
     // LINE連携のコールバック処理
@@ -65,6 +71,7 @@ const EnhancedNotionBooking = () => {
       setLineUserId(lineUserId);
       setLineName(lineName);
       setCustomerName(lineName); // 名前を自動入力
+      setShowInitialForm(false); // 初期フォームをスキップして週選択へ
       alert(`✅ LINE連携成功！\n\nこんにちは、${lineName}さん\n予約完了時にLINE通知が届きます。`);
 
       // URLパラメータをクリア
@@ -1513,6 +1520,102 @@ const EnhancedNotionBooking = () => {
 
           {/* メインコンテンツ */}
           <div className="p-1.5 sm:p-4 space-y-2 sm:space-y-4">
+            {/* 初期フォーム画面（LINE連携 or 名前入力） */}
+            {showInitialForm && (
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gradient mb-2">
+                      {refMode === 'personA' ? 'お名前とXリンクを入力' : '予約を始める'}
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      {refMode === 'personA'
+                        ? 'ご予約に必要な情報を入力してください'
+                        : 'LINE連携で簡単予約＆リマインド♪'}
+                    </p>
+                  </div>
+
+                  {/* personA: 名前+X入力フォーム */}
+                  {refMode === 'personA' && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-gray-700 font-bold mb-2 text-sm">
+                          <i className="fas fa-user mr-2 text-purple-500"></i>
+                          お名前 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
+                          placeholder="お名前を入力"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 font-bold mb-2 text-sm">
+                          <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
+                          Xリンク <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={xLink}
+                          onChange={(e) => setXLink(e.target.value)}
+                          className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
+                          placeholder="https://x.com/username"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (!customerName.trim()) {
+                            alert('お名前を入力してください');
+                            return;
+                          }
+                          if (!xLink.trim()) {
+                            alert('Xリンクを入力してください');
+                            return;
+                          }
+                          setShowInitialForm(false);
+                        }}
+                        disabled={!customerName.trim() || !xLink.trim()}
+                        className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        予約画面へ進む
+                        <i className="fas fa-arrow-right ml-2"></i>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 通常 & personB: LINE連携のみ */}
+                  {refMode !== 'personA' && process.env.REACT_APP_LINE_CHANNEL_ID && (
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => {
+                          const LINE_CHANNEL_ID = process.env.REACT_APP_LINE_CHANNEL_ID;
+                          const REDIRECT_URI = encodeURIComponent('https://mfagencybooking.netlify.app/.netlify/functions/line-callback');
+                          const STATE = Math.random().toString(36).substring(7);
+                          const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid`;
+                          console.log('LINE認証URL:', lineAuthUrl);
+                          console.log('Channel ID:', LINE_CHANNEL_ID);
+                          console.log('Redirect URI:', decodeURIComponent(REDIRECT_URI));
+                          window.location.href = lineAuthUrl;
+                        }}
+                        className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"
+                      >
+                        <i className="fab fa-line mr-2 text-2xl"></i>
+                        LINEで予約する
+                      </button>
+
+                      <p className="text-xs text-gray-500 text-center">
+                        ※LINE連携で予約完了時に通知が届きます
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* システムエラー画面 */}
             {!systemStatus.healthy && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
@@ -1868,7 +1971,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
               </div>
             )}
 
-            {!showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
+            {!showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-5 sm:mx-9" style={{
@@ -2237,50 +2340,25 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 <div className="space-y-3 sm:space-y-6">
+                  {/* お名前表示（自動入力済み） */}
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
-                      お名前 <span className="text-red-500 ml-1">*</span>
+                      お名前
                     </label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
-                      placeholder="お名前を入力してください"
-                      required
-                    />
-
-                    {/* LINE連携ボタン */}
-                    {!lineUserId && process.env.REACT_APP_LINE_CHANNEL_ID && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const LINE_CHANNEL_ID = process.env.REACT_APP_LINE_CHANNEL_ID;
-                          const REDIRECT_URI = encodeURIComponent('https://mfagencybooking.netlify.app/.netlify/functions/line-callback');
-                          const STATE = Math.random().toString(36).substring(7);
-                          const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid`;
-                          console.log('LINE認証URL:', lineAuthUrl);
-                          console.log('Channel ID:', LINE_CHANNEL_ID);
-                          console.log('Redirect URI:', decodeURIComponent(REDIRECT_URI));
-                          window.location.href = lineAuthUrl;
-                        }}
-                        className="mt-2 w-full py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-all flex items-center justify-center text-sm sm:text-base"
-                      >
-                        <i className="fab fa-line mr-2"></i>
-                        LINEと連携して名前を自動入力
-                      </button>
-                    )}
-
-                    {/* LINE連携済み表示 */}
-                    {lineUserId && (
-                      <div className="mt-2 p-2 bg-green-50 border border-green-300 rounded-lg text-sm text-green-700 flex items-center">
-                        <i className="fab fa-line mr-2"></i>
-                        LINE連携済み（予約完了時に通知が届きます）
-                      </div>
-                    )}
+                    <div className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-gray-50 text-sm sm:text-lg text-gray-700 flex items-center justify-between">
+                      <span>{customerName}</span>
+                      {lineUserId && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center">
+                          <i className="fab fa-line mr-1"></i>
+                          LINE連携済み
+                        </span>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Xリンク（personAの場合は必須で表示、それ以外は非表示） */}
+                  {refMode === 'personA' && (
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2296,6 +2374,28 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       required
                     />
                   </div>
+                  )}
+
+                  {/* 経路タグ（通常とpersonBの場合のみ表示） */}
+                  {refMode !== 'personA' && (
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-tags mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      経路タグ <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <select
+                      value={routeTag}
+                      onChange={(e) => setRouteTag(e.target.value)}
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
+                      required
+                    >
+                      <option value="">選択してください</option>
+                      <option value="公認X">公認X</option>
+                      <option value="まゆ紹介">まゆ紹介</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
+                  )}
 
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
@@ -2324,11 +2424,26 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </button>
                     <button
                       onClick={() => {
-                        if (!customerName.trim() || !xLink.trim()) return;
+                        // バリデーション: personAはXリンク必須、それ以外は経路タグ必須
+                        if (!customerName.trim()) {
+                          alert('お名前が入力されていません');
+                          return;
+                        }
+                        if (refMode === 'personA' && !xLink.trim()) {
+                          alert('Xリンクを入力してください');
+                          return;
+                        }
+                        if (refMode !== 'personA' && !routeTag) {
+                          alert('経路タグを選択してください');
+                          return;
+                        }
                         setShowBookingForm(false);
                         setShowConfirmScreen(true);
                       }}
-                      disabled={!customerName.trim() || !xLink.trim()}
+                      disabled={
+                        !customerName.trim() ||
+                        (refMode === 'personA' ? !xLink.trim() : !routeTag)
+                      }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
                       <i className="fas fa-arrow-right mr-1 sm:mr-2"></i>
