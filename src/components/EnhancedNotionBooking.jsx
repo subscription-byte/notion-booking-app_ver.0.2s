@@ -2260,6 +2260,9 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           const REDIRECT_URI = encodeURIComponent('https://mfagencybooking.netlify.app/.netlify/functions/line-callback');
                           const STATE = Math.random().toString(36).substring(7);
                           const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid`;
+                          console.log('LINE認証URL:', lineAuthUrl);
+                          console.log('Channel ID:', LINE_CHANNEL_ID);
+                          console.log('Redirect URI:', decodeURIComponent(REDIRECT_URI));
                           window.location.href = lineAuthUrl;
                         }}
                         className="mt-2 w-full py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition-all flex items-center justify-center text-sm sm:text-base"
