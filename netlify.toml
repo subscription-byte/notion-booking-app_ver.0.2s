@@ -3,7 +3,7 @@
   publish = "build"
 
 [build.environment]
-  REACT_APP_LINE_CHANNEL_ID = "2006634130"
+  REACT_APP_LINE_CHANNEL_ID = "2008606907"
 
 [[redirects]]
   from = "/*"
