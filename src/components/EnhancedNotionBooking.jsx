@@ -1498,20 +1498,29 @@ const EnhancedNotionBooking = () => {
             {/* 初期フォーム画面（LINE連携 or 名前入力） */}
             {showInitialForm && (
               <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gradient mb-2">
-                      {routeConfig?.mode === 'lineLogin' ? '予約を始める' : 'お名前とXリンクを入力'}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {routeConfig?.mode === 'lineLogin'
-                        ? 'LINE連携で簡単予約＆リマインド♪'
-                        : 'ご予約に必要な情報を入力してください'}
-                    </p>
+                {/* routeConfig読み込み中はローディング表示 */}
+                {!routeConfig ? (
+                  <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
+                    <div className="text-center">
+                      <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-gray-600">読み込み中...</p>
+                    </div>
                   </div>
+                ) : (
+                  <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
+                    <div className="text-center mb-6">
+                      <h2 className="text-2xl font-bold text-gradient mb-2">
+                        {routeConfig.mode === 'lineLogin' ? '予約を始める' : 'お名前とXリンクを入力'}
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        {routeConfig.mode === 'lineLogin'
+                          ? 'LINE連携で簡単予約＆リマインド♪'
+                          : 'ご予約に必要な情報を入力してください'}
+                      </p>
+                    </div>
 
-                  {/* 名前+X入力フォーム */}
-                  {routeConfig?.mode === 'nameAndX' && (
+                    {/* 名前+X入力フォーム */}
+                    {routeConfig.mode === 'nameAndX' && (
                     <div className="space-y-4">
                       <div>
                         <label className="block text-gray-700 font-bold mb-2 text-sm">
@@ -1560,10 +1569,10 @@ const EnhancedNotionBooking = () => {
                         <i className="fas fa-arrow-right ml-2"></i>
                       </button>
                     </div>
-                  )}
+                    )}
 
-                  {/* LINE連携 */}
-                  {routeConfig?.mode === 'lineLogin' && process.env.REACT_APP_LINE_CHANNEL_ID && (
+                    {/* LINE連携 */}
+                    {routeConfig.mode === 'lineLogin' && process.env.REACT_APP_LINE_CHANNEL_ID && (
                     <div className="space-y-4">
                       <button
                         onClick={() => {
@@ -1586,8 +1595,9 @@ const EnhancedNotionBooking = () => {
                         ※LINE連携で予約完了時に通知が届きます
                       </p>
                     </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
