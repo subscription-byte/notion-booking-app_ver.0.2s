@@ -679,9 +679,6 @@ const EnhancedNotionBooking = () => {
             end: `${bookingData.date}T${String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0')}:00+09:00`
           }
         },
-        'X': {
-          url: bookingData.xLink
-        },
         '備考': {
           rich_text: bookingData.remarks ? [
             {
@@ -699,6 +696,13 @@ const EnhancedNotionBooking = () => {
           ]
         }
       };
+
+      // Xリンクがある場合は追加
+      if (bookingData.xLink) {
+        properties['X'] = {
+          url: bookingData.xLink
+        };
+      }
 
       // 経路タグがある場合は追加
       if (bookingData.routeTag) {
