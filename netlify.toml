@@ -9,3 +9,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Scheduled Functions
+[[functions]]
+  path = "/.netlify/functions/scheduled-reminder"
+  schedule = "*/15 * * * *"  # 15分ごとに実行（前日18時 + 当日15分前チェック）

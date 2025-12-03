@@ -17,9 +17,9 @@ export const ROUTE_CONFIG = {
   // personA（?ref=personA）
   personA: {
     mode: 'lineLogin',         // 'nameAndX' | 'lineLogin'
-    routeTag: '',              // Notionの経路タグ（空文字の場合は入力必須）
+    routeTag: '',              // Notionの経路タグ（空＝Notion側で手動入力）
     requireXLink: false,       // Xリンク入力必須
-    requireRouteTag: true,     // 経路タグ選択必須（modeがlineLoginの場合のみ有効）
+    requireRouteTag: false,    // 経路タグ選択必須（falseでプルダウン非表示）
   },
 
   // personB（?ref=personB）
