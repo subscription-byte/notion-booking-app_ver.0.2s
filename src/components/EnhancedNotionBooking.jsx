@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FluidCanvas from './FluidCanvas';
+import { getRouteConfig, ROUTE_TAG_OPTIONS } from '../config/routeConfig';
+import { BUSINESS_HOURS, generateTimeSlots } from '../config/businessConfig';
+import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
+import { isUnavailableDay } from '../config/holidays';
+import { ALERT_MESSAGES, BUTTON_TEXTS, LABEL_TEXTS, PLACEHOLDER_TEXTS, HELP_TEXTS, SYSTEM_SETTINGS } from '../config/uiConfig';
+import { NOTION_CONFIG, generateLineAuthUrl } from '../config/apiConfig';
 
 const EnhancedNotionBooking = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -44,19 +50,25 @@ const EnhancedNotionBooking = () => {
   const [touchEnd, setTouchEnd] = useState(null);
   const swipeContainerRef = useRef(null);
 
-  // URLパラメータから経路タグとrefモードを取得
+  // URLパラメータから経路設定を取得
   const [routeTag, setRouteTag] = useState('');
   const [refMode, setRefMode] = useState(''); // '', 'personA', 'personB'
+  const [routeConfig, setRouteConfig] = useState(null); // 経路別設定
   const [showInitialForm, setShowInitialForm] = useState(true); // 最初の名前/LINE入力画面
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
+
+    // 設定ファイルから経路設定を取得
+    const config = getRouteConfig(ref);
+    setRouteConfig(config);
+    setRouteTag(config.routeTag);
+
+    // refModeを設定
     if (ref === 'personA') {
-      setRouteTag('公認X');
       setRefMode('personA');
     } else if (ref === 'personB') {
-      setRouteTag('まゆ紹介');
       setRefMode('personB');
     } else {
       setRefMode('');
@@ -72,12 +84,12 @@ const EnhancedNotionBooking = () => {
       setLineName(lineName);
       setCustomerName(lineName); // 名前を自動入力
       setShowInitialForm(false); // 初期フォームをスキップして週選択へ
-      alert(`✅ LINE連携成功！\n\nこんにちは、${lineName}さん\n予約完了時にLINE通知が届きます。`);
+      alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
 
       // URLパラメータをクリア
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (lineError) {
-      alert(`❌ LINE連携エラー\n\n${lineError}`);
+      alert(ALERT_MESSAGES.lineLoginError(lineError));
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -120,9 +132,9 @@ const EnhancedNotionBooking = () => {
       setShowTestLogin(false);
       setTestLoginId('');
       setTestLoginPw('');
-      alert('🧪 テストモードを起動しました');
+      alert(ALERT_MESSAGES.testModeEnabled);
     } else {
-      alert('IDまたはパスワードが間違っています');
+      alert(ALERT_MESSAGES.testLoginFailed);
     }
   };
 
@@ -130,26 +142,11 @@ const EnhancedNotionBooking = () => {
   const handleTestLogout = () => {
     setIsTestMode(false);
     localStorage.removeItem('testMode');
-    alert('テストモードを解除しました');
+    alert(ALERT_MESSAGES.testModeDisabled);
   };
 
 
-  const settings = {
-    immediateButtonText: '今すぐ予約する',
-    startHour: 12,
-    endHour: 21,
-    systemTitle: '予約システム',
-    description: 'ご希望の日時を選択してください'
-  };
-
-  const holidays2025 = [
-    '2025-01-01', '2025-01-13', '2025-02-11', '2025-02-23',
-    '2025-03-20', '2025-04-29', '2025-05-03', '2025-05-04',
-    '2025-05-05', '2025-07-21', '2025-08-11', '2025-09-15',
-    '2025-09-23', '2025-10-13', '2025-11-03', '2025-11-23',
-  ];
-
-  const CALENDAR_DATABASE_ID = '1fa44ae2d2c780a5b27dc7aae5bae1aa';
+  // 設定は config ファイルからインポート済み
 
   const validateNotionData = (data, expectedDateRange, isInitialLoad) => {
     // API接続失敗
@@ -228,26 +225,10 @@ const EnhancedNotionBooking = () => {
     return weekDates;
   };
 
-  const isHoliday = (date) => {
-    const dateString = date.getFullYear() + '-' + 
-                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                      String(date.getDate()).padStart(2, '0');
-
-
-    return holidays2025.includes(dateString);
-  };
-
-  const generateTimeSlots = (startHour, endHour) => {
-    const slots = [];
-    for (let hour = startHour; hour < endHour; hour++) {
-      const time = `${hour.toString().padStart(2, '0')}:00`;
-      slots.push(time);
-    }
-    return slots;
-  };
+  // isHoliday と generateTimeSlots は config からインポート済み
 
   const weekDates = getCurrentWeekDates();
-  const timeSlots = generateTimeSlots(settings.startHour, settings.endHour);
+  const timeSlots = generateTimeSlots(BUSINESS_HOURS.startHour, BUSINESS_HOURS.endHour);
 
   // 前週・翌週の日付を計算
   const getPrevWeekDates = () => {
@@ -334,7 +315,7 @@ const EnhancedNotionBooking = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: CALENDAR_DATABASE_ID,
+            databaseId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
               and: [
                 {
@@ -377,7 +358,7 @@ const EnhancedNotionBooking = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: CALENDAR_DATABASE_ID,
+            databaseId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
               and: [
                 {
@@ -446,7 +427,7 @@ const EnhancedNotionBooking = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          databaseId: CALENDAR_DATABASE_ID,
+          databaseId: NOTION_CONFIG.calendarDatabaseId,
           filter: {
             and: [
               {
@@ -605,7 +586,7 @@ const EnhancedNotionBooking = () => {
       
       // ネットワークエラーの場合はユーザーに通知
       if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
-        alert('ただいまサイト情報の更新中です。お手数をおかけいたしますが、数分後に再度お試しください。');
+        alert(ALERT_MESSAGES.siteUpdating);
       }
 
       return [];
@@ -690,7 +671,7 @@ const EnhancedNotionBooking = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          parent: { database_id: CALENDAR_DATABASE_ID },
+          parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
           properties: properties
         })
       });
@@ -793,7 +774,7 @@ const EnhancedNotionBooking = () => {
       if (date < today) continue;
 
       // 祝日はスキップ
-      if (isHoliday(date)) continue;
+      if (isUnavailableDay(date)) continue;
 
       const isToday = date.getTime() === today.getTime();
 
@@ -838,7 +819,7 @@ const EnhancedNotionBooking = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            databaseId: CALENDAR_DATABASE_ID,
+            databaseId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
               and: [
                 {
@@ -914,7 +895,7 @@ const EnhancedNotionBooking = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              databaseId: CALENDAR_DATABASE_ID,
+              databaseId: NOTION_CONFIG.calendarDatabaseId,
               filter: {
                 and: [
                   {
@@ -1002,25 +983,14 @@ const EnhancedNotionBooking = () => {
 
   const getBookingStatus = (date, time, eventsToCheck = null) => {
     const events = eventsToCheck || notionEvents;
-    if (isHoliday(date)) {
+    if (isUnavailableDay(date)) {
       return 'holiday';
     }
 
-    const dayOfWeek = date.getDay(); // 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
     const timeHour = parseInt(time.split(':')[0]);
 
-    // 火曜日11:00~16:00をブロック
-    if (dayOfWeek === 2 && timeHour >= 11 && timeHour < 16) {
-      return 'booked';
-    }
-
-    // 水曜日13:00のみブロック
-    if (dayOfWeek === 3 && timeHour === 13) {
-      return 'booked';
-    }
-
-    // 全日（火曜以外）15:00~16:00をブロック
-    if (dayOfWeek !== 2 && timeHour >= 15 && timeHour < 16) {
+    // 固定ブロック時間のチェック（曜日・時間帯ベース）
+    if (isFixedBlockedTime(date, timeHour)) {
       return 'booked';
     }
 
@@ -1031,69 +1001,17 @@ const EnhancedNotionBooking = () => {
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
 
-    // 対面通話の前後3時間をブロック（通話方法が「対面」または名前に「対面」が含まれる）
-    const hasBlockedTimeForInPerson = events.some(event => {
-      const eventStart = event.properties['予定日']?.date?.start;
-      const eventEnd = event.properties['予定日']?.date?.end;
-      const callMethod = event.properties['通話方法']?.select?.name;
-      const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
-
-      if (!eventStart) return false;
-
-      // 通話方法が「対面」または名前に「対面」が含まれる
-      const isInPerson = callMethod === '対面' || eventName.includes('対面');
-      if (!isInPerson) return false;
-
-      const existingStart = new Date(eventStart);
-      let existingEnd;
-
-      if (eventEnd) {
-        existingEnd = new Date(eventEnd);
-      } else {
-        existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
-      }
-
-      const blockStart = new Date(existingStart.getTime() - 3 * 60 * 60 * 1000);
-      const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
-
-      const isBlocked = (blockStart <= slotEnd && blockEnd >= slotStart);
-      return isBlocked;
-    });
+    // 対面通話のブロック判定
+    const hasBlockedTimeForInPerson = events.some(event =>
+      isInPersonBlocked(event, slotStart, slotEnd)
+    );
 
     if (hasBlockedTimeForInPerson) return 'booked';
 
-    // 撮影の前はすべて（12:00から）・後は3時間をブロック（通話方法が「撮影」または名前に「撮影」が含まれる）
-    const hasBlockedTimeForShooting = events.some(event => {
-      const eventStart = event.properties['予定日']?.date?.start;
-      const eventEnd = event.properties['予定日']?.date?.end;
-      const callMethod = event.properties['通話方法']?.select?.name;
-      const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
-
-      if (!eventStart) return false;
-
-      // 通話方法が「撮影」または名前に「撮影」が含まれる
-      const isShooting = callMethod === '撮影' || eventName.includes('撮影');
-      if (!isShooting) return false;
-
-      const existingStart = new Date(eventStart);
-      let existingEnd;
-
-      if (eventEnd) {
-        existingEnd = new Date(eventEnd);
-      } else {
-        existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
-      }
-
-      // 12:00から撮影終了時刻まで + 後3時間をブロック
-      const dayStart = new Date(existingStart);
-      dayStart.setHours(12, 0, 0, 0);
-
-      const blockStart = dayStart;
-      const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
-
-      const isBlocked = (blockStart <= slotEnd && blockEnd >= slotStart);
-      return isBlocked;
-    });
+    // 撮影のブロック判定
+    const hasBlockedTimeForShooting = events.some(event =>
+      isShootingBlocked(event, slotStart, slotEnd)
+    );
 
     if (hasBlockedTimeForShooting) return 'booked';
 
@@ -1123,17 +1041,17 @@ const EnhancedNotionBooking = () => {
 
   const handleDateSelect = (date) => {
     if (isInitialLoading || isWeekChanging) {
-      alert('データを読み込み中です。しばらくお待ちください。');
+      alert(ALERT_MESSAGES.dataLoading);
       return;
     }
 
-    if (isHoliday(date)) {
-      alert('祝日は予約できません。他の日付を選択してください。');
+    if (isUnavailableDay(date)) {
+      alert(ALERT_MESSAGES.holidayNotAvailable);
       return;
     }
 
     if (getDateStatus(date) === 'full') {
-      alert('選択した日付は満員です。他の日付を選択してください。');
+      alert(ALERT_MESSAGES.fullyBooked);
       return;
     }
 
@@ -1143,7 +1061,7 @@ const EnhancedNotionBooking = () => {
 
   const handleTimeSelect = (time) => {
     if (isInitialLoading || isWeekChanging) {
-      alert('データを読み込み中です。しばらくお待ちください。');
+      alert(ALERT_MESSAGES.dataLoading);
       return;
     }
 
@@ -1153,15 +1071,15 @@ const EnhancedNotionBooking = () => {
       setShowTimeSlots(false);
       setShowBookingForm(true);
     } else {
-      alert('選択した時間帯は予約できません。他の時間を選択してください。');
+      alert(ALERT_MESSAGES.timeSlotNotAvailable);
     }
   };
 
   const handleBooking = async () => {
     const latestEvents = await fetchNotionCalendar();
 
-    if (isHoliday(selectedDate)) {
-      alert('エラー: 祝日は予約できません。');
+    if (isUnavailableDay(selectedDate)) {
+      alert(ALERT_MESSAGES.holidayError);
       setShowBookingForm(false);
       setShowTimeSlots(false);
       setSelectedDate(null);
@@ -1171,7 +1089,7 @@ const EnhancedNotionBooking = () => {
 
     const currentStatus = getBookingStatus(selectedDate, selectedTime, latestEvents);
     if (currentStatus !== 'available') {
-      alert('エラー: 選択した時間帯は既に予約済みです。他の時間を選択してください。');
+      alert(ALERT_MESSAGES.alreadyBooked);
       setShowBookingForm(false);
       setSelectedTime(null);
       return;
@@ -1268,16 +1186,16 @@ const EnhancedNotionBooking = () => {
         setShowTimeSlots(false);
         setShowConfirmation(true);
       } else {
-        alert('予約の作成に失敗しました。もう一度お試しください。');
+        alert(ALERT_MESSAGES.bookingFailed);
       }
     } catch (error) {
       console.error('予約エラー:', error);
       
       // ネットワークエラーやデプロイ中の場合
       if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
-        alert('ただいまサイト情報の更新中です。お手数をおかけいたしますが、数分後に再度お試しください。');
+        alert(ALERT_MESSAGES.siteUpdating);
       } else {
-        alert('予約の作成に失敗しました。もう一度お試しください。');
+        alert(ALERT_MESSAGES.bookingFailed);
       }
     } finally {
       setIsLoading(false);
@@ -1303,7 +1221,7 @@ const EnhancedNotionBooking = () => {
   };
 
   const getDateStatus = (date) => {
-    if (isHoliday(date)) return 'holiday';
+    if (isUnavailableDay(date)) return 'holiday';
 
     const availableSlots = timeSlots.filter(time =>
       getBookingStatus(date, time) === 'available'
@@ -1335,7 +1253,7 @@ const EnhancedNotionBooking = () => {
   };
 
   const getTimeTableDisplay = (date) => {
-    if (isHoliday(date)) return null;
+    if (isUnavailableDay(date)) return null;
     
     const timeStatuses = timeSlots.map(time => ({
       time: time,
@@ -1506,9 +1424,9 @@ const EnhancedNotionBooking = () => {
                   }}
                 >
                   <i className="fas fa-calendar-alt mr-1 sm:mr-2 text-sm sm:text-base" style={{color: '#ff69b4'}}></i>
-                  {settings.systemTitle}
+                  {SYSTEM_SETTINGS.systemTitle}
                 </h1>
-                <p className="text-pink-600 text-xs sm:text-sm font-light tracking-wide">{settings.description}</p>
+                <p className="text-pink-600 text-xs sm:text-sm font-light tracking-wide">{SYSTEM_SETTINGS.description}</p>
               </div>
             </div>
 
@@ -1526,17 +1444,17 @@ const EnhancedNotionBooking = () => {
                 <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
                   <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold text-gradient mb-2">
-                      {refMode === 'personA' ? 'お名前とXリンクを入力' : '予約を始める'}
+                      {routeConfig?.mode === 'lineLogin' ? '予約を始める' : 'お名前とXリンクを入力'}
                     </h2>
                     <p className="text-sm text-gray-600">
-                      {refMode === 'personA'
-                        ? 'ご予約に必要な情報を入力してください'
-                        : 'LINE連携で簡単予約＆リマインド♪'}
+                      {routeConfig?.mode === 'lineLogin'
+                        ? 'LINE連携で簡単予約＆リマインド♪'
+                        : 'ご予約に必要な情報を入力してください'}
                     </p>
                   </div>
 
-                  {/* personA: 名前+X入力フォーム */}
-                  {refMode === 'personA' && (
+                  {/* 名前+X入力フォーム */}
+                  {routeConfig?.mode === 'nameAndX' && (
                     <div className="space-y-4">
                       <div>
                         <label className="block text-gray-700 font-bold mb-2 text-sm">
@@ -1569,11 +1487,11 @@ const EnhancedNotionBooking = () => {
                       <button
                         onClick={() => {
                           if (!customerName.trim()) {
-                            alert('お名前を入力してください');
+                            alert(ALERT_MESSAGES.nameRequired);
                             return;
                           }
                           if (!xLink.trim()) {
-                            alert('Xリンクを入力してください');
+                            alert(ALERT_MESSAGES.xLinkRequired);
                             return;
                           }
                           setShowInitialForm(false);
@@ -1587,18 +1505,15 @@ const EnhancedNotionBooking = () => {
                     </div>
                   )}
 
-                  {/* 通常 & personB: LINE連携のみ */}
-                  {refMode !== 'personA' && process.env.REACT_APP_LINE_CHANNEL_ID && (
+                  {/* LINE連携 */}
+                  {routeConfig?.mode === 'lineLogin' && process.env.REACT_APP_LINE_CHANNEL_ID && (
                     <div className="space-y-4">
                       <button
                         onClick={() => {
                           const LINE_CHANNEL_ID = process.env.REACT_APP_LINE_CHANNEL_ID;
-                          const REDIRECT_URI = encodeURIComponent('https://mfagencybooking.netlify.app/.netlify/functions/line-callback');
-                          const STATE = Math.random().toString(36).substring(7);
-                          const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid`;
+                          const lineAuthUrl = generateLineAuthUrl(LINE_CHANNEL_ID);
                           console.log('LINE認証URL:', lineAuthUrl);
                           console.log('Channel ID:', LINE_CHANNEL_ID);
-                          console.log('Redirect URI:', decodeURIComponent(REDIRECT_URI));
                           window.location.href = lineAuthUrl;
                         }}
                         className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"
@@ -2122,7 +2037,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                     const getPrevDateStatus = (idx) => {
                       const prevDate = getPrevWeekDates()[idx];
-                      if (isHoliday(prevDate)) return 'holiday';
+                      if (isUnavailableDay(prevDate)) return 'holiday';
                       const availableSlots = timeSlots.filter(time =>
                         getBookingStatus(prevDate, time, prevWeekEvents) === 'available'
                       ).length;
@@ -2133,7 +2048,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
                     const getNextDateStatus = (idx) => {
                       const nextDate = getNextWeekDates()[idx];
-                      if (isHoliday(nextDate)) return 'holiday';
+                      if (isUnavailableDay(nextDate)) return 'holiday';
                       const availableSlots = timeSlots.filter(time =>
                         getBookingStatus(nextDate, time, nextWeekEvents) === 'available'
                       ).length;
@@ -2151,7 +2066,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       {[0, 1, 2, 3, 4].map(idx => {
                         const prevDate = getPrevWeekDates()[idx];
                         let status = 'available';
-                        if (isHoliday(prevDate)) {
+                        if (isUnavailableDay(prevDate)) {
                           status = 'holiday';
                         } else {
                           const availableSlots = timeSlots.filter(time =>
@@ -2169,7 +2084,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     <div className="flex-1 space-y-1 sm:space-y-2">
                     {weekDates.map((date, index) => {
                       const status = getDateStatus(date);
-                      const isDisabled = isInitialLoading || isWeekChanging || isHoliday(date) || status === 'full';
+                      const isDisabled = isInitialLoading || isWeekChanging || isUnavailableDay(date) || status === 'full';
 
                       return (
                         <button
@@ -2206,7 +2121,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                                   </div>
                                 )}
                                 {/* 祝日表示のみ */}
-                                {isHoliday(date) && (
+                                {isUnavailableDay(date) && (
                                   <div className="flex flex-col items-center justify-center text-center">
                                     <span className="text-3xl mb-1">{getDateStatusIcon(status)}</span>
                                     <span className="text-xs font-medium text-gray-600">{getDateStatusText(status)}</span>
@@ -2224,7 +2139,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       {[0, 1, 2, 3, 4].map(idx => {
                         const nextDate = getNextWeekDates()[idx];
                         let status = 'available';
-                        if (isHoliday(nextDate)) {
+                        if (isUnavailableDay(nextDate)) {
                           status = 'holiday';
                         } else {
                           const availableSlots = timeSlots.filter(time =>
@@ -2357,8 +2272,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </div>
                   </div>
 
-                  {/* Xリンク（personAの場合は必須で表示、それ以外は非表示） */}
-                  {refMode === 'personA' && (
+                  {/* Xリンク */}
+                  {routeConfig?.requireXLink && (
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2376,8 +2291,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   </div>
                   )}
 
-                  {/* 経路タグ（通常とpersonBの場合のみ表示） */}
-                  {refMode !== 'personA' && (
+                  {/* 経路タグ */}
+                  {routeConfig?.requireRouteTag && (
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-tags mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2389,10 +2304,11 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
                       required
                     >
-                      <option value="">選択してください</option>
-                      <option value="公認X">公認X</option>
-                      <option value="まゆ紹介">まゆ紹介</option>
-                      <option value="その他">その他</option>
+                      {ROUTE_TAG_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   )}
@@ -2424,17 +2340,17 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </button>
                     <button
                       onClick={() => {
-                        // バリデーション: personAはXリンク必須、それ以外は経路タグ必須
+                        // バリデーション: 設定ファイルに基づいて判定
                         if (!customerName.trim()) {
-                          alert('お名前が入力されていません');
+                          alert(ALERT_MESSAGES.nameNotEntered);
                           return;
                         }
-                        if (refMode === 'personA' && !xLink.trim()) {
-                          alert('Xリンクを入力してください');
+                        if (routeConfig?.requireXLink && !xLink.trim()) {
+                          alert(ALERT_MESSAGES.xLinkRequired);
                           return;
                         }
-                        if (refMode !== 'personA' && !routeTag) {
-                          alert('経路タグを選択してください');
+                        if (routeConfig?.requireRouteTag && !routeTag) {
+                          alert(ALERT_MESSAGES.routeTagRequired);
                           return;
                         }
                         setShowBookingForm(false);
@@ -2442,7 +2358,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       }}
                       disabled={
                         !customerName.trim() ||
-                        (refMode === 'personA' ? !xLink.trim() : !routeTag)
+                        (routeConfig?.requireXLink && !xLink.trim()) ||
+                        (routeConfig?.requireRouteTag && !routeTag)
                       }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >

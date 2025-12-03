@@ -6,6 +6,7 @@ exports.handler = async (event, context) => {
   try {
     const { userId, message } = JSON.parse(event.body);
     const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    const ALLOWED_TEST_USER_ID = process.env.LINE_TEST_USER_ID;
 
     if (!LINE_CHANNEL_ACCESS_TOKEN) {
       throw new Error('LINE_CHANNEL_ACCESS_TOKEN is not set');
@@ -16,6 +17,14 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Missing required fields: userId, message' })
+      };
+    }
+
+    // セキュリティ: テスト用User IDのみ許可（スパム防止）
+    if (ALLOWED_TEST_USER_ID && userId !== ALLOWED_TEST_USER_ID) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'Unauthorized: This user ID is not allowed for testing' })
       };
     }
 
