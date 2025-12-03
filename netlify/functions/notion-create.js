@@ -18,8 +18,16 @@ exports.handler = async (event, context) => {
     }
 
     // 必須フィールドの検証
-    const requiredFields = ['名前', '予定日', 'X'];
     const properties = requestBody?.properties || {};
+
+    // 名前と予定日は常に必須
+    const requiredFields = ['名前', '予定日'];
+
+    // LINE User IDがない場合のみXリンクを必須に
+    const hasLineUserId = properties['LINE User ID']?.rich_text?.[0]?.text?.content;
+    if (!hasLineUserId) {
+      requiredFields.push('X');
+    }
 
     for (const field of requiredFields) {
       if (!properties[field]) {

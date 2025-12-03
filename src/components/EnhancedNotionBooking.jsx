@@ -1698,6 +1698,8 @@ const EnhancedNotionBooking = () => {
                       </span>
                     </div>
 
+                    {/* Xリンクはrequired時のみ表示 */}
+                    {routeConfig?.requireXLink && xLink && (
                     <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
                       <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
                         <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -1713,6 +1715,7 @@ const EnhancedNotionBooking = () => {
                         リンクを開く
                       </a>
                     </div>
+                    )}
 
                     {remarks && (
                       <div className="py-3">
