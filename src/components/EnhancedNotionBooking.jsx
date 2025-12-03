@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FluidCanvas from './FluidCanvas';
-import { getRouteConfig, ROUTE_TAG_OPTIONS } from '../config/routeConfig';
+import { getRouteConfig } from '../config/routeConfig';
 import { BUSINESS_HOURS, generateTimeSlots } from '../config/businessConfig';
 import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
 import { isUnavailableDay } from '../config/holidays';
-import { ALERT_MESSAGES, BUTTON_TEXTS, LABEL_TEXTS, PLACEHOLDER_TEXTS, HELP_TEXTS, SYSTEM_SETTINGS } from '../config/uiConfig';
+import { ALERT_MESSAGES, SYSTEM_SETTINGS } from '../config/uiConfig';
 import { NOTION_CONFIG, generateLineAuthUrl } from '../config/apiConfig';
 
 const EnhancedNotionBooking = () => {
@@ -15,7 +15,6 @@ const EnhancedNotionBooking = () => {
   const [customerName, setCustomerName] = useState('');
   const [xLink, setXLink] = useState('');
   const [lineUserId, setLineUserId] = useState('');
-  const [lineName, setLineName] = useState('');
   const [remarks, setRemarks] = useState('');
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
@@ -52,7 +51,6 @@ const EnhancedNotionBooking = () => {
 
   // URLパラメータから経路設定を取得
   const [routeTag, setRouteTag] = useState('');
-  const [refMode, setRefMode] = useState(''); // '', 'personA', 'personB'
   const [routeConfig, setRouteConfig] = useState(null); // 経路別設定
   const [showInitialForm, setShowInitialForm] = useState(true); // 最初の名前/LINE入力画面
 
@@ -66,15 +64,6 @@ const EnhancedNotionBooking = () => {
     setRouteConfig(config);
     setRouteTag(config.routeTag);
 
-    // refModeを設定
-    if (ref === 'personA') {
-      setRefMode('personA');
-    } else if (ref === 'personB') {
-      setRefMode('personB');
-    } else {
-      setRefMode('');
-    }
-
     // LINE連携のコールバック処理
     const lineUserId = urlParams.get('line_user_id');
     const lineName = urlParams.get('line_name');
@@ -82,7 +71,6 @@ const EnhancedNotionBooking = () => {
 
     if (lineUserId && lineName) {
       setLineUserId(lineUserId);
-      setLineName(lineName);
       setCustomerName(lineName); // 名前を自動入力
       setShowInitialForm(false); // 初期フォームをスキップして週選択へ
       alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
