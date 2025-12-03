@@ -87,11 +87,14 @@ const EnhancedNotionBooking = () => {
       setShowInitialForm(false); // 初期フォームをスキップして週選択へ
       alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
 
-      // URLパラメータをクリア
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // URLパラメータをクリア（refは保持）
+      const newUrl = ref ? `${window.location.pathname}?ref=${ref}` : window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
     } else if (lineError) {
       alert(ALERT_MESSAGES.lineLoginError(lineError));
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // URLパラメータをクリア（refは保持）
+      const newUrl = ref ? `${window.location.pathname}?ref=${ref}` : window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
     }
 
     // テストモードの永続化チェック
@@ -2347,28 +2350,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   </div>
                   )}
 
-                  {/* 経路タグ */}
-                  {routeConfig?.requireRouteTag && (
-                  <div>
-                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
-                      <i className="fas fa-tags mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
-                      経路タグ <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <select
-                      value={routeTag}
-                      onChange={(e) => setRouteTag(e.target.value)}
-                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
-                      required
-                    >
-                      {ROUTE_TAG_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  )}
-
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2405,17 +2386,12 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           alert(ALERT_MESSAGES.xLinkRequired);
                           return;
                         }
-                        if (routeConfig?.requireRouteTag && !routeTag) {
-                          alert(ALERT_MESSAGES.routeTagRequired);
-                          return;
-                        }
                         setShowBookingForm(false);
                         setShowConfirmScreen(true);
                       }}
                       disabled={
                         !customerName.trim() ||
-                        (routeConfig?.requireXLink && !xLink.trim()) ||
-                        (routeConfig?.requireRouteTag && !routeTag)
+                        (routeConfig?.requireXLink && !xLink.trim())
                       }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
