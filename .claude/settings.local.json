@@ -18,7 +18,8 @@
       "Bash(node:*)",
       "Bash(npm run build:*)",
       "Bash(git checkout:*)",
-      "Read(//c/Users/ikoi2/Downloads/**)"
+      "Read(//c/Users/ikoi2/Downloads/**)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": [],
