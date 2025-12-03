@@ -52,7 +52,7 @@ export const generateLineAuthUrl = (channelId, ref = '') => {
   // stateにrefパラメータを含める（カンマ区切りでランダム文字列と結合）
   const randomState = Math.random().toString(36).substring(7);
   const state = ref ? `${randomState},${ref}` : randomState;
-  const scope = encodeURIComponent(LINE_CONFIG.scope.replace(/ /g, '%20'));
+  const scope = LINE_CONFIG.scope.replace(/ /g, '%20');
 
   return `${LINE_CONFIG.authBaseUrl}?response_type=code&client_id=${channelId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
 };
