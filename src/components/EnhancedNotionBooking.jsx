@@ -86,12 +86,21 @@ const EnhancedNotionBooking = () => {
     if (lineUserId && lineName) {
       setLineUserId(lineUserId);
       setCustomerName(lineName); // 名前を自動入力
-      setShowInitialForm(false); // 初期フォームをスキップして週選択へ
+
       alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
+
+      // 初期フォームをスキップして週選択へ
+      setShowInitialForm(false);
 
       // URLパラメータをクリア（refは保持）
       const newUrl = ref ? `${window.location.pathname}?ref=${ref}` : window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
+
+      // LINE認証完了後、isInitialLoadingをtrueに保ってデータ読み込みをトリガー
+      // （初回データ読み込みuseEffectが動作するように）
+      if (!isInitialLoading) {
+        setIsInitialLoading(true);
+      }
     } else if (lineError) {
       alert(ALERT_MESSAGES.lineLoginError(lineError));
       // URLパラメータをクリア（refは保持）
