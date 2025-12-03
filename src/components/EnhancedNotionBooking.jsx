@@ -1608,7 +1608,15 @@ const EnhancedNotionBooking = () => {
                     </p>
                   )}
                   <button
-                    onClick={() => window.location.reload()}
+                    onClick={() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      const ref = urlParams.get('ref');
+                      if (ref) {
+                        window.location.href = `${window.location.pathname}?ref=${ref}`;
+                      } else {
+                        window.location.reload();
+                      }
+                    }}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <i className="fas fa-sync-alt mr-2"></i>
