@@ -273,6 +273,7 @@ const EnhancedNotionBooking = () => {
     const offset = currentOffset !== null ? currentOffset : weekOffset;
     const prevWeekKey = `${offset - 1}`;
     const nextWeekKey = `${offset + 1}`;
+    const nextNextWeekKey = `${offset + 2}`; // 翌々週
 
     // offset 0未満（過去の週）は取得しない
     if (offset - 1 < 0) {
@@ -280,7 +281,7 @@ const EnhancedNotionBooking = () => {
       console.log('前週は過去なので取得スキップ');
     }
 
-    // 現在のoffsetに基づいて前週・翌週の日付を計算
+    // 現在のoffsetに基づいて前週・翌週・翌々週の日付を計算
     const today = new Date();
     const currentDay = today.getDay();
 
@@ -302,6 +303,16 @@ const EnhancedNotionBooking = () => {
       const date = new Date(nextMonday);
       date.setDate(nextMonday.getDate() + i);
       nextWeekDates.push(date);
+    }
+
+    // 翌々週の日付
+    const nextNextMonday = new Date(today);
+    nextNextMonday.setDate(today.getDate() - currentDay + 1 + ((offset + 2) * 7));
+    const nextNextWeekDates = [];
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(nextNextMonday);
+      date.setDate(nextNextMonday.getDate() + i);
+      nextNextWeekDates.push(date);
     }
 
     try {
@@ -390,6 +401,46 @@ const EnhancedNotionBooking = () => {
           setNextWeekEvents(nextEvents);
           setAllWeeksData(prev => ({ ...prev, [nextWeekKey]: nextEvents }));
         }
+      }
+
+      // 翌々週データの事前読み込み（キャッシュに無い場合のみ）
+      if (!allWeeksData[nextNextWeekKey]) {
+        const nextNextResponse = await fetch('/.netlify/functions/notion-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            filter: {
+              and: [
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_after: nextNextWeekDates[0].getFullYear() + '-' +
+                                String(nextNextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                                String(nextNextWeekDates[0].getDate()).padStart(2, '0')
+                  }
+                },
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_before: nextNextWeekDates[4].getFullYear() + '-' +
+                                 String(nextNextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                                 String(nextNextWeekDates[4].getDate()).padStart(2, '0')
+                  }
+                }
+              ]
+            }
+          })
+        });
+
+        if (nextNextResponse.ok) {
+          const nextNextData = await nextNextResponse.json();
+          const nextNextEvents = nextNextData.results || [];
+          console.log('翌々週データ取得&保存:', { weekKey: nextNextWeekKey, dataCount: nextNextEvents.length });
+          setAllWeeksData(prev => ({ ...prev, [nextNextWeekKey]: nextNextEvents }));
+        }
+      } else {
+        console.log('翌々週データはキャッシュ済み:', nextNextWeekKey);
       }
     } catch (error) {
       console.error('前後週データの取得に失敗:', error);
