@@ -8,6 +8,11 @@
  * Notion DBから予約データを取得し、条件に合致する予約にLINE通知を送信
  */
 
+// Netlify v2 Scheduled Function設定
+export const config = {
+  schedule: "*/15 * * * *" // 15分ごとに実行
+};
+
 const { Client } = require('@notionhq/client');
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });

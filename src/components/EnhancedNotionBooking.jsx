@@ -56,7 +56,21 @@ const EnhancedNotionBooking = () => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
+    let ref = urlParams.get('ref');
+
+    // refがない場合はlocalStorageから復元
+    if (!ref) {
+      const savedRef = localStorage.getItem('routeRef');
+      if (savedRef) {
+        ref = savedRef;
+        // URLにrefを追加（ブラウザリロード対策）
+        const newUrl = `${window.location.pathname}?ref=${ref}`;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    } else {
+      // refがある場合はlocalStorageに保存
+      localStorage.setItem('routeRef', ref);
+    }
 
     // 設定ファイルから経路設定を取得
     const config = getRouteConfig(ref);
