@@ -62,6 +62,7 @@ const EnhancedNotionBooking = () => {
 
     // 設定ファイルから経路設定を取得
     const config = getRouteConfig(ref);
+    console.log('🔧 Route Config Debug:', { ref, config, mode: config.mode });
     setRouteConfig(config);
     setRouteTag(config.routeTag);
 
@@ -1511,9 +1512,12 @@ const EnhancedNotionBooking = () => {
                       <button
                         onClick={() => {
                           const LINE_CHANNEL_ID = process.env.REACT_APP_LINE_CHANNEL_ID;
-                          const lineAuthUrl = generateLineAuthUrl(LINE_CHANNEL_ID);
+                          const urlParams = new URLSearchParams(window.location.search);
+                          const ref = urlParams.get('ref') || '';
+                          const lineAuthUrl = generateLineAuthUrl(LINE_CHANNEL_ID, ref);
                           console.log('LINE認証URL:', lineAuthUrl);
                           console.log('Channel ID:', LINE_CHANNEL_ID);
+                          console.log('Ref:', ref);
                           window.location.href = lineAuthUrl;
                         }}
                         className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"

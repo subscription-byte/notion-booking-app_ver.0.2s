@@ -44,11 +44,14 @@ export const CHATWORK_CONFIG = {
 /**
  * LINE認証URLを生成
  * @param {string} channelId - LINE Channel ID
+ * @param {string} ref - refパラメータ（'personA', 'personB', ''など）
  * @returns {string} - LINE認証URL
  */
-export const generateLineAuthUrl = (channelId) => {
+export const generateLineAuthUrl = (channelId, ref = '') => {
   const redirectUri = encodeURIComponent(LINE_CONFIG.redirectUri);
-  const state = Math.random().toString(36).substring(7);
+  // stateにrefパラメータを含める（カンマ区切りでランダム文字列と結合）
+  const randomState = Math.random().toString(36).substring(7);
+  const state = ref ? `${randomState},${ref}` : randomState;
   const scope = encodeURIComponent(LINE_CONFIG.scope.replace(/ /g, '%20'));
 
   return `${LINE_CONFIG.authBaseUrl}?response_type=code&client_id=${channelId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;

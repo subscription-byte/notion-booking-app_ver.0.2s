@@ -79,8 +79,16 @@ exports.handler = async (event, context) => {
 
     console.log('Profile received - userId:', userId, 'displayName:', displayName);
 
-    // リダイレクト先URL（元のページに戻る + User IDをクエリパラメータで渡す）
-    const redirectUrl = `https://mfagencybooking.netlify.app/?line_user_id=${encodeURIComponent(userId)}&line_name=${encodeURIComponent(displayName)}`;
+    // stateからrefパラメータを取得（カンマ区切りの2番目の値）
+    const stateParts = state ? state.split(',') : [];
+    const ref = stateParts.length > 1 ? stateParts[1] : '';
+    console.log('Ref parameter from state:', ref);
+
+    // リダイレクト先URL（元のページに戻る + User IDとrefをクエリパラメータで渡す）
+    let redirectUrl = `https://mfagencybooking.netlify.app/?line_user_id=${encodeURIComponent(userId)}&line_name=${encodeURIComponent(displayName)}`;
+    if (ref) {
+      redirectUrl += `&ref=${encodeURIComponent(ref)}`;
+    }
 
     console.log('Redirecting to:', redirectUrl);
 
