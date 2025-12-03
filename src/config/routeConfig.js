@@ -9,7 +9,7 @@ export const ROUTE_CONFIG = {
   // 通常リンク（refパラメータなし）
   normal: {
     mode: 'nameAndX',          // 'nameAndX' | 'lineLogin'
-    routeTag: '',              // Notionの経路タグ（空文字の場合は入力必須）
+    routeTag: '公認X',         // Notionの経路タグ
     requireXLink: true,        // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須（modeがnameAndXの場合のみ有効）
   },
@@ -17,7 +17,7 @@ export const ROUTE_CONFIG = {
   // personA（?ref=personA）
   personA: {
     mode: 'lineLogin',         // 'nameAndX' | 'lineLogin'
-    routeTag: '公認X',         // Notionの経路タグ
+    routeTag: '',              // Notionの経路タグ（空文字の場合は入力必須）
     requireXLink: false,       // Xリンク入力必須
     requireRouteTag: true,     // 経路タグ選択必須（modeがlineLoginの場合のみ有効）
   },
