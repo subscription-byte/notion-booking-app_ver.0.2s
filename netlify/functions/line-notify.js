@@ -4,7 +4,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { userId, message } = JSON.parse(event.body);
+    const { userId, message, isTest } = JSON.parse(event.body);
     const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
     const ALLOWED_TEST_USER_ID = process.env.LINE_TEST_USER_ID;
 
@@ -20,8 +20,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // セキュリティ: テスト用User IDのみ許可（スパム防止）
-    if (ALLOWED_TEST_USER_ID && userId !== ALLOWED_TEST_USER_ID) {
+    // セキュリティ: テストモードからの送信の場合のみUser ID検証（スパム防止）
+    if (isTest && ALLOWED_TEST_USER_ID && userId !== ALLOWED_TEST_USER_ID) {
       return {
         statusCode: 403,
         body: JSON.stringify({ error: 'Unauthorized: This user ID is not allowed for testing' })

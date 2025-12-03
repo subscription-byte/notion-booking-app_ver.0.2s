@@ -1895,7 +1895,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                   userId: testUserId,
-                                  message: testMessage
+                                  message: testMessage,
+                                  isTest: true
                                 })
                               });
 
