@@ -14,7 +14,7 @@ const EnhancedNotionBooking = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [xLink, setXLink] = useState('');
-  const [lineUserId, setLineUserId] = useState('');
+  const [sessionId, setSessionId] = useState('');
   const [remarks, setRemarks] = useState('');
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
@@ -78,13 +78,13 @@ const EnhancedNotionBooking = () => {
     setRouteConfig(config);
     setRouteTag(config.routeTag);
 
-    // LINE連携のコールバック処理
-    const lineUserId = urlParams.get('line_user_id');
+    // LINE連携のコールバック処理（セッション方式）
+    const session = urlParams.get('session_id');
     const lineName = urlParams.get('line_name');
     const lineError = urlParams.get('line_error');
 
-    if (lineUserId && lineName) {
-      setLineUserId(lineUserId);
+    if (session && lineName) {
+      setSessionId(session);
       setCustomerName(lineName); // 名前を自動入力
       setShowInitialForm(false); // 初期フォームをスキップして週選択へ
       alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
@@ -713,28 +713,24 @@ const EnhancedNotionBooking = () => {
         };
       }
 
-      // LINE User IDがある場合は追加（Notionに「LINE User ID」列（rich_text型）が必要）
-      if (bookingData.lineUserId) {
-        properties['LINE User ID'] = {
-          rich_text: [
-            {
-              text: {
-                content: bookingData.lineUserId
-              }
-            }
-          ]
-        };
-      }
+      // セッションID方式の場合
+      const requestBody = bookingData.sessionId
+        ? {
+            sessionId: bookingData.sessionId,
+            parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
+            properties: properties
+          }
+        : {
+            parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
+            properties: properties
+          };
 
       const response = await fetch('/.netlify/functions/notion-create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
-          properties: properties
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -923,7 +919,7 @@ const EnhancedNotionBooking = () => {
 
   useEffect(() => {
     const initializeWithAvailableWeek = async () => {
-      if (!weekDates || weekDates.length === 0 || !isInitialLoading) return;
+      if (!weekDates || weekDates.length === 0) return;
 
       // 開発環境では通常通り
       if (process.env.NODE_ENV !== 'production') {
@@ -931,7 +927,7 @@ const EnhancedNotionBooking = () => {
         return;
       }
 
-      console.log('初回ロード: 4週分のデータを一括取得開始');
+      console.log('初回ロード: 4週分のデータを一括取得開始（初期フォーム表示中からバックグラウンド読み込み）');
 
       // 本番環境: まず4週分のデータを一括取得してキャッシュ
       try {
@@ -1168,7 +1164,7 @@ const EnhancedNotionBooking = () => {
         xLink: xLink,
         remarks: remarks,
         routeTag: routeTag,
-        lineUserId: lineUserId || null
+        sessionId: sessionId || null
       };
 
       const success = await createNotionEvent(bookingDataObj);
@@ -1224,24 +1220,7 @@ const EnhancedNotionBooking = () => {
           remarks: remarks
         });
 
-        // LINE連携している場合は自動で通知を送信
-        if (lineUserId) {
-          try {
-            const lineMessage = `【予約完了】\n\n日付: ${year}年${month}月${day}日 (${dayName})\n時間: ${selectedTime}\nお名前: ${customerName}\n\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
-
-            await fetch('/.netlify/functions/line-notify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: lineUserId,
-                message: lineMessage
-              })
-            });
-          } catch (error) {
-            console.error('LINE通知送信エラー:', error);
-            // LINE通知失敗しても予約は完了しているので、エラーを表示しない
-          }
-        }
+        // LINE通知はnotion-create.js内で自動送信される（セッション方式の場合）
 
         setShowBookingForm(false);
         setShowTimeSlots(false);
@@ -1666,7 +1645,7 @@ const EnhancedNotionBooking = () => {
                         <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                       </div>
                       <p className="text-base sm:text-lg text-pink-700 leading-relaxed font-bold">
-                        予約情報は次ページより<br />担当者へお送りください
+                        予約情報は以下より<br />担当者へお送りください
                       </p>
                     </div>
                   </div>
@@ -1791,7 +1770,7 @@ const EnhancedNotionBooking = () => {
                           <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
                         </div>
                         <h3 className="text-base sm:text-lg font-bold text-pink-700 mb-1.5 sm:mb-2">
-                          予約情報は次ページより<br />担当者へお送りください
+                          予約情報は以下より<br />担当者へお送りください
                         </h3>
                         <p className="text-xs sm:text-sm text-pink-600 mb-2 sm:mb-3">
                           下のボタンから予約情報をコピーして、担当者に送信できます
@@ -1906,48 +1885,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       )}
                     </div>
 
-                    {/* テストモード: LINE連携テストボタン */}
-                    {isTestMode && (
-                      <div className="mt-4 sm:mt-6 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl">
-                        <div className="text-center mb-3">
-                          <p className="text-sm font-bold text-yellow-800">🧪 テストモード専用機能</p>
-                        </div>
-                        <button
-                          onClick={async () => {
-                            const testUserId = prompt('テスト用LINE User IDを入力してください:\n\n※LINE公式アカウントの友だち追加が必要です');
-                            if (!testUserId) return;
-
-                            try {
-                              const testMessage = `【予約完了テスト通知】\n\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\n\nこれはテスト通知です。\n実際の予約完了時にこのような通知が送信されます。`;
-
-                              const response = await fetch('/.netlify/functions/line-notify', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  userId: testUserId,
-                                  message: testMessage,
-                                  isTest: true
-                                })
-                              });
-
-                              const result = await response.json();
-
-                              if (response.ok) {
-                                alert('✅ LINE通知送信成功！\n\nLINEアプリを確認してください。');
-                              } else {
-                                alert(`❌ LINE通知送信失敗\n\nエラー: ${result.error || '不明なエラー'}\n\n・LINE User IDが正しいか確認\n・友だち追加されているか確認\n・環境変数が設定されているか確認`);
-                              }
-                            } catch (error) {
-                              alert(`❌ 送信エラー: ${error.message}`);
-                            }
-                          }}
-                          className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
-                        >
-                          <i className="fab fa-line mr-2"></i>
-                          LINE通知テスト送信
-                        </button>
-                      </div>
-                    )}
 
                     <div className="mt-3 sm:mt-6">
                       <button
@@ -2349,7 +2286,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     </label>
                     <div className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-gray-50 text-sm sm:text-lg text-gray-700 flex items-center justify-between">
                       <span>{customerName}</span>
-                      {lineUserId && (
+                      {sessionId && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center">
                           <i className="fab fa-line mr-1"></i>
                           LINE連携済み

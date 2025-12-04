@@ -19,13 +19,17 @@ exports.handler = async (event, context) => {
     const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID;
     const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
     const REDIRECT_URI = 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback';
+    const NOTION_TOKEN = process.env.NOTION_TOKEN;
+    const NOTION_DB_ID = process.env.NOTION_DB_ID;
 
     console.log('LINE_CHANNEL_ID:', LINE_CHANNEL_ID ? 'Set' : 'Missing');
     console.log('LINE_CHANNEL_SECRET:', LINE_CHANNEL_SECRET ? 'Set' : 'Missing');
+    console.log('NOTION_TOKEN:', NOTION_TOKEN ? 'Set' : 'Missing');
+    console.log('NOTION_DB_ID:', NOTION_DB_ID ? 'Set' : 'Missing');
 
-    if (!LINE_CHANNEL_ID || !LINE_CHANNEL_SECRET) {
-      console.log('Error: LINE credentials not configured');
-      throw new Error('LINE credentials not configured');
+    if (!LINE_CHANNEL_ID || !LINE_CHANNEL_SECRET || !NOTION_TOKEN || !NOTION_DB_ID) {
+      console.log('Error: Required credentials not configured');
+      throw new Error('Required credentials not configured');
     }
 
     // アクセストークンを取得
@@ -84,8 +88,55 @@ exports.handler = async (event, context) => {
     const ref = stateParts.length > 1 ? stateParts[1] : '';
     console.log('Ref parameter from state:', ref);
 
-    // リダイレクト先URL（元のページに戻る + User IDとrefをクエリパラメータで渡す）
-    let redirectUrl = `https://mfagencybooking.netlify.app/?line_user_id=${encodeURIComponent(userId)}&line_name=${encodeURIComponent(displayName)}`;
+    // セッションIDを生成（UUID v4）
+    const crypto = require('crypto');
+    const sessionId = crypto.randomUUID();
+    console.log('Generated session ID:', sessionId);
+
+    // Notionに仮レコードを作成（セッション情報を保存）
+    console.log('Creating temporary session record in Notion...');
+    const notionResponse = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      body: JSON.stringify({
+        parent: { database_id: NOTION_DB_ID },
+        properties: {
+          '名前': {
+            title: [{ text: { content: '（LINE認証のみ）' } }]
+          },
+          'セッションID': {
+            rich_text: [{ text: { content: sessionId } }]
+          },
+          'LINE User ID': {
+            rich_text: [{ text: { content: userId } }]
+          },
+          'ステータス': {
+            select: { name: 'システム:仮登録' }
+          },
+          '予定日': {
+            date: { start: '2099-12-31T00:00:00+09:00' }
+          },
+          '対応者': {
+            people: [{ id: '1ffd872b-594c-8107-b306-000269021f07' }]
+          }
+        }
+      })
+    });
+
+    if (!notionResponse.ok) {
+      const errorText = await notionResponse.text();
+      console.log('Notion session creation error:', errorText);
+      throw new Error(`Failed to create session in Notion: ${errorText}`);
+    }
+
+    console.log('Session record created successfully');
+
+    // リダイレクト先URL（セッションIDとrefをクエリパラメータで渡す）
+    let redirectUrl = `https://mfagencybooking.netlify.app/?session_id=${encodeURIComponent(sessionId)}&line_name=${encodeURIComponent(displayName)}`;
     if (ref) {
       redirectUrl += `&ref=${encodeURIComponent(ref)}`;
     }
