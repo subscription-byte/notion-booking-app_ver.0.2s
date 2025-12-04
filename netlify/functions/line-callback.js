@@ -114,8 +114,8 @@ exports.handler = async (event, context) => {
           'LINE User ID': {
             rich_text: [{ text: { content: userId } }]
           },
-          'ステータス': {
-            status: { name: '仮登録' }
+          '予約システム状況': {
+            select: { name: '仮登録' }
           },
           '予定日': {
             date: { start: '2099-12-31T00:00:00+09:00' }
