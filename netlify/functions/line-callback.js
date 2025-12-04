@@ -115,7 +115,7 @@ exports.handler = async (event, context) => {
             rich_text: [{ text: { content: userId } }]
           },
           'ステータス': {
-            select: { name: 'システム:仮登録' }
+            status: { name: 'システム:仮登録' }
           },
           '予定日': {
             date: { start: '2099-12-31T00:00:00+09:00' }

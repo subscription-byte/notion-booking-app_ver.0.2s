@@ -58,7 +58,7 @@ exports.handler = async (event, context) => {
       }
 
       // セッションのステータスチェック
-      const sessionStatus = sessionRecord.properties['ステータス']?.select?.name;
+      const sessionStatus = sessionRecord.properties['ステータス']?.status?.name;
       if (sessionStatus !== 'システム:仮登録') {
         return {
           statusCode: 403,
@@ -93,7 +93,7 @@ exports.handler = async (event, context) => {
               rich_text: [{ text: { content: lineUserId } }]
             },
             'ステータス': {
-              select: { name: '確定' }
+              status: { name: '確定' }
             },
             'セッションID': {
               rich_text: []  // セッションIDを削除
