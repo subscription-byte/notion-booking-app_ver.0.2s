@@ -59,7 +59,7 @@ exports.handler = async (event, context) => {
 
       // セッションのステータスチェック
       const sessionStatus = sessionRecord.properties['ステータス']?.status?.name;
-      if (sessionStatus !== 'システム:仮登録') {
+      if (sessionStatus !== '仮登録') {
         return {
           statusCode: 403,
           body: JSON.stringify({ error: 'Session already used or invalid' })
