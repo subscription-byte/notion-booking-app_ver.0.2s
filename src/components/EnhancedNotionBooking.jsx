@@ -1036,7 +1036,7 @@ const EnhancedNotionBooking = () => {
     };
 
     initializeWithAvailableWeek();
-  }, []); // 初回マウント時のみ実行
+  }, [weekDates]); // weekDates が準備できたら実行
 
   const getBookingStatus = (date, time, eventsToCheck = null) => {
     const events = eventsToCheck || notionEvents;
