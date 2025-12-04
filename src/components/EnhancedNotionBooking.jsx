@@ -927,60 +927,76 @@ const EnhancedNotionBooking = () => {
         return;
       }
 
-      console.log('初回ロード: 4週分のデータを一括取得開始（初期フォーム表示中からバックグラウンド読み込み）');
+      console.log('初回ロード: 4週分のデータを一括取得開始（1回のAPI呼び出しで取得）');
 
-      // 本番環境: まず4週分のデータを一括取得してキャッシュ
+      // 本番環境: 4週分のデータを1回のAPI呼び出しで取得
       try {
         const today = new Date();
         const currentDay = today.getDay();
         const allWeeksCache = {};
 
-        // offset 0〜3までの4週分を取得
-        for (let offset = 0; offset <= 3; offset++) {
-          const monday = new Date(today);
-          monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+        // 4週分の開始日と終了日を計算
+        const week0Monday = new Date(today);
+        week0Monday.setDate(today.getDate() - currentDay + 1);
 
-          const dates = [];
-          for (let i = 0; i < 5; i++) {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-            dates.push(date);
-          }
+        const week3Friday = new Date(week0Monday);
+        week3Friday.setDate(week0Monday.getDate() + (3 * 7) + 4); // 3週後の金曜日
 
-          // API呼び出し
-          const response = await fetch('/.netlify/functions/notion-query', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              databaseId: NOTION_CONFIG.calendarDatabaseId,
-              filter: {
-                and: [
-                  {
-                    property: '予定日',
-                    date: {
-                      on_or_after: dates[0].getFullYear() + '-' +
-                                  String(dates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                                  String(dates[0].getDate()).padStart(2, '0')
-                    }
-                  },
-                  {
-                    property: '予定日',
-                    date: {
-                      on_or_before: dates[4].getFullYear() + '-' +
-                                   String(dates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                                   String(dates[4].getDate()).padStart(2, '0')
-                    }
+        console.log('取得期間:',
+          week0Monday.toLocaleDateString(), '〜',
+          week3Friday.toLocaleDateString()
+        );
+
+        // 1回のAPI呼び出しで4週分取得
+        const response = await fetch('/.netlify/functions/notion-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            filter: {
+              and: [
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_after: week0Monday.getFullYear() + '-' +
+                                String(week0Monday.getMonth() + 1).padStart(2, '0') + '-' +
+                                String(week0Monday.getDate()).padStart(2, '0')
                   }
-                ]
-              }
-            })
-          });
+                },
+                {
+                  property: '予定日',
+                  date: {
+                    on_or_before: week3Friday.getFullYear() + '-' +
+                                 String(week3Friday.getMonth() + 1).padStart(2, '0') + '-' +
+                                 String(week3Friday.getDate()).padStart(2, '0')
+                  }
+                }
+              ]
+            }
+          })
+        });
 
-          if (response.ok) {
-            const data = await response.json();
-            const events = data.results || [];
-            allWeeksCache[offset] = events;
-            console.log(`週${offset}のデータ取得完了:`, events.length, '件');
+        if (response.ok) {
+          const data = await response.json();
+          const allEvents = data.results || [];
+          console.log('4週分のデータ取得完了:', allEvents.length, '件');
+
+          // 取得したデータを週ごとに分割してキャッシュ
+          for (let offset = 0; offset <= 3; offset++) {
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+
+            const friday = new Date(monday);
+            friday.setDate(monday.getDate() + 4);
+
+            // この週に該当するイベントを抽出
+            const weekEvents = allEvents.filter(event => {
+              const eventDate = new Date(event.properties['予定日']?.date?.start);
+              return eventDate >= monday && eventDate <= friday;
+            });
+
+            allWeeksCache[offset] = weekEvents;
+            console.log(`週${offset}のデータ振り分け完了:`, weekEvents.length, '件');
           }
         }
 
