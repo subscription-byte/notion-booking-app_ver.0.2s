@@ -991,13 +991,21 @@ const EnhancedNotionBooking = () => {
           for (let offset = 0; offset <= 3; offset++) {
             const monday = new Date(today);
             monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
+            monday.setHours(0, 0, 0, 0); // 時刻を0:00:00にリセット
 
             const friday = new Date(monday);
             friday.setDate(monday.getDate() + 4);
+            friday.setHours(23, 59, 59, 999); // 時刻を23:59:59にセット
 
             // この週に該当するイベントを抽出
             const weekEvents = allEvents.filter(event => {
-              const eventDate = new Date(event.properties['予定日']?.date?.start);
+              const eventDateStr = event.properties['予定日']?.date?.start;
+              if (!eventDateStr) return false;
+
+              // 日付文字列から日付部分のみ取得（YYYY-MM-DD）
+              const datePart = eventDateStr.split('T')[0];
+              const eventDate = new Date(datePart + 'T00:00:00');
+
               return eventDate >= monday && eventDate <= friday;
             });
 
