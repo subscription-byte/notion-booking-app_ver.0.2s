@@ -921,6 +921,9 @@ const EnhancedNotionBooking = () => {
     const initializeWithAvailableWeek = async () => {
       if (!weekDates || weekDates.length === 0) return;
 
+      // 初回ロード済みならスキップ（週遷移時の再実行を防ぐ）
+      if (Object.keys(allWeeksData).length > 0) return;
+
       // 開発環境では通常通り
       if (process.env.NODE_ENV !== 'production') {
         fetchNotionCalendar(false);
@@ -935,9 +938,12 @@ const EnhancedNotionBooking = () => {
         const currentDay = today.getDay();
         const allWeeksCache = {};
 
+        // 日曜日対応（日曜日は7として扱う）
+        const dayOfWeek = currentDay === 0 ? 7 : currentDay;
+
         // 4週分の開始日と終了日を計算
         const week0Monday = new Date(today);
-        week0Monday.setDate(today.getDate() - currentDay + 1);
+        week0Monday.setDate(today.getDate() - dayOfWeek + 1);
 
         const week3Friday = new Date(week0Monday);
         week3Friday.setDate(week0Monday.getDate() + (3 * 7) + 4); // 3週後の金曜日
@@ -984,7 +990,7 @@ const EnhancedNotionBooking = () => {
           // 取得したデータを週ごとに分割してキャッシュ
           for (let offset = 0; offset <= 3; offset++) {
             const monday = new Date(today);
-            monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+            monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
 
             const friday = new Date(monday);
             friday.setDate(monday.getDate() + 4);
@@ -1008,7 +1014,7 @@ const EnhancedNotionBooking = () => {
         let targetOffset = 0;
         for (let offset = 0; offset <= 3; offset++) {
           const monday = new Date(today);
-          monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
+          monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
 
           const dates = [];
           for (let i = 0; i < 5; i++) {
