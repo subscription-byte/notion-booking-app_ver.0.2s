@@ -19,7 +19,11 @@
       "Bash(npm run build:*)",
       "Bash(git checkout:*)",
       "Read(//c/Users/ikoi2/Downloads/**)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Read(//c/Users/ikoi2/予約リマインドLINE GAS/**)",
+      "Bash(del \"c:\\Users\\ikoi2\\予約リマインドLINE GAS\\LineReminderScript_fixed.gs\")",
+      "Bash(npx netlify env:list:*)",
+      "Bash(npx netlify functions:log:*)"
     ],
     "deny": [],
     "ask": [],
