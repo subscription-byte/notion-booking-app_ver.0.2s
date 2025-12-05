@@ -675,7 +675,7 @@ const EnhancedNotionBooking = () => {
         },
         '予定日': {
           date: {
-            start: `${bookingData.date}T${bookingData.time}:00:00+09:00`,
+            start: `${bookingData.date}T${bookingData.time}:00+09:00`,
             end: `${bookingData.date}T${String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0')}:00:00+09:00`
           }
         },
