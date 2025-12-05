@@ -120,12 +120,12 @@ exports.handler = async (event, context) => {
           // 日時フォーマット: 2025年12月12日 18時
           let formattedDate = bookingDateStr;
           if (bookingDateStr) {
-            const date = new Date(bookingDateStr);
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            const hour = date.getHours();
-            formattedDate = `${year}年${month}月${day}日 ${hour}時`;
+            // ISO文字列から日時を直接抽出（タイムゾーン変換を避ける）
+            const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+            if (match) {
+              const [, year, month, day, hour] = match;
+              formattedDate = `${year}年${parseInt(month)}月${parseInt(day)}日 ${parseInt(hour)}時`;
+            }
           }
 
           const message = `【予約完了】\n\n日付: ${formattedDate}\nお名前: ${customerName}\n${remarks ? `備考: ${remarks}\n` : ''}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
