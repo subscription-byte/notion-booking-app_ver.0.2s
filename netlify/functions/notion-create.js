@@ -104,6 +104,8 @@ exports.handler = async (event, context) => {
 
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
+        console.error('Notion update error:', errorText);
+        console.error('Properties being sent:', JSON.stringify(properties, null, 2));
         throw new Error(`Failed to update booking: ${errorText}`);
       }
 
