@@ -113,11 +113,22 @@ exports.handler = async (event, context) => {
       // 3. LINE通知を送信
       if (LINE_CHANNEL_ACCESS_TOKEN) {
         try {
-          const bookingDate = properties['予定日']?.date?.start;
+          const bookingDateStr = properties['予定日']?.date?.start;
           const customerName = properties['名前']?.title?.[0]?.text?.content;
           const remarks = properties['備考']?.rich_text?.[0]?.text?.content || '';
 
-          const message = `【予約完了】\n\n日付: ${bookingDate}\nお名前: ${customerName}\n${remarks ? `備考: ${remarks}\n` : ''}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
+          // 日時フォーマット: 2025年12月12日 18時
+          let formattedDate = bookingDateStr;
+          if (bookingDateStr) {
+            const date = new Date(bookingDateStr);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const hour = date.getHours();
+            formattedDate = `${year}年${month}月${day}日 ${hour}時`;
+          }
+
+          const message = `【予約完了】\n\n日付: ${formattedDate}\nお名前: ${customerName}\n${remarks ? `備考: ${remarks}\n` : ''}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
 
           await fetch('https://api.line.me/v2/bot/message/push', {
             method: 'POST',
