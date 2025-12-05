@@ -80,11 +80,9 @@ exports.handler = async (event, context) => {
       // 2. 仮レコードを本レコードに更新
       const properties = requestBody?.properties || {};
 
-      // PATCH更新用のプロパティを構築（titleプロパティは別扱い）
+      // PATCH更新用のプロパティを構築
       const updateProperties = {
-        '予定日': properties['予定日'],
-        '備考': properties['備考'] || { rich_text: [] },
-        '対応者': properties['対応者'],
+        ...properties,
         'LINE User ID': {
           rich_text: [{ text: { content: lineUserId } }]
         },
@@ -95,21 +93,6 @@ exports.handler = async (event, context) => {
           rich_text: []  // セッションIDを削除
         }
       };
-
-      // Xリンクがある場合は追加
-      if (properties['X']) {
-        updateProperties['X'] = properties['X'];
-      }
-
-      // 経路タグがある場合は追加
-      if (properties['経路']) {
-        updateProperties['経路'] = properties['経路'];
-      }
-
-      // 名前（title型）は明示的に更新
-      if (properties['名前']) {
-        updateProperties['名前'] = properties['名前'];
-      }
 
       const updateResponse = await fetch(`https://api.notion.com/v1/pages/${sessionRecord.id}`, {
         method: 'PATCH',
