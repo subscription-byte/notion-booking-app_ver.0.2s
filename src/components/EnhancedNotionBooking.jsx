@@ -58,15 +58,24 @@ const EnhancedNotionBooking = () => {
     const urlParams = new URLSearchParams(window.location.search);
     let ref = urlParams.get('ref');
 
-    // refがない場合はlocalStorageから復元
+    // LINE連携のコールバック処理（セッション方式）
+    const session = urlParams.get('session_id');
+    const lineName = urlParams.get('line_name');
+    const lineError = urlParams.get('line_error');
+
+    // refがない場合の処理
     if (!ref) {
-      const savedRef = localStorage.getItem('routeRef');
-      if (savedRef) {
-        ref = savedRef;
-        // URLにrefを追加（ブラウザリロード対策）
-        const newUrl = `${window.location.pathname}?ref=${ref}`;
-        window.history.replaceState({}, document.title, newUrl);
+      // LINE連携コールバック時のみlocalStorageから復元
+      if (session || lineName || lineError) {
+        const savedRef = localStorage.getItem('routeRef');
+        if (savedRef) {
+          ref = savedRef;
+          // URLにrefを追加（LINE連携後のリダイレクト対策）
+          const newUrl = `${window.location.pathname}?ref=${ref}`;
+          window.history.replaceState({}, document.title, newUrl);
+        }
       }
+      // 通常アクセス時はrefなしのまま（経路タグ「公認X」固定）
     } else {
       // refがある場合はlocalStorageに保存
       localStorage.setItem('routeRef', ref);
@@ -77,11 +86,6 @@ const EnhancedNotionBooking = () => {
     console.log('🔧 Route Config Debug:', { ref, config, mode: config.mode });
     setRouteConfig(config);
     setRouteTag(config.routeTag);
-
-    // LINE連携のコールバック処理（セッション方式）
-    const session = urlParams.get('session_id');
-    const lineName = urlParams.get('line_name');
-    const lineError = urlParams.get('line_error');
 
     if (session && lineName) {
       setSessionId(session);

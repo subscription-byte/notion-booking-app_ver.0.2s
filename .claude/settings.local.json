@@ -23,7 +23,10 @@
       "Read(//c/Users/ikoi2/予約リマインドLINE GAS/**)",
       "Bash(del \"c:\\Users\\ikoi2\\予約リマインドLINE GAS\\LineReminderScript_fixed.gs\")",
       "Bash(npx netlify env:list:*)",
-      "Bash(npx netlify functions:log:*)"
+      "Bash(npx netlify functions:log:*)",
+      "Read(//c/Users/ikoi2/X_アカウント手動判定ツール/**)",
+      "Read(//c/Users/ikoi2/X DM定型文サポートツール/**)",
+      "Bash(dir)"
     ],
     "deny": [],
     "ask": [],
