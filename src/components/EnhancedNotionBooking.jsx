@@ -113,13 +113,9 @@ const EnhancedNotionBooking = () => {
   // 通常リンク: 予約完了後の自動リダイレクト（3秒後）
   useEffect(() => {
     if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
-      // 予約情報を自動コピー
-      const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
-      navigator.clipboard.writeText(bookingText);
-
       // 3秒後に自動リダイレクト
       const timer = setTimeout(() => {
-        window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
+        window.open('https://x.com/myfans_agency_', '_blank');
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -1864,16 +1860,16 @@ const EnhancedNotionBooking = () => {
                           </div>
 
                           <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-                            <i className="fas fa-clipboard-check text-white text-lg sm:text-2xl"></i>
+                            <i className="fas fa-exclamation-circle text-white text-lg sm:text-2xl"></i>
                           </div>
                           <h3 className="text-base sm:text-lg font-bold text-blue-700 mb-1.5 sm:mb-2">
-                            📋 予約情報をコピーしました
+                            📋 予約情報をコピーしてXへ移動
                           </h3>
                           <p className="text-lg sm:text-xl font-bold text-blue-800 mb-2 sm:mb-3">
-                            🚀 3秒後にX DMへ移動します...
+                            🚀 3秒後に自動で移動します...
                           </p>
                           <p className="text-xs sm:text-sm text-blue-700 mb-2 sm:mb-3">
-                            👉 DM画面で貼り付けて送信してください<br />
+                            👉 X公認代理店のDMで貼り付けて送信<br />
                             <span className="font-bold">送信完了で予約確定となります</span>
                           </p>
 
@@ -1881,12 +1877,12 @@ const EnhancedNotionBooking = () => {
                             onClick={() => {
                               const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
                               navigator.clipboard.writeText(bookingText);
-                              window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
+                              window.open('https://x.com/myfans_agency_', '_blank');
                             }}
                             className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                           >
                             <i className="fas fa-rocket mr-1 sm:mr-2"></i>
-                            すぐに移動する
+                            コピーしてすぐに移動する
                           </button>
                         </div>
                       </div>
@@ -1943,8 +1939,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                             onClick={() => {
                               const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
                               navigator.clipboard.writeText(bookingText);
-                              alert('予約情報をコピーしました！\n\nこの後XのDM画面が開きます。\nメッセージ入力欄に貼り付けて送信してください。');
-                              window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
+                              alert('予約情報をコピーしました！\n\nこの後X公認代理店のプロフィール画面が開きます。\nDMで貼り付けて送信してください。');
+                              window.open('https://x.com/myfans_agency_', '_blank');
                             }}
                             className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
                           >
