@@ -121,10 +121,10 @@ const EnhancedNotionBooking = () => {
 
     if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
       console.log('✅ Starting 3 second timer for auto redirect');
-      // 3秒後に自動リダイレクト
+      // 3秒後に自動リダイレクト（同じタブで遷移）
       const timer = setTimeout(() => {
         console.log('🚀 Auto redirecting to X profile...');
-        window.open('https://x.com/myfans_agency_', '_blank');
+        window.location.href = 'https://x.com/myfans_agency_';
       }, 3000);
 
       return () => {
