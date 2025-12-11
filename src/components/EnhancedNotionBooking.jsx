@@ -1954,6 +1954,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         </div>
                       </div>
                     </div>
+                    )}
 
                     <div className="space-y-2 sm:space-y-4 text-left bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
                       <div className="flex items-center justify-between py-1.5 sm:py-3 border-b border-gray-200">
