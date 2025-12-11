@@ -1278,6 +1278,14 @@ const EnhancedNotionBooking = () => {
           remarks: remarks
         });
 
+        // 通常リンク: 確定ボタン押下時に予約情報を自動コピー
+        if (routeTag === '公認X') {
+          const bookingText = `【予約完了】\n日付: ${year}年${month}月${day}日 (${dayName})\n時間: ${selectedTime}\nお名前: ${customerName}\nXリンク: ${xLink}${remarks ? `\n備考: ${remarks}` : ''}`;
+          navigator.clipboard.writeText(bookingText).catch(err => {
+            console.error('クリップボードコピー失敗:', err);
+          });
+        }
+
         // LINE通知はnotion-create.js内で自動送信される（セッション方式の場合）
 
         setShowBookingForm(false);
