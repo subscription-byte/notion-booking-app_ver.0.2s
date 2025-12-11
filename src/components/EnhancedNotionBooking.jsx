@@ -110,6 +110,22 @@ const EnhancedNotionBooking = () => {
     }
   }, []);
 
+  // 通常リンク: 予約完了後の自動リダイレクト（3秒後）※テストモードのみ
+  useEffect(() => {
+    if (showConfirmation && completedBooking && routeConfig?.mode === 'default' && isTestMode) {
+      // 予約情報を自動コピー
+      const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
+      navigator.clipboard.writeText(bookingText);
+
+      // 3秒後に自動リダイレクト
+      const timer = setTimeout(() => {
+        window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showConfirmation, completedBooking, routeConfig, isTestMode]);
+
   // 3回タップでテストログイン画面表示
   const handleSecretTap = () => {
     const newCount = tapCount + 1;
@@ -1672,17 +1688,50 @@ const EnhancedNotionBooking = () => {
                 </div>
 
                 <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
-                  {/* 共有案内（最上部） */}
-                  <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-6">
-                    <div className="text-center">
-                      <div className="w-10 h-10 sm:w-14 sm:h-14 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
-                        <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
+                  {/* 通常リンク: 予約確定後の流れを最上部に表示（テストモードのみ） */}
+                  {routeConfig?.mode === 'default' && isTestMode && (
+                    <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                      <div className="text-center">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
+                          <i className="fas fa-exclamation-triangle text-white text-lg sm:text-2xl"></i>
+                        </div>
+                        <h3 className="text-base sm:text-lg text-orange-800 font-bold mb-2 sm:mb-3">
+                          予約確定後の流れ
+                        </h3>
+                        <div className="text-left text-xs sm:text-sm text-orange-700 space-y-1.5 sm:space-y-2">
+                          <p className="flex items-start">
+                            <span className="font-bold mr-2">1️⃣</span>
+                            <span>予約情報を自動コピー</span>
+                          </p>
+                          <p className="flex items-start">
+                            <span className="font-bold mr-2">2️⃣</span>
+                            <span>X公認代理店プロフィールへ移動</span>
+                          </p>
+                          <p className="flex items-start">
+                            <span className="font-bold mr-2">3️⃣</span>
+                            <span>DM画面を開いてペースト＆送信</span>
+                          </p>
+                        </div>
+                        <p className="text-xs sm:text-sm text-orange-800 font-bold mt-2 sm:mt-3">
+                          ※送信完了で予約確定となります
+                        </p>
                       </div>
-                      <p className="text-base sm:text-lg text-pink-700 leading-relaxed font-bold">
-                        予約情報は以下より<br />担当者へお送りください
-                      </p>
                     </div>
-                  </div>
+                  )}
+
+                  {/* PersonA/B or 通常リンク（非テストモード）: 従来の案内 */}
+                  {(routeConfig?.mode !== 'default' || !isTestMode) && (
+                    <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                      <div className="text-center">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
+                          <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
+                        </div>
+                        <p className="text-base sm:text-lg text-pink-700 leading-relaxed font-bold">
+                          予約情報は確定後、担当者までお送りください
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2 sm:space-y-4 bg-white/50 backdrop-blur rounded-lg sm:rounded-xl p-3 sm:p-6">
                     <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
@@ -1769,6 +1818,11 @@ const EnhancedNotionBooking = () => {
                         <i className="fas fa-spinner fa-spin mr-2"></i>
                         処理中...
                       </>
+                    ) : (routeConfig?.mode === 'default' && isTestMode) ? (
+                      <>
+                        <i className="fas fa-rocket mr-2"></i>
+                        確定してXのDMへ進む
+                      </>
                     ) : (
                       <>
                         <i className="fas fa-check-circle mr-2"></i>
@@ -1797,18 +1851,60 @@ const EnhancedNotionBooking = () => {
 
                     <h2 className="text-base sm:text-xl font-bold text-black mb-2 sm:mb-4">予約が完了しました！</h2>
 
-                    {/* 共有案内（最上部） */}
-                    <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 sm:border-3 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
-                      <div className="text-center">
-                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-                          <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
+                    {/* 通常リンク: リダイレクト待ち画面（テストモードのみ） */}
+                    {routeConfig?.mode === 'default' && isTestMode && (
+                      <div className="mb-3 sm:mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 sm:border-3 border-blue-400 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
+                        <div className="text-center">
+                          {/* 確定日時を大きく表示 */}
+                          <div className="mb-3 sm:mb-4 bg-white/80 rounded-lg p-2 sm:p-3">
+                            <div className="flex items-center justify-center text-sm sm:text-lg font-bold text-gray-800">
+                              <i className="fas fa-calendar-check mr-2 text-blue-600"></i>
+                              <span>{completedBooking.year}年{completedBooking.month}月{completedBooking.day}日({completedBooking.dayName}) {completedBooking.time}</span>
+                            </div>
+                          </div>
+
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
+                            <i className="fas fa-clipboard-check text-white text-lg sm:text-2xl"></i>
+                          </div>
+                          <h3 className="text-base sm:text-lg font-bold text-blue-700 mb-1.5 sm:mb-2">
+                            📋 予約情報をコピーしました
+                          </h3>
+                          <p className="text-lg sm:text-xl font-bold text-blue-800 mb-2 sm:mb-3">
+                            🚀 3秒後にX DMへ移動します...
+                          </p>
+                          <p className="text-xs sm:text-sm text-blue-700 mb-2 sm:mb-3">
+                            👉 DM画面で貼り付けて送信してください<br />
+                            <span className="font-bold">送信完了で予約確定となります</span>
+                          </p>
+
+                          <button
+                            onClick={() => {
+                              const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
+                              navigator.clipboard.writeText(bookingText);
+                              window.open('https://x.com/messages/compose?recipient_id=1557882353845825536', '_blank');
+                            }}
+                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
+                          >
+                            <i className="fas fa-rocket mr-1 sm:mr-2"></i>
+                            すぐに移動する
+                          </button>
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-pink-700 mb-1.5 sm:mb-2">
-                          予約情報は以下より<br />担当者へお送りください
-                        </h3>
-                        <p className="text-xs sm:text-sm text-pink-600 mb-2 sm:mb-3">
-                          下のボタンから予約情報をコピーして、担当者に送信できます
-                        </p>
+                      </div>
+                    )}
+
+                    {/* PersonA/B or 通常リンク（非テストモード）: 従来の共有案内 */}
+                    {(routeConfig?.mode !== 'default' || !isTestMode) && (
+                      <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 sm:border-3 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
+                        <div className="text-center">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
+                            <i className="fas fa-share-alt text-white text-lg sm:text-2xl"></i>
+                          </div>
+                          <h3 className="text-base sm:text-lg font-bold text-pink-700 mb-1.5 sm:mb-2">
+                            予約情報は以下より<br />担当者へお送りください
+                          </h3>
+                          <p className="text-xs sm:text-sm text-pink-600 mb-2 sm:mb-3">
+                            下のボタンから予約情報をコピーして、担当者に送信できます
+                          </p>
 
                         <div className="space-y-1.5 sm:space-y-2">
                           {/* コピーボタン */}
