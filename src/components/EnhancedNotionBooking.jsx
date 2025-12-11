@@ -112,13 +112,25 @@ const EnhancedNotionBooking = () => {
 
   // 通常リンク: 予約完了後の自動リダイレクト（3秒後）
   useEffect(() => {
+    console.log('🔍 Auto redirect check:', {
+      showConfirmation,
+      hasCompletedBooking: !!completedBooking,
+      routeTag: routeConfig?.routeTag,
+      shouldRedirect: showConfirmation && completedBooking && routeConfig?.routeTag === '公認X'
+    });
+
     if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
+      console.log('✅ Starting 3 second timer for auto redirect');
       // 3秒後に自動リダイレクト
       const timer = setTimeout(() => {
+        console.log('🚀 Auto redirecting to X profile...');
         window.open('https://x.com/myfans_agency_', '_blank');
       }, 3000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('❌ Timer cleared');
+        clearTimeout(timer);
+      };
     }
   }, [showConfirmation, completedBooking, routeConfig]);
 
