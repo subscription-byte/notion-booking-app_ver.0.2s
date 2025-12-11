@@ -112,7 +112,7 @@ const EnhancedNotionBooking = () => {
 
   // 通常リンク: 予約完了後の自動リダイレクト（3秒後）
   useEffect(() => {
-    if (showConfirmation && completedBooking && routeConfig?.mode === 'nameAndX') {
+    if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
       // 予約情報を自動コピー
       const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
       navigator.clipboard.writeText(bookingText);
@@ -1689,7 +1689,7 @@ const EnhancedNotionBooking = () => {
 
                 <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
                   {/* 通常リンク: 予約確定後の流れを最上部に表示 */}
-                  {routeConfig?.mode === 'nameAndX' && (
+                  {routeConfig?.routeTag === '公認X' && (
                     <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-6">
                       <div className="text-center">
                         <div className="w-10 h-10 sm:w-14 sm:h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
@@ -1720,7 +1720,7 @@ const EnhancedNotionBooking = () => {
                   )}
 
                   {/* PersonA/B: 従来の案内 */}
-                  {routeConfig?.mode !== 'nameAndX' && (
+                  {routeConfig?.routeTag !== '公認X' && (
                     <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-6">
                       <div className="text-center">
                         <div className="w-10 h-10 sm:w-14 sm:h-14 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4 shadow-lg">
@@ -1818,7 +1818,7 @@ const EnhancedNotionBooking = () => {
                         <i className="fas fa-spinner fa-spin mr-2"></i>
                         処理中...
                       </>
-                    ) : routeConfig?.mode === 'nameAndX' ? (
+                    ) : routeConfig?.routeTag === '公認X' ? (
                       <>
                         <i className="fas fa-rocket mr-2"></i>
                         確定してXのDMへ進む
@@ -1852,7 +1852,7 @@ const EnhancedNotionBooking = () => {
                     <h2 className="text-base sm:text-xl font-bold text-black mb-2 sm:mb-4">予約が完了しました！</h2>
 
                     {/* 通常リンク: リダイレクト待ち画面 */}
-                    {routeConfig?.mode === 'nameAndX' && (
+                    {routeConfig?.routeTag === '公認X' && (
                       <div className="mb-3 sm:mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 sm:border-3 border-blue-400 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
                         <div className="text-center">
                           {/* 確定日時を大きく表示 */}
@@ -1893,7 +1893,7 @@ const EnhancedNotionBooking = () => {
                     )}
 
                     {/* PersonA/B: 従来の共有案内 */}
-                    {routeConfig?.mode !== 'nameAndX' && (
+                    {routeConfig?.routeTag !== '公認X' && (
                       <div className="mb-3 sm:mb-6 bg-gradient-to-br from-pink-50 to-rose-50 border-2 sm:border-3 border-pink-300 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
                         <div className="text-center">
                           <div className="w-8 h-8 sm:w-12 sm:h-12 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
