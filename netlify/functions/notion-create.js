@@ -1,3 +1,84 @@
+// ============================================
+// ブロックルール（フロントエンドと同一ロジック）
+// ============================================
+
+// 祝日リスト
+const HOLIDAYS = [
+  '2025-01-01', '2025-01-13', '2025-02-11', '2025-02-23', '2025-03-20',
+  '2025-04-29', '2025-05-03', '2025-05-04', '2025-05-05', '2025-07-21',
+  '2025-08-11', '2025-09-15', '2025-09-23', '2025-10-13', '2025-11-03',
+  '2025-11-23', '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23',
+  '2026-03-20', '2026-04-29', '2026-05-03', '2026-05-04', '2026-05-05',
+  '2026-05-06', '2026-07-20', '2026-08-11', '2026-09-21', '2026-09-22',
+  '2026-09-23', '2026-10-12', '2026-11-03', '2026-11-23'
+];
+
+const COMPANY_CLOSED_DAYS = [
+  '2025-12-29', '2025-12-30', '2025-12-31', '2026-01-02', '2026-01-03'
+];
+
+// 固定ブロックルール
+const FIXED_BLOCKING_RULES = [
+  { dayOfWeek: 2, startHour: 11, endHour: 16 }, // 火曜11-16時
+  { dayOfWeek: 3, startHour: 13, endHour: 14 }, // 水曜13時台
+  { dayOfWeek: null, excludeDays: [2], startHour: 15, endHour: 16 }, // 全日15時台（火曜除く）
+];
+
+const isHoliday = (date) => {
+  const dateString = date.toISOString().split('T')[0];
+  return HOLIDAYS.includes(dateString) || COMPANY_CLOSED_DAYS.includes(dateString);
+};
+
+const isFixedBlockedTime = (date, timeHour) => {
+  const dayOfWeek = date.getDay();
+  for (const rule of FIXED_BLOCKING_RULES) {
+    if (rule.dayOfWeek !== null && rule.dayOfWeek !== dayOfWeek) continue;
+    if (rule.excludeDays && rule.excludeDays.includes(dayOfWeek)) continue;
+    if (timeHour >= rule.startHour && timeHour < rule.endHour) return true;
+  }
+  return false;
+};
+
+const isInPersonBlocked = (event, slotStart, slotEnd) => {
+  const eventStart = event.properties['予定日']?.date?.start;
+  const eventEnd = event.properties['予定日']?.date?.end;
+  const callMethod = event.properties['通話方法']?.select?.name;
+  const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
+
+  if (!eventStart) return false;
+
+  const isInPerson = callMethod === '対面' || eventName.includes('対面');
+  if (!isInPerson) return false;
+
+  const existingStart = new Date(eventStart);
+  const existingEnd = eventEnd ? new Date(eventEnd) : new Date(existingStart.getTime() + 60 * 60 * 1000);
+  const blockStart = new Date(existingStart.getTime() - 3 * 60 * 60 * 1000);
+  const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
+
+  return (blockStart <= slotEnd && blockEnd >= slotStart);
+};
+
+const isShootingBlocked = (event, slotStart, slotEnd) => {
+  const eventStart = event.properties['予定日']?.date?.start;
+  const eventEnd = event.properties['予定日']?.date?.end;
+  const callMethod = event.properties['通話方法']?.select?.name;
+  const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
+
+  if (!eventStart) return false;
+
+  const isShooting = callMethod === '撮影' || eventName.includes('撮影');
+  if (!isShooting) return false;
+
+  const existingStart = new Date(eventStart);
+  const existingEnd = eventEnd ? new Date(eventEnd) : new Date(existingStart.getTime() + 60 * 60 * 1000);
+
+  const dayStart = new Date(existingStart);
+  dayStart.setHours(12, 0, 0, 0);
+  const blockEnd = new Date(existingEnd.getTime() + 3 * 60 * 60 * 1000);
+
+  return (dayStart <= slotEnd && blockEnd >= slotStart);
+};
+
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -186,6 +267,126 @@ exports.handler = async (event, context) => {
       }
     }
 
+    // ============================================
+    // 重複チェック: Notionから最新データを取得
+    // ============================================
+    const bookingDateStr = properties['予定日']?.date?.start;
+    if (!bookingDateStr) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid booking date' })
+      };
+    }
+
+    const bookingDate = new Date(bookingDateStr);
+    const timeHour = bookingDate.getUTCHours() + 9; // JST変換
+
+    // 土日チェック
+    const dayOfWeek = bookingDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'Weekends are not available for booking' })
+      };
+    }
+
+    // 祝日チェック
+    if (isHoliday(bookingDate)) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'Holidays are not available for booking' })
+      };
+    }
+
+    // 固定ブロック時間チェック
+    if (isFixedBlockedTime(bookingDate, timeHour)) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: 'This time slot is blocked by fixed rules' })
+      };
+    }
+
+    // Notionから既存予約を取得
+    const queryResponse = await fetch(`https://api.notion.com/v1/databases/${NOTION_DB_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28',
+      },
+      body: JSON.stringify({
+        filter: {
+          and: [
+            {
+              property: '予定日',
+              date: {
+                on_or_after: new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate()).toISOString().split('T')[0]
+              }
+            },
+            {
+              property: '予定日',
+              date: {
+                on_or_before: new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate() + 1).toISOString().split('T')[0]
+              }
+            }
+          ]
+        }
+      })
+    });
+
+    if (!queryResponse.ok) {
+      throw new Error('Failed to query existing bookings from Notion');
+    }
+
+    const queryData = await queryResponse.json();
+    const existingEvents = queryData.results;
+
+    // スロット時間の定義
+    const slotStart = new Date(bookingDateStr);
+    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+
+    // 既存予約との重複チェック
+    for (const event of existingEvents) {
+      const eventStart = event.properties['予定日']?.date?.start;
+      if (!eventStart) continue;
+
+      const existingStart = new Date(eventStart);
+      const existingEnd = event.properties['予定日']?.date?.end
+        ? new Date(event.properties['予定日'].date.end)
+        : new Date(existingStart.getTime() + 60 * 60 * 1000);
+
+      // 直接の時間重複チェック
+      if (existingStart < slotEnd && existingEnd > slotStart) {
+        return {
+          statusCode: 409,
+          body: JSON.stringify({ error: 'This time slot is already booked' })
+        };
+      }
+    }
+
+    // 対面通話ブロックチェック
+    for (const event of existingEvents) {
+      if (isInPersonBlocked(event, slotStart, slotEnd)) {
+        return {
+          statusCode: 409,
+          body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' })
+        };
+      }
+    }
+
+    // 撮影ブロックチェック
+    for (const event of existingEvents) {
+      if (isShootingBlocked(event, slotStart, slotEnd)) {
+        return {
+          statusCode: 409,
+          body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' })
+        };
+      }
+    }
+
+    // ============================================
+    // すべてのチェックをパス → 予約作成
+    // ============================================
     const response = await fetch('https://api.notion.com/v1/pages', {
       method: 'POST',
       headers: {
