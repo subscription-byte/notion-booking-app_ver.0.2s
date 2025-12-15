@@ -161,6 +161,133 @@ exports.handler = async (event, context) => {
       // 2. 仮レコードを本レコードに更新
       const properties = requestBody?.properties || {};
 
+      // ============================================
+      // セッション方式でも同様のチェックを実施
+      // ============================================
+      const bookingDateStr = properties['予定日']?.date?.start;
+      if (!bookingDateStr) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Invalid booking date' })
+        };
+      }
+
+      const bookingDate = new Date(bookingDateStr);
+      const timeHour = bookingDate.getUTCHours() + 9; // JST変換
+
+      // 土日チェック
+      const dayOfWeek = bookingDate.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: 'Weekends are not available for booking' })
+        };
+      }
+
+      // 祝日チェック
+      if (isHoliday(bookingDate)) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: 'Holidays are not available for booking' })
+        };
+      }
+
+      // 固定ブロック時間チェック
+      if (isFixedBlockedTime(bookingDate, timeHour)) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: 'This time slot is blocked by fixed rules' })
+        };
+      }
+
+      // Notionから既存予約を取得して重複チェック
+      const queryExistingResponse = await fetch(`https://api.notion.com/v1/databases/${NOTION_DB_ID}/query`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${NOTION_TOKEN}`,
+          'Content-Type': 'application/json',
+          'Notion-Version': '2022-06-28',
+        },
+        body: JSON.stringify({
+          filter: {
+            and: [
+              {
+                property: '予定日',
+                date: {
+                  on_or_after: new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate()).toISOString().split('T')[0]
+                }
+              },
+              {
+                property: '予定日',
+                date: {
+                  on_or_before: new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate() + 1).toISOString().split('T')[0]
+                }
+              }
+            ]
+          }
+        })
+      });
+
+      if (!queryExistingResponse.ok) {
+        throw new Error('Failed to query existing bookings from Notion');
+      }
+
+      const existingData = await queryExistingResponse.json();
+      const existingEvents = existingData.results || [];
+
+      // スロット時間の定義
+      const slotStart = new Date(bookingDateStr);
+      const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+
+      // 既存予約との重複チェック（仮登録以外）
+      for (const event of existingEvents) {
+        // 仮登録は除外
+        const eventStatus = event.properties['予約システム状況']?.select?.name;
+        if (eventStatus === '仮登録') continue;
+
+        const eventStart = event.properties['予定日']?.date?.start;
+        if (!eventStart) continue;
+
+        const existingStart = new Date(eventStart);
+        const existingEnd = event.properties['予定日']?.date?.end
+          ? new Date(event.properties['予定日'].date.end)
+          : new Date(existingStart.getTime() + 60 * 60 * 1000);
+
+        // 直接の時間重複チェック
+        if (existingStart < slotEnd && existingEnd > slotStart) {
+          return {
+            statusCode: 409,
+            body: JSON.stringify({ error: 'This time slot is already booked' })
+          };
+        }
+      }
+
+      // 対面通話ブロックチェック
+      for (const event of existingEvents) {
+        const eventStatus = event.properties['予約システム状況']?.select?.name;
+        if (eventStatus === '仮登録') continue;
+
+        if (isInPersonBlocked(event, slotStart, slotEnd)) {
+          return {
+            statusCode: 409,
+            body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' })
+          };
+        }
+      }
+
+      // 撮影ブロックチェック
+      for (const event of existingEvents) {
+        const eventStatus = event.properties['予約システム状況']?.select?.name;
+        if (eventStatus === '仮登録') continue;
+
+        if (isShootingBlocked(event, slotStart, slotEnd)) {
+          return {
+            statusCode: 409,
+            body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' })
+          };
+        }
+      }
+
       // PATCH更新用のプロパティを構築
       const updateProperties = {
         ...properties,

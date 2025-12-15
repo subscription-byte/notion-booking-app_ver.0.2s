@@ -72,7 +72,11 @@ export const COMPANY_CLOSED_DAYS = [
  * @returns {boolean} - 祝日の場合 true
  */
 export const isHoliday = (date) => {
-  const dateString = date.toISOString().split('T')[0];
+  // ローカル日付を YYYY-MM-DD 形式に変換（タイムゾーンの影響を受けない）
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
   return ALL_HOLIDAYS.includes(dateString);
 };
 
@@ -82,7 +86,11 @@ export const isHoliday = (date) => {
  * @returns {boolean} - 会社休業日の場合 true
  */
 export const isCompanyClosedDay = (date) => {
-  const dateString = date.toISOString().split('T')[0];
+  // ローカル日付を YYYY-MM-DD 形式に変換（タイムゾーンの影響を受けない）
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
   return COMPANY_CLOSED_DAYS.includes(dateString);
 };
 
