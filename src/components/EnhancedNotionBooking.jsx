@@ -762,12 +762,19 @@ const EnhancedNotionBooking = () => {
       });
 
       if (!response.ok) {
+        // 409/403エラー = 予約重複・ブロック時間
+        if (response.status === 409 || response.status === 403) {
+          throw new Error('BOOKING_CONFLICT');
+        }
         throw new Error('Notion APIエラー');
       }
 
       return true;
     } catch (error) {
       console.error('Notion予約作成エラー:', error);
+      if (error.message === 'BOOKING_CONFLICT') {
+        throw error; // 上位に伝播させる
+      }
       return false;
     }
   };
@@ -1096,6 +1103,46 @@ const EnhancedNotionBooking = () => {
     initializeWithAvailableWeek();
   }, [weekDates]); // weekDates が準備できたら実行
 
+  // 自動再読み込み機能（3分間操作なしで最新データ取得）
+  useEffect(() => {
+    let autoRefreshTimer;
+
+    const resetTimer = () => {
+      if (autoRefreshTimer) clearTimeout(autoRefreshTimer);
+
+      // 3分（180秒）後に自動再読み込み
+      autoRefreshTimer = setTimeout(() => {
+        console.log('自動再読み込み: 3分経過したため最新データを取得');
+        if (weekDates && weekDates.length > 0) {
+          fetchNotionCalendar(false, weekDates, weekOffset);
+        }
+      }, 180000); // 3分
+    };
+
+    // ユーザー操作を検知してタイマーリセット
+    const handleUserActivity = () => {
+      resetTimer();
+    };
+
+    // イベントリスナー設定
+    window.addEventListener('click', handleUserActivity);
+    window.addEventListener('scroll', handleUserActivity);
+    window.addEventListener('touchstart', handleUserActivity);
+    window.addEventListener('keypress', handleUserActivity);
+
+    // 初回タイマー設定
+    resetTimer();
+
+    // クリーンアップ
+    return () => {
+      if (autoRefreshTimer) clearTimeout(autoRefreshTimer);
+      window.removeEventListener('click', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+      window.removeEventListener('touchstart', handleUserActivity);
+      window.removeEventListener('keypress', handleUserActivity);
+    };
+  }, [weekDates, weekOffset]);
+
   const getBookingStatus = (date, time, eventsToCheck = null) => {
     const events = eventsToCheck || notionEvents;
     if (isUnavailableDay(date)) {
@@ -1225,7 +1272,23 @@ const EnhancedNotionBooking = () => {
         sessionId: sessionId || null
       };
 
-      const success = await createNotionEvent(bookingDataObj);
+      let success;
+      try {
+        success = await createNotionEvent(bookingDataObj);
+      } catch (error) {
+        if (error.message === 'BOOKING_CONFLICT') {
+          // 予約重複エラー: 最新データを再取得して表示
+          alert('申し訳ございません。この時間は既に予約が入っています。\n最新の空き状況に更新します。');
+          setIsLoading(false);
+          setShowBookingForm(false);
+          setShowTimeSlots(false);
+          setSelectedDate(null);
+          setSelectedTime(null);
+          await fetchNotionCalendar(false, weekDates, weekOffset); // 最新データ取得
+          return;
+        }
+        throw error; // その他のエラーは通常フローへ
+      }
 
       if (success) {
         // 日付ズレ検知: Notionから最新データを取得して確認
