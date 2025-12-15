@@ -1233,28 +1233,32 @@ const EnhancedNotionBooking = () => {
   };
 
   const handleBooking = async () => {
-    const latestEvents = await fetchNotionCalendar();
-
-    if (isUnavailableDay(selectedDate)) {
-      alert(ALERT_MESSAGES.holidayError);
-      setShowBookingForm(false);
-      setShowTimeSlots(false);
-      setSelectedDate(null);
-      setSelectedTime(null);
-      return;
-    }
-
-    const currentStatus = getBookingStatus(selectedDate, selectedTime, latestEvents);
-    if (currentStatus !== 'available') {
-      alert(ALERT_MESSAGES.alreadyBooked);
-      setShowBookingForm(false);
-      setSelectedTime(null);
-      return;
-    }
-
+    // 連打防止: 処理開始時に即座にローディング状態にする
+    if (isLoading) return;
     setIsLoading(true);
 
     try {
+      const latestEvents = await fetchNotionCalendar();
+
+      if (isUnavailableDay(selectedDate)) {
+        alert(ALERT_MESSAGES.holidayError);
+        setShowBookingForm(false);
+        setShowTimeSlots(false);
+        setSelectedDate(null);
+        setSelectedTime(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const currentStatus = getBookingStatus(selectedDate, selectedTime, latestEvents);
+      if (currentStatus !== 'available') {
+        alert(ALERT_MESSAGES.alreadyBooked);
+        setShowBookingForm(false);
+        setSelectedTime(null);
+        setIsLoading(false);
+        return;
+      }
+
       const bookingDataObj = {
         date: selectedDate.getFullYear() + '-' +
               String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' +
@@ -1364,14 +1368,15 @@ const EnhancedNotionBooking = () => {
       }
     } catch (error) {
       console.error('予約エラー:', error);
-      
+
       // ネットワークエラーやデプロイ中の場合
-      if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
+      if (error.message && (error.message.includes('fetch') || error.message.includes('NetworkError')) || !navigator.onLine) {
         alert(ALERT_MESSAGES.siteUpdating);
       } else {
         alert(ALERT_MESSAGES.bookingFailed);
       }
     } finally {
+      // 最終的にローディング解除
       setIsLoading(false);
     }
   };
