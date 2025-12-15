@@ -1031,7 +1031,7 @@ const EnhancedNotionBooking = () => {
           const allEvents = data.results || [];
           console.log('4週分のデータ取得完了:', allEvents.length, '件');
 
-          // 取得したデータを週ごとに分割してキャッシュ
+          // 取得したデータを週ごとに分割してキャッシュ（休業日を除外）
           for (let offset = 0; offset <= 3; offset++) {
             const monday = new Date(today);
             monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
@@ -1041,7 +1041,7 @@ const EnhancedNotionBooking = () => {
             friday.setDate(monday.getDate() + 4);
             friday.setHours(23, 59, 59, 999); // 時刻を23:59:59にセット
 
-            // この週に該当するイベントを抽出
+            // この週に該当するイベントを抽出（休業日は除外）
             const weekEvents = allEvents.filter(event => {
               const eventDateStr = event.properties['予定日']?.date?.start;
               if (!eventDateStr) return false;
@@ -1050,11 +1050,19 @@ const EnhancedNotionBooking = () => {
               const datePart = eventDateStr.split('T')[0];
               const eventDate = new Date(datePart + 'T00:00:00');
 
-              return eventDate >= monday && eventDate <= friday;
+              // 期間内チェック
+              if (eventDate < monday || eventDate > friday) return false;
+
+              // 休業日チェック（土日・祝日・会社休業日を除外）
+              if (isUnavailableDay(eventDate)) {
+                return false;
+              }
+
+              return true;
             });
 
             allWeeksCache[offset] = weekEvents;
-            console.log(`週${offset}のデータ振り分け完了:`, weekEvents.length, '件');
+            console.log(`週${offset}のデータ振り分け完了:`, weekEvents.length, '件（休業日除外済み）');
           }
         }
 
