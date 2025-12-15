@@ -30,6 +30,7 @@ const EnhancedNotionBooking = () => {
   const [testLoginPw, setTestLoginPw] = useState('');
   const [tapCount, setTapCount] = useState(0);
   const tapTimerRef = useRef(null);
+  const allWeeksDataRef = useRef({}); // 全週データのキャッシュ（Ref版）
 
   const [notionEvents, setNotionEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
@@ -803,13 +804,14 @@ const EnhancedNotionBooking = () => {
     // 先にweekOffsetを更新
     setWeekOffset(newOffset);
 
-    // キャッシュに該当週のデータがあるか確認
+    // キャッシュに該当週のデータがあるか確認（Refから取得）
     const weekKey = `${newOffset}`;
-    console.log('週遷移:', { newOffset, weekKey, hasCache: !!allWeeksData[weekKey], cacheKeys: Object.keys(allWeeksData) });
+    const currentCache = allWeeksDataRef.current;
+    console.log('週遷移:', { newOffset, weekKey, hasCache: !!currentCache[weekKey], cacheKeys: Object.keys(currentCache) });
 
-    if (allWeeksData[weekKey]) {
+    if (currentCache[weekKey]) {
       // キャッシュから取得
-      const cachedData = allWeeksData[weekKey];
+      const cachedData = currentCache[weekKey];
       console.log('キャッシュから取得:', cachedData.length, '件');
       console.log('キャッシュデータの日付:', cachedData.map(e => e.properties?.['予定日']?.date?.start).filter(Boolean));
       setNotionEvents(cachedData);
@@ -1102,6 +1104,12 @@ const EnhancedNotionBooking = () => {
 
     initializeWithAvailableWeek();
   }, [weekDates]); // weekDates が準備できたら実行
+
+  // allWeeksDataの変更をRefに同期
+  useEffect(() => {
+    allWeeksDataRef.current = allWeeksData;
+    console.log('キャッシュRefを更新:', Object.keys(allWeeksData));
+  }, [allWeeksData]);
 
   // セッションタイムアウト機能（15分経過で強制再読み込み）
   useEffect(() => {
