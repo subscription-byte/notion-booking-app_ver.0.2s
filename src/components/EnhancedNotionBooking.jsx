@@ -1103,45 +1103,32 @@ const EnhancedNotionBooking = () => {
     initializeWithAvailableWeek();
   }, [weekDates]); // weekDates が準備できたら実行
 
-  // 自動再読み込み機能（3分間操作なしで最新データ取得）
+  // セッションタイムアウト機能（15分経過で強制再読み込み）
   useEffect(() => {
-    let autoRefreshTimer;
+    // ページアクセス時の時刻を記録
+    const sessionStartTime = Date.now();
+    console.log('セッション開始:', new Date(sessionStartTime).toLocaleTimeString());
 
-    const resetTimer = () => {
-      if (autoRefreshTimer) clearTimeout(autoRefreshTimer);
+    // 1秒ごとにセッション時間をチェック
+    const checkInterval = setInterval(() => {
+      const elapsedTime = Date.now() - sessionStartTime;
+      const elapsedMinutes = Math.floor(elapsedTime / 60000);
 
-      // 3分（180秒）後に自動再読み込み
-      autoRefreshTimer = setTimeout(() => {
-        console.log('自動再読み込み: 3分経過したため最新データを取得');
-        if (weekDates && weekDates.length > 0) {
-          fetchNotionCalendar(false, weekDates, weekOffset);
-        }
-      }, 180000); // 3分
-    };
+      // 15分経過したらタイムアウト
+      if (elapsedMinutes >= 15) {
+        console.log('セッションタイムアウト: 15分経過');
+        clearInterval(checkInterval);
 
-    // ユーザー操作を検知してタイマーリセット
-    const handleUserActivity = () => {
-      resetTimer();
-    };
-
-    // イベントリスナー設定
-    window.addEventListener('click', handleUserActivity);
-    window.addEventListener('scroll', handleUserActivity);
-    window.addEventListener('touchstart', handleUserActivity);
-    window.addEventListener('keypress', handleUserActivity);
-
-    // 初回タイマー設定
-    resetTimer();
+        alert('セッションがタイムアウトしました。\n最新の情報を表示するためページを更新します。');
+        window.location.reload();
+      }
+    }, 1000); // 1秒ごとにチェック
 
     // クリーンアップ
     return () => {
-      if (autoRefreshTimer) clearTimeout(autoRefreshTimer);
-      window.removeEventListener('click', handleUserActivity);
-      window.removeEventListener('scroll', handleUserActivity);
-      window.removeEventListener('touchstart', handleUserActivity);
-      window.removeEventListener('keypress', handleUserActivity);
+      clearInterval(checkInterval);
     };
-  }, [weekDates, weekOffset]);
+  }, []); // 初回マウント時のみ実行
 
   const getBookingStatus = (date, time, eventsToCheck = null) => {
     const events = eventsToCheck || notionEvents;
