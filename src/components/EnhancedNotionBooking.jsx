@@ -31,6 +31,7 @@ const EnhancedNotionBooking = () => {
   const [tapCount, setTapCount] = useState(0);
   const tapTimerRef = useRef(null);
   const allWeeksDataRef = useRef({}); // 全週データのキャッシュ（Ref版）
+  const isInitialLoadDoneRef = useRef(false); // 初回ロード完了フラグ
 
   const [notionEvents, setNotionEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
@@ -958,8 +959,14 @@ const EnhancedNotionBooking = () => {
     const initializeWithAvailableWeek = async () => {
       if (!weekDates || weekDates.length === 0) return;
 
-      // 初回ロード済みならスキップ（週遷移時の再実行を防ぐ）
-      if (Object.keys(allWeeksData).length > 0) return;
+      // 初回ロード済みならスキップ（Refで確実にチェック）
+      if (isInitialLoadDoneRef.current) {
+        console.log('初回ロード済みのためスキップ');
+        return;
+      }
+
+      // フラグを即座に立てて重複実行を防止
+      isInitialLoadDoneRef.current = true;
 
       // 開発環境では通常通り
       if (process.env.NODE_ENV !== 'production') {
