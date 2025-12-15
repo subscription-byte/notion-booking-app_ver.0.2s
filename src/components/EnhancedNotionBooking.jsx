@@ -1297,15 +1297,25 @@ const EnhancedNotionBooking = () => {
 
         if (justCreatedEvent) {
           const registeredDate = new Date(justCreatedEvent.properties['予定日']?.date?.start);
-          const selectedDateStr = selectedDate.toISOString().split('T')[0];
-          const registeredDateStr = registeredDate.toISOString().split('T')[0];
+
+          // ローカル日付で比較（タイムゾーン影響を排除）
+          const selectedYear = selectedDate.getFullYear();
+          const selectedMonth = selectedDate.getMonth();
+          const selectedDay = selectedDate.getDate();
+
+          const registeredYear = registeredDate.getFullYear();
+          const registeredMonth = registeredDate.getMonth();
+          const registeredDay = registeredDate.getDate();
 
           // 日付ズレ検知
-          if (selectedDateStr !== registeredDateStr) {
+          if (selectedYear !== registeredYear || selectedMonth !== registeredMonth || selectedDay !== registeredDay) {
+            const selectedDateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+            const registeredDateStr = `${registeredYear}-${String(registeredMonth + 1).padStart(2, '0')}-${String(registeredDay).padStart(2, '0')}`;
+
             await sendChatWorkAlert({
               type: 'date_mismatch',
               data: {
-                selectedDate: bookingDataObj.date,
+                selectedDate: selectedDateStr,
                 registeredDate: registeredDateStr,
                 customerName: customerName,
                 time: selectedTime
