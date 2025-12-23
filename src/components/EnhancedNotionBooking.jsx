@@ -16,6 +16,8 @@ const EnhancedNotionBooking = () => {
   const [xLink, setXLink] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [myfansStatus, setMyfansStatus] = useState(''); // myfans登録状況
+  const [premiumStatus, setPremiumStatus] = useState(''); // プレミアムクリエイター登録状況
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
   const [showConfirmScreen, setShowConfirmScreen] = useState(false);
@@ -743,6 +745,24 @@ const EnhancedNotionBooking = () => {
         };
       }
 
+      // テストモード時のみmyfans登録状況を追加
+      if (isTestMode && bookingData.myfansStatus) {
+        properties['myfans登録状況'] = {
+          select: {
+            name: bookingData.myfansStatus
+          }
+        };
+      }
+
+      // テストモード時のみプレミアムクリエイター登録状況を追加（myfans登録済の場合のみ）
+      if (isTestMode && bookingData.premiumStatus) {
+        properties['P登録状況'] = {
+          select: {
+            name: bookingData.premiumStatus
+          }
+        };
+      }
+
       // セッションID方式の場合
       const requestBody = bookingData.sessionId
         ? {
@@ -1283,7 +1303,9 @@ const EnhancedNotionBooking = () => {
         xLink: xLink,
         remarks: remarks,
         routeTag: routeTag,
-        sessionId: sessionId || null
+        sessionId: sessionId || null,
+        myfansStatus: myfansStatus,
+        premiumStatus: premiumStatus
       };
 
       let success;
@@ -2549,6 +2571,80 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   </div>
                   )}
 
+                  {/* myfans登録状況（テストモードのみ） */}
+                  {isTestMode && (
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-check-circle mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      myfansをご利用中（登録済）ですか？未登録ですか？ <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center p-2.5 sm:p-3 rounded-lg border-2 border-purple-200 bg-white/80 backdrop-blur cursor-pointer hover:bg-purple-50 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="myfansStatus"
+                          value="登録済"
+                          checked={myfansStatus === '登録済'}
+                          onChange={(e) => {
+                            setMyfansStatus(e.target.value);
+                            setPremiumStatus(''); // リセット
+                          }}
+                          className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5"
+                        />
+                        <span className="text-sm sm:text-base">登録済</span>
+                      </label>
+                      <label className="flex items-center p-2.5 sm:p-3 rounded-lg border-2 border-purple-200 bg-white/80 backdrop-blur cursor-pointer hover:bg-purple-50 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="myfansStatus"
+                          value="未登録"
+                          checked={myfansStatus === '未登録'}
+                          onChange={(e) => {
+                            setMyfansStatus(e.target.value);
+                            setPremiumStatus(''); // 未登録の場合はP登録状況もリセット
+                          }}
+                          className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5"
+                        />
+                        <span className="text-sm sm:text-base">未登録</span>
+                      </label>
+                    </div>
+                  </div>
+                  )}
+
+                  {/* プレミアムクリエイター登録状況（テストモード＆myfans登録済の場合のみ表示） */}
+                  {isTestMode && myfansStatus === '登録済' && (
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-star mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      プレミアムクリエイター登録状況について教えて下さい <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center p-2.5 sm:p-3 rounded-lg border-2 border-purple-200 bg-white/80 backdrop-blur cursor-pointer hover:bg-purple-50 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="premiumStatus"
+                          value="登録済"
+                          checked={premiumStatus === '登録済'}
+                          onChange={(e) => setPremiumStatus(e.target.value)}
+                          className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5"
+                        />
+                        <span className="text-sm sm:text-base">登録済</span>
+                      </label>
+                      <label className="flex items-center p-2.5 sm:p-3 rounded-lg border-2 border-purple-200 bg-white/80 backdrop-blur cursor-pointer hover:bg-purple-50 transition-all duration-200">
+                        <input
+                          type="radio"
+                          name="premiumStatus"
+                          value="未登録"
+                          checked={premiumStatus === '未登録'}
+                          onChange={(e) => setPremiumStatus(e.target.value)}
+                          className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5"
+                        />
+                        <span className="text-sm sm:text-base">未登録</span>
+                      </label>
+                    </div>
+                  </div>
+                  )}
+
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2585,12 +2681,25 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           alert(ALERT_MESSAGES.xLinkRequired);
                           return;
                         }
+                        // テストモード時のみmyfans関連のバリデーション
+                        if (isTestMode) {
+                          if (!myfansStatus) {
+                            alert('myfansの登録状況を選択してください');
+                            return;
+                          }
+                          if (myfansStatus === '登録済' && !premiumStatus) {
+                            alert('プレミアムクリエイター登録状況を選択してください');
+                            return;
+                          }
+                        }
                         setShowBookingForm(false);
                         setShowConfirmScreen(true);
                       }}
                       disabled={
                         !customerName.trim() ||
-                        (routeConfig?.requireXLink && !xLink.trim())
+                        (routeConfig?.requireXLink && !xLink.trim()) ||
+                        (isTestMode && !myfansStatus) ||
+                        (isTestMode && myfansStatus === '登録済' && !premiumStatus)
                       }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
