@@ -745,8 +745,8 @@ const EnhancedNotionBooking = () => {
         };
       }
 
-      // テストモード時のみmyfans登録状況を追加
-      if (isTestMode && bookingData.myfansStatus) {
+      // myfans登録状況を追加
+      if (bookingData.myfansStatus) {
         properties['myfans登録状況'] = {
           select: {
             name: bookingData.myfansStatus
@@ -754,8 +754,8 @@ const EnhancedNotionBooking = () => {
         };
       }
 
-      // テストモード時のみプレミアムクリエイター登録状況を追加（myfans登録済の場合のみ）
-      if (isTestMode && bookingData.premiumStatus) {
+      // プレミアムクリエイター登録状況を追加（myfans登録済の場合のみ）
+      if (bookingData.premiumStatus) {
         properties['P登録状況'] = {
           select: {
             name: bookingData.premiumStatus
@@ -2571,8 +2571,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   </div>
                   )}
 
-                  {/* myfans登録状況（テストモードのみ） */}
-                  {isTestMode && (
+                  {/* myfans登録状況 */}
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-check-circle mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2609,10 +2608,9 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       </label>
                     </div>
                   </div>
-                  )}
 
-                  {/* プレミアムクリエイター登録状況（テストモード＆myfans登録済の場合のみ表示） */}
-                  {isTestMode && myfansStatus === '登録済' && (
+                  {/* プレミアムクリエイター登録状況（myfans登録済の場合のみ表示） */}
+                  {myfansStatus === '登録済' && (
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-star mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2681,16 +2679,14 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                           alert(ALERT_MESSAGES.xLinkRequired);
                           return;
                         }
-                        // テストモード時のみmyfans関連のバリデーション
-                        if (isTestMode) {
-                          if (!myfansStatus) {
-                            alert('myfansの登録状況を選択してください');
-                            return;
-                          }
-                          if (myfansStatus === '登録済' && !premiumStatus) {
-                            alert('プレミアムクリエイター登録状況を選択してください');
-                            return;
-                          }
+                        // myfans関連のバリデーション
+                        if (!myfansStatus) {
+                          alert('myfansの登録状況を選択してください');
+                          return;
+                        }
+                        if (myfansStatus === '登録済' && !premiumStatus) {
+                          alert('プレミアムクリエイター登録状況を選択してください');
+                          return;
                         }
                         setShowBookingForm(false);
                         setShowConfirmScreen(true);
@@ -2698,8 +2694,8 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       disabled={
                         !customerName.trim() ||
                         (routeConfig?.requireXLink && !xLink.trim()) ||
-                        (isTestMode && !myfansStatus) ||
-                        (isTestMode && myfansStatus === '登録済' && !premiumStatus)
+                        !myfansStatus ||
+                        (myfansStatus === '登録済' && !premiumStatus)
                       }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
