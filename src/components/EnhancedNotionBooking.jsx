@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FluidCanvas from './FluidCanvas';
 import { getRouteConfig } from '../config/routeConfig';
-import { BUSINESS_HOURS, generateTimeSlots } from '../config/businessConfig';
+import { BUSINESS_HOURS, generateTimeSlots, getWeekdayDates } from '../config/businessConfig';
 import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
 import { isUnavailableDay } from '../config/holidays';
 import { ALERT_MESSAGES, SYSTEM_SETTINGS } from '../config/uiConfig';
@@ -242,18 +242,7 @@ const EnhancedNotionBooking = () => {
   };
 
   const getCurrentWeekDates = () => {
-    const today = new Date();
-    const currentDay = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDay + 1 + (weekOffset * 7));
-
-    const weekDates = [];
-
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      weekDates.push(date);
-    }
+    const weekDates = getWeekdayDates(weekOffset);
 
     console.log('現在表示中の週:', {
       weekOffset,
@@ -269,35 +258,8 @@ const EnhancedNotionBooking = () => {
   const timeSlots = generateTimeSlots(BUSINESS_HOURS.startHour, BUSINESS_HOURS.endHour);
 
   // 前週・翌週の日付を計算
-  const getPrevWeekDates = () => {
-    const today = new Date();
-    const currentDay = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDay + 1 + ((weekOffset - 1) * 7));
-
-    const weekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      weekDates.push(date);
-    }
-    return weekDates;
-  };
-
-  const getNextWeekDates = () => {
-    const today = new Date();
-    const currentDay = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDay + 1 + ((weekOffset + 1) * 7));
-
-    const weekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      weekDates.push(date);
-    }
-    return weekDates;
-  };
+  const getPrevWeekDates = () => getWeekdayDates(weekOffset - 1);
+  const getNextWeekDates = () => getWeekdayDates(weekOffset + 1);
 
   // 前週・翌週のデータを取得する関数（キャッシュ付き）
   const fetchAdjacentWeeksData = async (currentOffset = null) => {
@@ -319,38 +281,9 @@ const EnhancedNotionBooking = () => {
     }
 
     // 現在のoffsetに基づいて前週・翌週・翌々週の日付を計算
-    const today = new Date();
-    const currentDay = today.getDay();
-
-    // 前週の日付
-    const prevMonday = new Date(today);
-    prevMonday.setDate(today.getDate() - currentDay + 1 + ((offset - 1) * 7));
-    const prevWeekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(prevMonday);
-      date.setDate(prevMonday.getDate() + i);
-      prevWeekDates.push(date);
-    }
-
-    // 翌週の日付
-    const nextMonday = new Date(today);
-    nextMonday.setDate(today.getDate() - currentDay + 1 + ((offset + 1) * 7));
-    const nextWeekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(nextMonday);
-      date.setDate(nextMonday.getDate() + i);
-      nextWeekDates.push(date);
-    }
-
-    // 翌々週の日付
-    const nextNextMonday = new Date(today);
-    nextNextMonday.setDate(today.getDate() - currentDay + 1 + ((offset + 2) * 7));
-    const nextNextWeekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(nextNextMonday);
-      date.setDate(nextNextMonday.getDate() + i);
-      nextNextWeekDates.push(date);
-    }
+    const prevWeekDates = getWeekdayDates(offset - 1);
+    const nextWeekDates = getWeekdayDates(offset + 1);
+    const nextNextWeekDates = getWeekdayDates(offset + 2);
 
     try {
       // 前週データの取得（offset 0以上の場合のみ）
@@ -810,17 +743,7 @@ const EnhancedNotionBooking = () => {
 
     setIsWeekChanging(true);
 
-    const today = new Date();
-    const currentDay = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDay + 1 + (newOffset * 7));
-
-    const newWeekDates = [];
-    for (let i = 0; i < 5; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      newWeekDates.push(date);
-    }
+    const newWeekDates = getWeekdayDates(newOffset);
 
     // 先にweekOffsetを更新
     setWeekOffset(newOffset);
@@ -914,17 +837,7 @@ const EnhancedNotionBooking = () => {
   // 空きのある週を探す関数
   const findWeekWithAvailability = async (startOffset = 0, maxWeeks = 12) => {
     for (let offset = startOffset; offset < startOffset + maxWeeks; offset++) {
-      const today = new Date();
-      const currentDay = today.getDay();
-      const monday = new Date(today);
-      monday.setDate(today.getDate() - currentDay + 1 + (offset * 7));
-
-      const testWeekDates = [];
-      for (let i = 0; i < 5; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        testWeekDates.push(date);
-      }
+      const testWeekDates = getWeekdayDates(offset);
 
       // この週のデータを取得
       try {
@@ -998,19 +911,13 @@ const EnhancedNotionBooking = () => {
 
       // 本番環境: 4週分のデータを1回のAPI呼び出しで取得
       try {
-        const today = new Date();
-        const currentDay = today.getDay();
         const allWeeksCache = {};
 
-        // 日曜日対応（日曜日は7として扱う）
-        const dayOfWeek = currentDay === 0 ? 7 : currentDay;
-
-        // 4週分の開始日と終了日を計算
-        const week0Monday = new Date(today);
-        week0Monday.setDate(today.getDate() - dayOfWeek + 1);
-
-        const week3Friday = new Date(week0Monday);
-        week3Friday.setDate(week0Monday.getDate() + (3 * 7) + 4); // 3週後の金曜日
+        // 4週分の開始日と終了日を計算（日曜基準）
+        const week0Dates = getWeekdayDates(0);
+        const week3Dates = getWeekdayDates(3);
+        const week0Monday = week0Dates[0]; // 最初の月曜日
+        const week3Friday = week3Dates[4]; // 最後の金曜日
 
         console.log('取得期間:',
           week0Monday.toLocaleDateString(), '〜',
@@ -1053,13 +960,15 @@ const EnhancedNotionBooking = () => {
 
           // 取得したデータを週ごとに分割してキャッシュ（休業日を除外）
           for (let offset = 0; offset <= 3; offset++) {
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
-            monday.setHours(0, 0, 0, 0); // 時刻を0:00:00にリセット
+            const weekDates = getWeekdayDates(offset);
+            const monday = weekDates[0];
+            const friday = weekDates[4];
 
-            const friday = new Date(monday);
-            friday.setDate(monday.getDate() + 4);
-            friday.setHours(23, 59, 59, 999); // 時刻を23:59:59にセット
+            // 時刻を調整
+            const mondayStart = new Date(monday);
+            mondayStart.setHours(0, 0, 0, 0);
+            const fridayEnd = new Date(friday);
+            fridayEnd.setHours(23, 59, 59, 999);
 
             // この週に該当するイベントを抽出（休業日は除外）
             const weekEvents = allEvents.filter(event => {
@@ -1071,7 +980,7 @@ const EnhancedNotionBooking = () => {
               const eventDate = new Date(datePart + 'T00:00:00');
 
               // 期間内チェック
-              if (eventDate < monday || eventDate > friday) return false;
+              if (eventDate < mondayStart || eventDate > fridayEnd) return false;
 
               // 休業日チェック（土日・祝日・会社休業日を除外）
               if (isUnavailableDay(eventDate)) {
@@ -1093,15 +1002,7 @@ const EnhancedNotionBooking = () => {
         // 空きのある週を探す（キャッシュから）
         let targetOffset = 0;
         for (let offset = 0; offset <= 3; offset++) {
-          const monday = new Date(today);
-          monday.setDate(today.getDate() - dayOfWeek + 1 + (offset * 7));
-
-          const dates = [];
-          for (let i = 0; i < 5; i++) {
-            const date = new Date(monday);
-            date.setDate(monday.getDate() + i);
-            dates.push(date);
-          }
+          const dates = getWeekdayDates(offset);
 
           if (checkWeekHasAvailability(dates, allWeeksCache[offset] || [])) {
             targetOffset = offset;
