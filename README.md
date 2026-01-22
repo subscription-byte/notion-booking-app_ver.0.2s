@@ -365,6 +365,64 @@ REACT_APP_TEST_USER_PW=your_test_user_password
 
 ---
 
+## デプロイ方法
+
+### Netlify自動デプロイ（推奨）
+
+このプロジェクトはGitHub連携で自動デプロイされます。
+
+**手順:**
+1. 変更をコミット
+   ```bash
+   git add .
+   git commit -m "変更内容"
+   ```
+2. GitHubにプッシュ
+   ```bash
+   git push
+   ```
+3. Netlifyが自動的にビルド＆デプロイを開始
+
+**デプロイ状況確認:**
+- ダッシュボード: https://app.netlify.com/sites/mfagencybooking/deploys
+- 本番URL: https://mfagencybooking.netlify.app
+
+**所要時間:** 約2〜3分
+
+### 手動デプロイ（非推奨）
+
+緊急時のみ使用：
+```bash
+npm run build
+npx netlify deploy --prod --dir=build --site=6bdba099-821f-44be-80eb-3782e6917a0b
+```
+
+---
+
+## 開発の基本フロー
+
+### ローカル開発環境の起動
+```bash
+npm start
+```
+→ http://localhost:3000 で開発サーバーが起動
+
+### 本番ビルドのテスト
+```bash
+npm run build
+```
+→ `build/`フォルダに本番用ファイルが生成
+
+### 変更を本番に反映
+```bash
+git add .
+git commit -m "変更内容"
+git push
+```
+→ Netlifyが自動デプロイ
+
+---
+
 ## Available Scripts
 
 In the project directory, you can run:
