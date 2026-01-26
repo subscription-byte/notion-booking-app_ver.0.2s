@@ -1,0 +1,17 @@
+{
+  "ダイエット": {
+    "token": "CMgBEAA",
+    "collected": 200,
+    "keyword": "ダイエット"
+  },
+  "ジム": {
+    "token": "CMgBEAA",
+    "collected": 200,
+    "keyword": "ジム"
+  },
+  "ヨガ": {
+    "token": "CMgBEAA",
+    "collected": 200,
+    "keyword": "ヨガ"
+  }
+}

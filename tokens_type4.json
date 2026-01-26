@@ -1,0 +1,30 @@
+{
+  "ダイエット_JP_viewCount": {
+    "token": "CKwCEAA",
+    "collected": 200,
+    "keyword": "ダイエット",
+    "region_code": "JP",
+    "order": "viewCount"
+  },
+  "ジム_JP_viewCount": {
+    "token": "CKwCEAA",
+    "collected": 200,
+    "keyword": "ジム",
+    "region_code": "JP",
+    "order": "viewCount"
+  },
+  "ヨガ_JP_viewCount": {
+    "token": "CKwCEAA",
+    "collected": 200,
+    "keyword": "ヨガ",
+    "region_code": "JP",
+    "order": "viewCount"
+  },
+  "筋トレ_JP_viewCount": {
+    "token": "CJYBEAA",
+    "collected": 100,
+    "keyword": "筋トレ",
+    "region_code": "JP",
+    "order": "viewCount"
+  }
+}

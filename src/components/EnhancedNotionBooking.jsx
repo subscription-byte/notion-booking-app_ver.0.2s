@@ -2276,7 +2276,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         >
                             <div className="flex items-center">
                               <div className="text-center px-0 sm:px-3 w-16 sm:w-24 flex-shrink-0">
-                                <div className="text-xs sm:text-sm font-medium text-gray-500">2025年</div>
+                                <div className="text-xs sm:text-sm font-medium text-gray-500">{date.getFullYear()}年</div>
                                 <div className="text-sm sm:text-lg font-bold text-gray-800">{formatDate(date)}</div>
                                 <div className="text-sm font-medium text-gray-600">({getDayName(date)})</div>
                               </div>
