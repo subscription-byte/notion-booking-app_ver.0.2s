@@ -28,6 +28,14 @@ export const FIXED_BLOCKING_RULES = [
     endHour: 16,
     enabled: true,
   },
+  {
+    name: '第一月曜16時ブロック',
+    dayOfWeek: 1, // 月曜日
+    startHour: 16,
+    endHour: 17, // 16:00のみ（16:00-17:00）
+    firstMondayOnly: true, // 第一月曜のみ
+    enabled: true,
+  },
 ];
 
 /**
@@ -74,6 +82,15 @@ export const isFixedBlockedTime = (date, timeHour) => {
     // 除外曜日チェック
     if (rule.excludeDays && rule.excludeDays.includes(dayOfWeek)) {
       continue;
+    }
+
+    // 第一月曜のみチェック
+    if (rule.firstMondayOnly) {
+      const dayOfMonth = date.getDate();
+      // 第一月曜は1日〜7日の範囲内
+      if (dayOfMonth > 7) {
+        continue;
+      }
     }
 
     // 時間帯チェック
