@@ -38,7 +38,10 @@ const EnhancedNotionBooking = () => {
   const [notionEvents, setNotionEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
   const [nextWeekEvents, setNextWeekEvents] = useState([]);
-  const [allWeeksData, setAllWeeksData] = useState({}); // 全週データのキャッシュ
+  const [allWeeksData, setAllWeeksData] = useState({}); // 全週データのキャッシュ（{ weekKey: { data, timestamp } }）
+
+  // キャッシュ有効期限（ミリ秒）: 5分
+  const CACHE_EXPIRY_MS = 5 * 60 * 1000;
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
@@ -288,10 +291,15 @@ const EnhancedNotionBooking = () => {
     try {
       // 前週データの取得（offset 0以上の場合のみ）
       if (offset - 1 >= 0) {
-        // キャッシュに前週データがあるか確認
-        if (allWeeksData[prevWeekKey]) {
-          setPrevWeekEvents(allWeeksData[prevWeekKey]);
+        // キャッシュに前週データがあるか確認（有効期限チェック）
+        const cachedPrev = allWeeksData[prevWeekKey];
+        const isPrevCacheValid = cachedPrev && (Date.now() - cachedPrev.timestamp < CACHE_EXPIRY_MS);
+
+        if (isPrevCacheValid) {
+          console.log('前週データ: キャッシュから取得（有効）');
+          setPrevWeekEvents(cachedPrev.data);
         } else {
+          if (cachedPrev) console.log('前週データ: キャッシュ期限切れ、再取得');
         // 前週のデータ取得
         const prevResponse = await fetch('/.netlify/functions/notion-query', {
           method: 'POST',
@@ -324,17 +332,23 @@ const EnhancedNotionBooking = () => {
         if (prevResponse.ok) {
           const prevData = await prevResponse.json();
           const prevEvents = prevData.results || [];
-          console.log('前週データ取得&保存:', { weekKey: prevWeekKey, dataCount: prevEvents.length });
+          const now = Date.now();
+          console.log('前週データ取得&保存:', { weekKey: prevWeekKey, dataCount: prevEvents.length, timestamp: new Date(now).toLocaleTimeString() });
           setPrevWeekEvents(prevEvents);
-          setAllWeeksData(prev => ({ ...prev, [prevWeekKey]: prevEvents }));
+          setAllWeeksData(prev => ({ ...prev, [prevWeekKey]: { data: prevEvents, timestamp: now } }));
         }
         }
       }
 
-      // キャッシュに翌週データがあるか確認
-      if (allWeeksData[nextWeekKey]) {
-        setNextWeekEvents(allWeeksData[nextWeekKey]);
+      // キャッシュに翌週データがあるか確認（有効期限チェック）
+      const cachedNext = allWeeksData[nextWeekKey];
+      const isNextCacheValid = cachedNext && (Date.now() - cachedNext.timestamp < CACHE_EXPIRY_MS);
+
+      if (isNextCacheValid) {
+        console.log('翌週データ: キャッシュから取得（有効）');
+        setNextWeekEvents(cachedNext.data);
       } else {
+        if (cachedNext) console.log('翌週データ: キャッシュ期限切れ、再取得');
         // 翌週のデータ取得
         const nextResponse = await fetch('/.netlify/functions/notion-query', {
           method: 'POST',
@@ -367,14 +381,19 @@ const EnhancedNotionBooking = () => {
         if (nextResponse.ok) {
           const nextData = await nextResponse.json();
           const nextEvents = nextData.results || [];
-          console.log('翌週データ取得&保存:', { weekKey: nextWeekKey, dataCount: nextEvents.length });
+          const now = Date.now();
+          console.log('翌週データ取得&保存:', { weekKey: nextWeekKey, dataCount: nextEvents.length, timestamp: new Date(now).toLocaleTimeString() });
           setNextWeekEvents(nextEvents);
-          setAllWeeksData(prev => ({ ...prev, [nextWeekKey]: nextEvents }));
+          setAllWeeksData(prev => ({ ...prev, [nextWeekKey]: { data: nextEvents, timestamp: now } }));
         }
       }
 
-      // 翌々週データの事前読み込み（キャッシュに無い場合のみ）
-      if (!allWeeksData[nextNextWeekKey]) {
+      // 翌々週データの事前読み込み（キャッシュ期限チェック）
+      const cachedNextNext = allWeeksData[nextNextWeekKey];
+      const isNextNextCacheValid = cachedNextNext && (Date.now() - cachedNextNext.timestamp < CACHE_EXPIRY_MS);
+
+      if (!isNextNextCacheValid) {
+        if (cachedNextNext) console.log('翌々週データ: キャッシュ期限切れ、再取得');
         const nextNextResponse = await fetch('/.netlify/functions/notion-query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -406,11 +425,12 @@ const EnhancedNotionBooking = () => {
         if (nextNextResponse.ok) {
           const nextNextData = await nextNextResponse.json();
           const nextNextEvents = nextNextData.results || [];
-          console.log('翌々週データ取得&保存:', { weekKey: nextNextWeekKey, dataCount: nextNextEvents.length });
-          setAllWeeksData(prev => ({ ...prev, [nextNextWeekKey]: nextNextEvents }));
+          const now = Date.now();
+          console.log('翌々週データ取得&保存:', { weekKey: nextNextWeekKey, dataCount: nextNextEvents.length, timestamp: new Date(now).toLocaleTimeString() });
+          setAllWeeksData(prev => ({ ...prev, [nextNextWeekKey]: { data: nextNextEvents, timestamp: now } }));
         }
       } else {
-        console.log('翌々週データはキャッシュ済み:', nextNextWeekKey);
+        console.log('翌々週データ: キャッシュ有効:', nextNextWeekKey);
       }
     } catch (error) {
       console.error('前後週データの取得に失敗:', error);
@@ -522,11 +542,12 @@ const EnhancedNotionBooking = () => {
         lastChecked: new Date()
       });
 
-      // 現在の週のデータをキャッシュに保存
+      // 現在の週のデータをキャッシュに保存（タイムスタンプ付き）
       const actualOffset = currentWeekOffset !== null ? currentWeekOffset : weekOffset;
       const currentWeekKey = `${actualOffset}`;
-      console.log('キャッシュに保存:', { weekKey: currentWeekKey, actualOffset, dataCount: fetchedEvents.length });
-      setAllWeeksData(prev => ({ ...prev, [currentWeekKey]: fetchedEvents }));
+      const now = Date.now();
+      console.log('キャッシュに保存:', { weekKey: currentWeekKey, actualOffset, dataCount: fetchedEvents.length, timestamp: new Date(now).toLocaleTimeString() });
+      setAllWeeksData(prev => ({ ...prev, [currentWeekKey]: { data: fetchedEvents, timestamp: now } }));
 
       // 前後週のデータも取得（actualOffsetを明示的に渡す）
       await fetchAdjacentWeeksData(actualOffset);
@@ -748,23 +769,33 @@ const EnhancedNotionBooking = () => {
     // 先にweekOffsetを更新
     setWeekOffset(newOffset);
 
-    // キャッシュに該当週のデータがあるか確認（Refから取得）
+    // キャッシュに該当週のデータがあるか確認（Refから取得＋有効期限チェック）
     const weekKey = `${newOffset}`;
     const currentCache = allWeeksDataRef.current;
-    console.log('週遷移:', { newOffset, weekKey, hasCache: !!currentCache[weekKey], cacheKeys: Object.keys(currentCache) });
+    const cachedWeek = currentCache[weekKey];
+    const isCacheValid = cachedWeek && (Date.now() - cachedWeek.timestamp < CACHE_EXPIRY_MS);
 
-    if (currentCache[weekKey]) {
-      // キャッシュから取得
-      const cachedData = currentCache[weekKey];
-      console.log('キャッシュから取得:', cachedData.length, '件');
+    console.log('週遷移:', {
+      newOffset,
+      weekKey,
+      hasCache: !!cachedWeek,
+      isCacheValid,
+      cacheAge: cachedWeek ? `${((Date.now() - cachedWeek.timestamp) / 1000).toFixed(0)}秒` : 'なし'
+    });
+
+    if (isCacheValid) {
+      // キャッシュから取得（有効期限内）
+      const cachedData = cachedWeek.data;
+      console.log('キャッシュから取得（有効）:', cachedData.length, '件');
       console.log('キャッシュデータの日付:', cachedData.map(e => e.properties?.['予定日']?.date?.start).filter(Boolean));
       setNotionEvents(cachedData);
       // 前後週のデータも更新（newOffsetを渡す）
       await fetchAdjacentWeeksData(newOffset);
       setIsWeekChanging(false);
     } else {
-      // API呼び出し
-      console.log('APIから新規取得');
+      // キャッシュ期限切れまたは存在しない → API呼び出し
+      if (cachedWeek) console.log('キャッシュ期限切れ、APIから再取得');
+      else console.log('キャッシュなし、APIから新規取得');
       await fetchNotionCalendar(true, newWeekDates, newOffset);
     }
   };
@@ -990,21 +1021,22 @@ const EnhancedNotionBooking = () => {
               return true;
             });
 
-            allWeeksCache[offset] = weekEvents;
+            allWeeksCache[offset] = { data: weekEvents, timestamp: Date.now() };
             console.log(`週${offset}のデータ振り分け完了:`, weekEvents.length, '件（休業日除外済み）');
           }
         }
 
-        // キャッシュに一括保存
+        // キャッシュに一括保存（タイムスタンプ付き）
         setAllWeeksData(allWeeksCache);
-        console.log('4週分のキャッシュ保存完了:', Object.keys(allWeeksCache));
+        console.log('4週分のキャッシュ保存完了:', Object.keys(allWeeksCache), 'タイムスタンプ:', new Date().toLocaleTimeString());
 
         // 空きのある週を探す（キャッシュから）
         let targetOffset = 0;
         for (let offset = 0; offset <= 3; offset++) {
           const dates = getWeekdayDates(offset);
+          const weekData = allWeeksCache[offset]?.data || [];
 
-          if (checkWeekHasAvailability(dates, allWeeksCache[offset] || [])) {
+          if (checkWeekHasAvailability(dates, weekData)) {
             targetOffset = offset;
             console.log(`空きのある週を発見: offset ${offset}`);
             break;
@@ -1013,14 +1045,14 @@ const EnhancedNotionBooking = () => {
 
         // 見つかった週に移動
         setWeekOffset(targetOffset);
-        setNotionEvents(allWeeksCache[targetOffset] || []);
+        setNotionEvents(allWeeksCache[targetOffset]?.data || []);
 
         // 前後週データも設定
         if (allWeeksCache[targetOffset - 1]) {
-          setPrevWeekEvents(allWeeksCache[targetOffset - 1]);
+          setPrevWeekEvents(allWeeksCache[targetOffset - 1].data);
         }
         if (allWeeksCache[targetOffset + 1]) {
-          setNextWeekEvents(allWeeksCache[targetOffset + 1]);
+          setNextWeekEvents(allWeeksCache[targetOffset + 1].data);
         }
 
         setSystemStatus({
