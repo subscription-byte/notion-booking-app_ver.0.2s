@@ -1246,7 +1246,11 @@ const EnhancedNotionBooking = () => {
         success = await createNotionEvent(bookingDataObj);
       } catch (error) {
         if (error.message === 'BOOKING_CONFLICT') {
-          // 予約重複エラー: 最新データを再取得して表示
+          // 予約重複エラー: キャッシュをクリアして最新データを再取得
+          console.log('予約失敗: キャッシュをクリアして再取得');
+          setAllWeeksData({}); // 全キャッシュクリア
+          allWeeksDataRef.current = {}; // Refもクリア
+
           alert('申し訳ございません。この時間は既に予約が入っています。\n最新の空き状況に更新します。');
           setIsLoading(false);
           setShowBookingForm(false);
