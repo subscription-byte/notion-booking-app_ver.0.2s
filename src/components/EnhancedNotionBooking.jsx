@@ -40,8 +40,8 @@ const EnhancedNotionBooking = () => {
   const [nextWeekEvents, setNextWeekEvents] = useState([]);
   const [allWeeksData, setAllWeeksData] = useState({}); // 全週データのキャッシュ（{ weekKey: { data, timestamp } }）
 
-  // キャッシュ有効期限（ミリ秒）: 5分
-  const CACHE_EXPIRY_MS = 5 * 60 * 1000;
+  // キャッシュ有効期限（ミリ秒）: 15分（セッションタイムアウトと同じ）
+  const CACHE_EXPIRY_MS = 15 * 60 * 1000;
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
@@ -2468,21 +2468,26 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 </div>
 
                 <div className="space-y-3 sm:space-y-6">
-                  {/* お名前表示（自動入力済み） */}
+                  {/* お名前（編集可能） */}
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-user mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
-                      お名前
-                    </label>
-                    <div className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-gray-50 text-sm sm:text-lg text-gray-700 flex items-center justify-between">
-                      <span>{customerName}</span>
+                      お名前 <span className="text-red-500 ml-1">*</span>
                       {sessionId && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center">
+                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center">
                           <i className="fab fa-line mr-1"></i>
                           LINE連携済み
                         </span>
                       )}
-                    </div>
+                    </label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
+                      placeholder="山田太郎"
+                      required
+                    />
                   </div>
 
                   {/* Xリンク */}
