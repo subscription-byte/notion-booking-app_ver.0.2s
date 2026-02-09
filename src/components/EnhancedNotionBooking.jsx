@@ -24,6 +24,7 @@ const EnhancedNotionBooking = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedBooking, setCompletedBooking] = useState(null);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
+  const [countdown, setCountdown] = useState(10); // リダイレクトまでのカウントダウン
 
   // テストモード関連
   const [isTestMode, setIsTestMode] = useState(false);
@@ -117,7 +118,7 @@ const EnhancedNotionBooking = () => {
     }
   }, []);
 
-  // 通常リンク: 予約完了後の自動リダイレクト（3秒後）
+  // 通常リンク: 予約完了後の自動リダイレクト（10秒カウントダウン）
   useEffect(() => {
     console.log('🔍 Auto redirect check:', {
       showConfirmation,
@@ -127,16 +128,25 @@ const EnhancedNotionBooking = () => {
     });
 
     if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
-      console.log('✅ Starting 3 second timer for auto redirect');
-      // 3秒後に自動リダイレクト（同じタブで遷移）
-      const timer = setTimeout(() => {
-        console.log('🚀 Auto redirecting to X profile...');
-        window.location.href = 'https://x.com/myfans_agency_';
-      }, 3000);
+      console.log('✅ Starting 10 second countdown for auto redirect');
+      setCountdown(10); // カウントダウン初期化
+
+      // 1秒ごとにカウントダウン
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            console.log('🚀 Auto redirecting to X profile...');
+            window.location.href = 'https://x.com/myfans_agency_';
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
       return () => {
         console.log('❌ Timer cleared');
-        clearTimeout(timer);
+        clearInterval(countdownInterval);
       };
     }
   }, [showConfirmation, completedBooking, routeConfig]);
@@ -1933,7 +1943,7 @@ const EnhancedNotionBooking = () => {
                             📋 予約情報をコピーしてXへ移動
                           </h3>
                           <p className="text-lg sm:text-xl font-bold text-blue-800 mb-2 sm:mb-3">
-                            🚀 3秒後に自動で移動します...
+                            🚀 {countdown}秒後に自動で移動します...
                           </p>
                           <p className="text-xs sm:text-sm text-blue-700 mb-2 sm:mb-3">
                             👉 X公認代理店のDMで貼り付けて送信<br />

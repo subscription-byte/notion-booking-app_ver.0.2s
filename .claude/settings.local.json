@@ -43,7 +43,10 @@
       "Bash(build_exe.bat)",
       "Bash(pyinstaller:*)",
       "Bash(npx netlify:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(npm search:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)"
     ],
     "deny": [],
     "ask": [],
