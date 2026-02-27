@@ -479,32 +479,24 @@ const EnhancedNotionBooking = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          databaseId: NOTION_CONFIG.calendarDatabaseId,
+          calendarId: NOTION_CONFIG.calendarDatabaseId,
           filter: {
-            and: [
-              {
-                property: '予定日',
-                date: {
-                  on_or_after: datesForQuery[0].getFullYear() + '-' +
-                              String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' +
-                              String(datesForQuery[0].getDate()).padStart(2, '0')
-                }
-              },
-              {
-                property: '予定日',
-                date: {
-                  on_or_before: datesForQuery[4].getFullYear() + '-' +
-                               String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' +
-                               String(datesForQuery[4].getDate()).padStart(2, '0')
-                }
-              }
-            ]
+            date: {
+              on_or_after: datesForQuery[0].getFullYear() + '-' +
+                          String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' +
+                          String(datesForQuery[0].getDate()).padStart(2, '0'),
+              on_or_before: datesForQuery[4].getFullYear() + '-' +
+                           String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' +
+                           String(datesForQuery[4].getDate()).padStart(2, '0')
+            }
           }
         })
       });
 
       if (!response.ok) {
-        throw new Error('Notion APIエラー');
+        const errorData = await response.text();
+        console.error('API Error:', response.status, errorData);
+        throw new Error(`API Error: ${response.status} - ${errorData}`);
       }
 
       const data = await response.json();
@@ -1633,12 +1625,13 @@ const EnhancedNotionBooking = () => {
                           <i className="fas fa-user mr-2 text-purple-500"></i>
                           お名前 <span className="text-red-500">*</span>
                         </label>
+                        <p className="text-xs text-gray-600 mb-2">X上でのお名前をご入力ください</p>
                         <input
                           type="text"
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
-                          placeholder="お名前を入力"
+                          placeholder="X上でのお名前を入力"
                         />
                       </div>
 
@@ -1665,6 +1658,19 @@ const EnhancedNotionBooking = () => {
                           if (!xLink.trim()) {
                             alert(ALERT_MESSAGES.xLinkRequired);
                             return;
+                          }
+                          // Xリンク・IDのバリデーション（通常リンクのみ）
+                          if (routeTag === '公認X') {
+                            const isValidXLink =
+                              xLink.includes('x.com') ||
+                              xLink.includes('twitter.com') ||
+                              xLink.trim().startsWith('@');
+                            const isMyfansLink = xLink.includes('myfans.jp');
+
+                            if (!isValidXLink || isMyfansLink) {
+                              alert(ALERT_MESSAGES.xLinkInvalid);
+                              return;
+                            }
                           }
                           setShowInitialForm(false);
                         }}
@@ -1774,15 +1780,15 @@ const EnhancedNotionBooking = () => {
                         <div className="text-left text-xs sm:text-sm text-orange-700 space-y-1.5 sm:space-y-2">
                           <p className="flex items-start">
                             <span className="font-bold mr-2">1️⃣</span>
-                            <span>予約情報を自動コピー</span>
+                            <span>予約情報を自動コピー <span className="text-orange-500 font-bold">（自動）</span></span>
                           </p>
                           <p className="flex items-start">
                             <span className="font-bold mr-2">2️⃣</span>
-                            <span>X公認代理店プロフィールへ移動</span>
+                            <span>X公認代理店プロフィールへ移動 <span className="text-orange-500 font-bold">（自動）</span></span>
                           </p>
                           <p className="flex items-start">
                             <span className="font-bold mr-2">3️⃣</span>
-                            <span>DM画面を開いてペースト＆送信</span>
+                            <span>DM画面を開いて、コピー済みの予約情報をペースト＆送信</span>
                           </p>
                         </div>
                         <p className="text-xs sm:text-sm text-orange-800 font-bold mt-2 sm:mt-3">
@@ -2494,12 +2500,13 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         </span>
                       )}
                     </label>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">X上でのお名前をご入力ください</p>
                     <input
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
-                      placeholder="山田太郎"
+                      placeholder="X上でのお名前を入力"
                       required
                     />
                   </div>
@@ -2511,7 +2518,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                       <i className="fab fa-x-twitter mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                       Xリンク <span className="text-red-500 ml-1">*</span>
                     </label>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">（Xをお持ちでない場合はmyfansのリンクをご記入ください）</p>
                     <input
                       type="url"
                       value={xLink}
@@ -2630,6 +2636,19 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         if (routeConfig?.requireXLink && !xLink.trim()) {
                           alert(ALERT_MESSAGES.xLinkRequired);
                           return;
+                        }
+                        // Xリンク・IDのバリデーション（通常リンク・personBのみ）
+                        if (routeConfig?.requireXLink && (routeTag === '公認X' || routeTag === 'まゆ紹介')) {
+                          const isValidXLink =
+                            xLink.includes('x.com') ||
+                            xLink.includes('twitter.com') ||
+                            xLink.trim().startsWith('@');
+                          const isMyfansLink = xLink.includes('myfans.jp');
+
+                          if (!isValidXLink || isMyfansLink) {
+                            alert(ALERT_MESSAGES.xLinkInvalid);
+                            return;
+                          }
                         }
                         // myfans関連のバリデーション
                         if (!myfansStatus) {
