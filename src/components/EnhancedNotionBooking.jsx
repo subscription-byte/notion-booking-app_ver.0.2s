@@ -319,12 +319,11 @@ const EnhancedNotionBooking = () => {
             filter: {
               date: {
                 on_or_after: prevWeekDates[0].getFullYear() + '-' +
-                                String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                                String(prevWeekDates[0].getDate()).padStart(2, '0')
-                  },
+                  String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
+                  String(prevWeekDates[0].getDate()).padStart(2, '0'),
                 on_or_before: prevWeekDates[4].getFullYear() + '-' +
-                 String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                 String(prevWeekDates[4].getDate()).padStart(2, '0')
+                  String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                  String(prevWeekDates[4].getDate()).padStart(2, '0')
               }
             }
           })
@@ -360,8 +359,7 @@ const EnhancedNotionBooking = () => {
               date: {
                 on_or_after: nextWeekDates[0].getFullYear() + '-' +
                                 String(nextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                                String(nextWeekDates[0].getDate()).padStart(2, '0')
-                  },
+                                String(nextWeekDates[0].getDate()).padStart(2, '0'),
                 on_or_before: nextWeekDates[4].getFullYear() + '-' +
                  String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
                  String(nextWeekDates[4].getDate()).padStart(2, '0')
@@ -395,8 +393,7 @@ const EnhancedNotionBooking = () => {
               date: {
                 on_or_after: nextNextWeekDates[0].getFullYear() + '-' +
                                 String(nextNextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                                String(nextNextWeekDates[0].getDate()).padStart(2, '0')
-                  },
+                                String(nextNextWeekDates[0].getDate()).padStart(2, '0'),
                 on_or_before: nextNextWeekDates[4].getFullYear() + '-' +
                  String(nextNextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
                  String(nextNextWeekDates[4].getDate()).padStart(2, '0')
@@ -860,8 +857,7 @@ const EnhancedNotionBooking = () => {
               date: {
                 on_or_after: testWeekDates[0].getFullYear() + '-' +
                                 String(testWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
-                                String(testWeekDates[0].getDate()).padStart(2, '0')
-                  },
+                                String(testWeekDates[0].getDate()).padStart(2, '0'),
                 on_or_before: testWeekDates[4].getFullYear() + '-' +
                  String(testWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
                  String(testWeekDates[4].getDate()).padStart(2, '0')
@@ -933,8 +929,7 @@ const EnhancedNotionBooking = () => {
               date: {
                 on_or_after: week0Monday.getFullYear() + '-' +
                                 String(week0Monday.getMonth() + 1).padStart(2, '0') + '-' +
-                                String(week0Monday.getDate()).padStart(2, '0')
-                  },
+                                String(week0Monday.getDate()).padStart(2, '0'),
                 on_or_before: week3Friday.getFullYear() + '-' +
                  String(week3Friday.getMonth() + 1).padStart(2, '0') + '-' +
                  String(week3Friday.getDate()).padStart(2, '0')

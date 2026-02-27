@@ -39,6 +39,7 @@ export const ALERT_MESSAGES = {
   nameRequired: 'お名前を入力してください',
   nameNotEntered: 'お名前が入力されていません',
   xLinkRequired: 'Xリンクを入力してください',
+  xLinkInvalid: 'X（旧Twitter）のリンク（x.com/twitter.com）または@で始まるIDを入力してください。\nmyfans.jp等のリンクは入力できません。',
   routeTagRequired: '経路タグを選択してください',
 
   // 予約処理
@@ -86,7 +87,7 @@ export const LABEL_TEXTS = {
  * プレースホルダーテキスト
  */
 export const PLACEHOLDER_TEXTS = {
-  customerName: 'お名前を入力',
+  customerName: 'X上でのお名前を入力',
   xLink: 'https://x.com/username',
   userId: 'ユーザーID',
   password: 'パスワード',
