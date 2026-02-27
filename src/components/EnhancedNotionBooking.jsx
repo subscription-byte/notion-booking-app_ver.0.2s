@@ -639,8 +639,7 @@ const EnhancedNotionBooking = () => {
         myfansStatus: bookingData.myfansStatus || '',
         premiumStatus: bookingData.premiumStatus || '',
         assignee: '町谷有里',
-        lineUserId: '',
-        sessionId: bookingData.sessionId || ''
+        lineUserId: ''
       };
 
       // セッションID方式の場合
@@ -2025,7 +2024,18 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
               </div>
             )}
 
-            {!showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
+            {(() => {
+              const shouldShowWeekSelection = !showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation;
+              console.log('画面表示状態:', {
+                showInitialForm,
+                showTimeSlots,
+                showBookingForm,
+                showConfirmScreen,
+                showConfirmation,
+                shouldShowWeekSelection
+              });
+              return shouldShowWeekSelection;
+            })() && (
               <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-5 sm:mx-9" style={{

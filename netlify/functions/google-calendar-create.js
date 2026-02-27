@@ -114,6 +114,7 @@ exports.handler = async (event, context) => {
     const sessionId = requestBody?.sessionId;
     if (sessionId) {
       console.log('Session-based booking creation:', sessionId);
+      console.log('Request properties:', JSON.stringify(requestBody.properties, null, 2));
 
       // 1. Googleカレンダーからセッション情報を取得
       // Google Calendar APIはextendedPropertiesでフィルタできないため、
@@ -129,16 +130,22 @@ exports.handler = async (event, context) => {
         maxResults: 500,
       });
 
+      console.log('Found 2099 events:', queryResponse.data.items.length);
+      console.log('SessionIDs found:', queryResponse.data.items.map(e => e.extendedProperties?.private?.sessionId).filter(Boolean));
+
       const sessionEvent = queryResponse.data.items.find(e =>
         e.extendedProperties?.private?.sessionId === sessionId
       );
 
       if (!sessionEvent) {
+        console.error('Session not found:', sessionId);
         return {
           statusCode: 403,
           body: JSON.stringify({ error: 'Invalid or expired session' })
         };
       }
+
+      console.log('Session event found:', sessionEvent.id, sessionEvent.summary);
 
       // セッションの状況チェック
       const sessionStatus = sessionEvent.extendedProperties?.private?.bookingStatus;

@@ -47,7 +47,9 @@
       "Bash(npm search:*)",
       "Bash(xcopy:*)",
       "Bash(robocopy:*)",
-      "Bash(ollama:*)"
+      "Bash(ollama:*)",
+      "Bash(curl -s https://mfagencybooking.netlify.app/)",
+      "Bash(curl -s \"https://mfagencybooking.netlify.app/static/js/main.443492dc.js\")"
     ],
     "deny": [],
     "ask": [],
