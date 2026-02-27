@@ -622,11 +622,15 @@ const EnhancedNotionBooking = () => {
 
     try {
       // Google Calendar用のフラット形式に変換
+      const startTime = `${bookingData.date}T${bookingData.time}:00+09:00`;
+      const endHour = String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0');
+      const endTime = `${bookingData.date}T${endHour}:00:00+09:00`;
+
       const properties = {
         summary: bookingData.customerName,
         date: {
-          start: `${bookingData.date}T${bookingData.time}:00+09:00`,
-          end: `${bookingData.date}T${String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0')}:00:00+09:00`
+          start: startTime,
+          end: endTime
         },
         remarks: bookingData.remarks || '',
         xLink: bookingData.xLink || '',
@@ -636,7 +640,7 @@ const EnhancedNotionBooking = () => {
         premiumStatus: bookingData.premiumStatus || '',
         assignee: '町谷有里',
         lineUserId: '',
-        sessionId: ''
+        sessionId: bookingData.sessionId || ''
       };
 
       // セッションID方式の場合
@@ -2299,9 +2303,12 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                 <div className="flex items-center">
                   <button
                     onClick={() => {
+                      console.log('戻るボタン: 状態をリセット');
                       setShowTimeSlots(false);
                       setSelectedDate(null);
                       setSelectedTime(null);
+                      setShowConfirmScreen(false);
+                      setShowConfirmation(false);
                     }}
                     className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
