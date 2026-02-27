@@ -5,7 +5,7 @@
  * - 毎日18:00 (JST) → 翌日の予約に前日リマインド送信
  * - 15分おき → 15分後の予約に当日リマインド送信
  *
- * Google Calendarから予約データを取得し、条件に合致する予約にLINE通知を送信
+ * Notion DBから予約データを取得し、条件に合致する予約にLINE通知を送信
  */
 
 // Netlify v2 Scheduled Function設定
@@ -13,10 +13,10 @@ export const config = {
   schedule: "*/15 * * * *" // 15分ごとに実行
 };
 
-const { google } = require('googleapis');
+const { Client } = require('@notionhq/client');
 
-const GOOGLE_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
-const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+const notion = new Client({ auth: process.env.NOTION_TOKEN });
+const DATABASE_ID = '1fa44ae2d2c780a5b27dc7aae5bae1aa';
 
 exports.handler = async (event, context) => {
   console.log('🔔 Scheduled reminder function started');
@@ -64,25 +64,24 @@ async function sendDayBeforeReminders(jstNow) {
   // 翌日の日付を取得
   const tomorrow = new Date(jstNow);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStart = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-  const tomorrowEnd = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
+  const tomorrowDateStr = formatDateForNotion(tomorrow);
 
-  console.log('Target date (tomorrow):', tomorrowStart.toISOString());
+  console.log('Target date (tomorrow):', tomorrowDateStr);
 
-  // Google Calendarから翌日の予約を取得
-  const bookings = await fetchBookingsForDateRange(tomorrowStart, tomorrowEnd);
+  // Notionから翌日の予約を取得
+  const bookings = await fetchBookingsForDate(tomorrowDateStr);
 
   console.log(`Found ${bookings.length} bookings for tomorrow`);
 
   for (const booking of bookings) {
-    const extProps = booking.extendedProperties?.private || {};
-    const lineUserId = extProps.lineUserId;
-    const bookingStatus = extProps.bookingStatus;
-    const dayBeforeReminderSent = extProps.dayBeforeReminderSent === 'true';
+    const status = booking.properties['ステータス']?.select?.name;
+    const lineUserId = booking.properties['LINE User ID']?.rich_text?.[0]?.text?.content;
+    const dateTime = booking.properties['予定日']?.date?.start;
+    const zoomLink = booking.properties['ZOOMリンク']?.url;
 
-    // 仮登録や予約完了以外はスキップ
-    if (bookingStatus === '仮登録' || !bookingStatus) {
-      console.log(`⏭️  Skip booking (status: ${bookingStatus}):`, booking.id);
+    // ステータスチェック（リスケ・未確定は除外）
+    if (status === 'リスケ' || status === '未確定') {
+      console.log(`⏭️  Skip booking (status: ${status}):`, booking.id);
       continue;
     }
 
@@ -93,21 +92,27 @@ async function sendDayBeforeReminders(jstNow) {
     }
 
     // 前日リマインド送信済みフラグをチェック
+    const dayBeforeReminderSent = booking.properties['前日通知']?.checkbox;
     if (dayBeforeReminderSent) {
       console.log('⏭️  Skip booking (day-before reminder already sent):', booking.id);
       continue;
     }
 
     // メッセージ作成
-    const dateTime = booking.start.dateTime || booking.start.date;
     const formattedDateTime = formatDateTime(dateTime);
-    let message = `【ご予約日前日のお知らせ】\n\n${formattedDateTime}\n\n明日はよろしくお願いいたします！`;
+    let message = `【ご予約日前日のお知らせ】\n\n${formattedDateTime}\n`;
+
+    if (zoomLink) {
+      message += `\nZOOMリンク:\n${zoomLink}\n`;
+    }
+
+    message += `\n明日はよろしくお願いいたします！`;
 
     // LINE通知送信
     const success = await sendLineNotification(lineUserId, message);
 
     if (success) {
-      // Google Calendarに送信済みフラグを立てる
+      // Notionに送信済みフラグを立てる
       await updateBookingReminderFlag(booking.id, 'day_before');
       console.log('✅ Day-before reminder sent:', booking.id);
     } else {
@@ -125,25 +130,26 @@ async function send15MinuteReminders(jstNow) {
 
   // 現在時刻の15分後を計算
   const in15Minutes = new Date(jstNow.getTime() + 15 * 60 * 1000);
-  const targetStart = new Date(in15Minutes.getTime() - 1 * 60 * 1000); // 1分前
-  const targetEnd = new Date(in15Minutes.getTime() + 1 * 60 * 1000);   // 1分後
+  const targetDateStr = formatDateForNotion(in15Minutes);
+  const targetHour = in15Minutes.getHours();
+  const targetMinute = in15Minutes.getMinutes();
 
   console.log('Target time (15 min later):', in15Minutes.toISOString());
 
-  // Google Calendarから該当時刻の予約を取得
-  const bookings = await fetchBookingsForDateRange(targetStart, targetEnd);
+  // Notionから当日の予約を取得
+  const bookings = await fetchBookingsForDate(targetDateStr);
 
-  console.log(`Found ${bookings.length} bookings for 15 minutes later`);
+  console.log(`Found ${bookings.length} bookings for today`);
 
   for (const booking of bookings) {
-    const extProps = booking.extendedProperties?.private || {};
-    const lineUserId = extProps.lineUserId;
-    const bookingStatus = extProps.bookingStatus;
-    const fifteenMinReminderSent = extProps.fifteenMinReminderSent === 'true';
+    const status = booking.properties['ステータス']?.select?.name;
+    const lineUserId = booking.properties['LINE User ID']?.rich_text?.[0]?.text?.content;
+    const dateTime = booking.properties['予定日']?.date?.start;
+    const zoomLink = booking.properties['ZOOMリンク']?.url;
 
-    // 仮登録や予約完了以外はスキップ
-    if (bookingStatus === '仮登録' || !bookingStatus) {
-      console.log(`⏭️  Skip booking (status: ${bookingStatus}):`, booking.id);
+    // ステータスチェック（リスケ・未確定は除外）
+    if (status === 'リスケ' || status === '未確定') {
+      console.log(`⏭️  Skip booking (status: ${status}):`, booking.id);
       continue;
     }
 
@@ -153,20 +159,37 @@ async function send15MinuteReminders(jstNow) {
       continue;
     }
 
+    // 予約時刻をパース
+    const bookingDateTime = new Date(dateTime);
+    const bookingHour = bookingDateTime.getHours();
+    const bookingMinute = bookingDateTime.getMinutes();
+
+    // 15分後の時刻と一致するかチェック
+    if (bookingHour !== targetHour || bookingMinute !== targetMinute) {
+      continue;
+    }
+
     // 15分前リマインド送信済みフラグをチェック
+    const fifteenMinReminderSent = booking.properties['当日通知']?.checkbox;
     if (fifteenMinReminderSent) {
       console.log('⏭️  Skip booking (15-min reminder already sent):', booking.id);
       continue;
     }
 
     // メッセージ作成
-    let message = `【ご予約15分前のお知らせ】\n\n本日はよろしくお願いいたします！\nお時間になりましたらご入室をお願いいたします！\n\n（※担当者の状況により、直接のご連絡と前後して本通知が送られている場合がございます。ご容赦くださいますと幸いです。）`;
+    let message = `【ご予約15分前のお知らせ】\n\n本日はよろしくお願いいたします！\nお時間になりましたらご入室をお願いいたします！\n`;
+
+    if (zoomLink) {
+      message += `\nZOOMリンク:\n${zoomLink}\n`;
+    }
+
+    message += `\n（※担当者の状況により、直接のご連絡と前後して本通知が送られている場合がございます。ご容赦くださいますと幸いです。）`;
 
     // LINE通知送信
     const success = await sendLineNotification(lineUserId, message);
 
     if (success) {
-      // Google Calendarに送信済みフラグを立てる
+      // Notionに送信済みフラグを立てる
       await updateBookingReminderFlag(booking.id, '15_minutes');
       console.log('✅ 15-minute reminder sent:', booking.id);
     } else {
@@ -176,29 +199,23 @@ async function send15MinuteReminders(jstNow) {
 }
 
 /**
- * Google Calendarから指定期間の予約を取得
+ * Notionから指定日の予約を取得
  */
-async function fetchBookingsForDateRange(startDate, endDate) {
+async function fetchBookingsForDate(dateStr) {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(GOOGLE_SERVICE_ACCOUNT_KEY),
-      scopes: ['https://www.googleapis.com/auth/calendar'],
+    const response = await notion.databases.query({
+      database_id: DATABASE_ID,
+      filter: {
+        property: '予定日',
+        date: {
+          equals: dateStr
+        }
+      }
     });
 
-    const calendar = google.calendar({ version: 'v3', auth });
-
-    const response = await calendar.events.list({
-      calendarId: GOOGLE_CALENDAR_ID,
-      timeMin: startDate.toISOString(),
-      timeMax: endDate.toISOString(),
-      singleEvents: true,
-      orderBy: 'startTime',
-      maxResults: 100,
-    });
-
-    return response.data.items || [];
+    return response.results;
   } catch (error) {
-    console.error('❌ Error fetching bookings from Google Calendar:', error);
+    console.error('❌ Error fetching bookings from Notion:', error);
     return [];
   }
 }
@@ -239,46 +256,38 @@ async function sendLineNotification(userId, message) {
 }
 
 /**
- * Google Calendarの予約に送信済みフラグを立てる
+ * Notionの予約に送信済みフラグを立てる
  */
-async function updateBookingReminderFlag(eventId, reminderType) {
+async function updateBookingReminderFlag(pageId, reminderType) {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(GOOGLE_SERVICE_ACCOUNT_KEY),
-      scopes: ['https://www.googleapis.com/auth/calendar'],
-    });
-
-    const calendar = google.calendar({ version: 'v3', auth });
-
-    // イベントを取得
-    const event = await calendar.events.get({
-      calendarId: GOOGLE_CALENDAR_ID,
-      eventId: eventId
-    });
-
-    // extendedPropertiesを更新
-    const extProps = event.data.extendedProperties?.private || {};
     const propertyName = reminderType === 'day_before'
-      ? 'dayBeforeReminderSent'
-      : 'fifteenMinReminderSent';
+      ? '前日通知'
+      : '当日通知';
 
-    extProps[propertyName] = 'true';
-
-    await calendar.events.patch({
-      calendarId: GOOGLE_CALENDAR_ID,
-      eventId: eventId,
-      requestBody: {
-        extendedProperties: {
-          private: extProps
+    await notion.pages.update({
+      page_id: pageId,
+      properties: {
+        [propertyName]: {
+          checkbox: true
         }
       }
     });
 
     return true;
   } catch (error) {
-    console.error('❌ Error updating reminder flag in Google Calendar:', error);
+    console.error('❌ Error updating reminder flag in Notion:', error);
     return false;
   }
+}
+
+/**
+ * 日付をNotion形式にフォーマット (YYYY-MM-DD)
+ */
+function formatDateForNotion(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
