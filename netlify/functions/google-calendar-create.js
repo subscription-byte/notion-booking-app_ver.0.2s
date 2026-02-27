@@ -116,11 +116,17 @@ exports.handler = async (event, context) => {
       console.log('Session-based booking creation:', sessionId);
 
       // 1. Googleカレンダーからセッション情報を取得
+      // Google Calendar APIはextendedPropertiesでフィルタできないため、
+      // 2099年の仮登録データを取得して検索
+      const year2099Start = new Date('2099-01-01T00:00:00Z');
+      const year2099End = new Date('2100-01-01T00:00:00Z');
+
       const queryResponse = await calendar.events.list({
         calendarId: GOOGLE_CALENDAR_ID,
-        q: sessionId,
+        timeMin: year2099Start.toISOString(),
+        timeMax: year2099End.toISOString(),
         singleEvents: true,
-        maxResults: 10,
+        maxResults: 500,
       });
 
       const sessionEvent = queryResponse.data.items.find(e =>

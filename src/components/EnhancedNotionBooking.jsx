@@ -2301,6 +2301,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     onClick={() => {
                       setShowTimeSlots(false);
                       setSelectedDate(null);
+                      setSelectedTime(null);
                     }}
                     className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
