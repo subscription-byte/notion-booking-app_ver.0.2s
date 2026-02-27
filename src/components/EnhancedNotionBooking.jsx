@@ -311,30 +311,21 @@ const EnhancedNotionBooking = () => {
         } else {
           if (cachedPrev) console.log('前週データ: キャッシュ期限切れ、再取得');
         // 前週のデータ取得
-        const prevResponse = await fetch('/.netlify/functions/notion-query', {
+        const prevResponse = await fetch(NOTION_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
-              and: [
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_after: prevWeekDates[0].getFullYear() + '-' +
+              date: {
+                on_or_after: prevWeekDates[0].getFullYear() + '-' +
                                 String(prevWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
                                 String(prevWeekDates[0].getDate()).padStart(2, '0')
-                  }
-                },
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_before: prevWeekDates[4].getFullYear() + '-' +
-                                 String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                                 String(prevWeekDates[4].getDate()).padStart(2, '0')
-                  }
-                }
-              ]
+                  },
+                on_or_before: prevWeekDates[4].getFullYear() + '-' +
+                 String(prevWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                 String(prevWeekDates[4].getDate()).padStart(2, '0')
+              }
             }
           })
         });
@@ -360,30 +351,21 @@ const EnhancedNotionBooking = () => {
       } else {
         if (cachedNext) console.log('翌週データ: キャッシュ期限切れ、再取得');
         // 翌週のデータ取得
-        const nextResponse = await fetch('/.netlify/functions/notion-query', {
+        const nextResponse = await fetch(NOTION_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
-              and: [
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_after: nextWeekDates[0].getFullYear() + '-' +
+              date: {
+                on_or_after: nextWeekDates[0].getFullYear() + '-' +
                                 String(nextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
                                 String(nextWeekDates[0].getDate()).padStart(2, '0')
-                  }
-                },
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_before: nextWeekDates[4].getFullYear() + '-' +
-                                 String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                                 String(nextWeekDates[4].getDate()).padStart(2, '0')
-                  }
-                }
-              ]
+                  },
+                on_or_before: nextWeekDates[4].getFullYear() + '-' +
+                 String(nextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                 String(nextWeekDates[4].getDate()).padStart(2, '0')
+              }
             }
           })
         });
@@ -404,30 +386,21 @@ const EnhancedNotionBooking = () => {
 
       if (!isNextNextCacheValid) {
         if (cachedNextNext) console.log('翌々週データ: キャッシュ期限切れ、再取得');
-        const nextNextResponse = await fetch('/.netlify/functions/notion-query', {
+        const nextNextResponse = await fetch(NOTION_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
-              and: [
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_after: nextNextWeekDates[0].getFullYear() + '-' +
+              date: {
+                on_or_after: nextNextWeekDates[0].getFullYear() + '-' +
                                 String(nextNextWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
                                 String(nextNextWeekDates[0].getDate()).padStart(2, '0')
-                  }
-                },
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_before: nextNextWeekDates[4].getFullYear() + '-' +
-                                 String(nextNextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                                 String(nextNextWeekDates[4].getDate()).padStart(2, '0')
-                  }
-                }
-              ]
+                  },
+                on_or_before: nextNextWeekDates[4].getFullYear() + '-' +
+                 String(nextNextWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                 String(nextNextWeekDates[4].getDate()).padStart(2, '0')
+              }
             }
           })
         });
@@ -473,7 +446,7 @@ const EnhancedNotionBooking = () => {
 
       const datesForQuery = targetWeekDates || weekDates;
 
-      const response = await fetch('/.netlify/functions/notion-query', {
+      const response = await fetch(NOTION_CONFIG.endpoints.query, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -876,32 +849,23 @@ const EnhancedNotionBooking = () => {
 
       // この週のデータを取得
       try {
-        const response = await fetch('/.netlify/functions/notion-query', {
+        const response = await fetch(NOTION_CONFIG.endpoints.query, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
-              and: [
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_after: testWeekDates[0].getFullYear() + '-' +
+              date: {
+                on_or_after: testWeekDates[0].getFullYear() + '-' +
                                 String(testWeekDates[0].getMonth() + 1).padStart(2, '0') + '-' +
                                 String(testWeekDates[0].getDate()).padStart(2, '0')
-                  }
-                },
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_before: testWeekDates[4].getFullYear() + '-' +
-                                 String(testWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
-                                 String(testWeekDates[4].getDate()).padStart(2, '0')
-                  }
-                }
-              ]
+                  },
+                on_or_before: testWeekDates[4].getFullYear() + '-' +
+                 String(testWeekDates[4].getMonth() + 1).padStart(2, '0') + '-' +
+                 String(testWeekDates[4].getDate()).padStart(2, '0')
+              }
             }
           })
         });
@@ -960,30 +924,21 @@ const EnhancedNotionBooking = () => {
         );
 
         // 1回のAPI呼び出しで4週分取得
-        const response = await fetch('/.netlify/functions/notion-query', {
+        const response = await fetch(NOTION_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            databaseId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             filter: {
-              and: [
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_after: week0Monday.getFullYear() + '-' +
+              date: {
+                on_or_after: week0Monday.getFullYear() + '-' +
                                 String(week0Monday.getMonth() + 1).padStart(2, '0') + '-' +
                                 String(week0Monday.getDate()).padStart(2, '0')
-                  }
-                },
-                {
-                  property: '予定日',
-                  date: {
-                    on_or_before: week3Friday.getFullYear() + '-' +
-                                 String(week3Friday.getMonth() + 1).padStart(2, '0') + '-' +
-                                 String(week3Friday.getDate()).padStart(2, '0')
-                  }
-                }
-              ]
+                  },
+                on_or_before: week3Friday.getFullYear() + '-' +
+                 String(week3Friday.getMonth() + 1).padStart(2, '0') + '-' +
+                 String(week3Friday.getDate()).padStart(2, '0')
+              }
             }
           })
         });
