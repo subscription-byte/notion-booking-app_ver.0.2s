@@ -575,7 +575,7 @@ const EnhancedNotionBooking = () => {
 
           // テスト予定を削除（アーカイブ）
           try {
-            await fetch('/.netlify/functions/notion-archive', {
+            await fetch(NOTION_CONFIG.endpoints.archive, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pageId: eventId })
@@ -596,7 +596,7 @@ const EnhancedNotionBooking = () => {
 
           // テスト予定を削除（アーカイブ）
           try {
-            await fetch('/.netlify/functions/notion-archive', {
+            await fetch(NOTION_CONFIG.endpoints.archive, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pageId: eventId })
@@ -723,15 +723,15 @@ const EnhancedNotionBooking = () => {
       const requestBody = bookingData.sessionId
         ? {
             sessionId: bookingData.sessionId,
-            parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             properties: properties
           }
         : {
-            parent: { database_id: NOTION_CONFIG.calendarDatabaseId },
+            calendarId: NOTION_CONFIG.calendarDatabaseId,
             properties: properties
           };
 
-      const response = await fetch('/.netlify/functions/notion-create', {
+      const response = await fetch(NOTION_CONFIG.endpoints.create, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -744,7 +744,9 @@ const EnhancedNotionBooking = () => {
         if (response.status === 409 || response.status === 403) {
           throw new Error('BOOKING_CONFLICT');
         }
-        throw new Error('Notion APIエラー');
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`API Error: ${response.status}`);
       }
 
       return true;
