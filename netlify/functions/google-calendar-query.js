@@ -26,8 +26,13 @@ exports.handler = async (event, context) => {
     const calendar = google.calendar({ version: 'v3', auth });
 
     // フィルター条件からtimeMin/timeMaxを抽出
-    const timeMin = filter?.date?.on_or_after || new Date().toISOString();
-    const timeMax = filter?.date?.on_or_before || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    // YYYY-MM-DD形式をISO 8601形式に変換
+    const timeMin = filter?.date?.on_or_after
+      ? `${filter.date.on_or_after}T00:00:00.000Z`
+      : new Date().toISOString();
+    const timeMax = filter?.date?.on_or_before
+      ? `${filter.date.on_or_before}T23:59:59.999Z`
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     // イベント一覧を取得
     const response = await calendar.events.list({
