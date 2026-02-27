@@ -3,17 +3,17 @@
  */
 
 /**
- * Notion API設定
+ * Google Calendar API設定（旧Notion API設定から移行）
  */
 export const NOTION_CONFIG = {
-  // カレンダーデータベースID
-  calendarDatabaseId: '1fa44ae2d2c780a5b27dc7aae5bae1aa',
+  // GoogleカレンダーID（互換性のため変数名は維持）
+  calendarDatabaseId: 'c763018544ac641008a928e7411242bdefc77de1f79fc28ef22d30ab0ea0321b@group.calendar.google.com',
 
-  // Notion APIエンドポイント（Netlify Functions経由）
+  // Google Calendar APIエンドポイント（Netlify Functions経由）
   endpoints: {
-    query: '/.netlify/functions/notion-query',
-    create: '/.netlify/functions/notion-create',
-    archive: '/.netlify/functions/notion-archive',
+    query: '/.netlify/functions/google-calendar-query',
+    create: '/.netlify/functions/google-calendar-create',
+    archive: '/.netlify/functions/google-calendar-delete',
   },
 };
 
