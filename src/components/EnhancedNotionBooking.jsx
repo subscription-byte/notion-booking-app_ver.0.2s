@@ -621,73 +621,23 @@ const EnhancedNotionBooking = () => {
     }
 
     try {
+      // Google Calendar用のフラット形式に変換
       const properties = {
-        '名前': {
-          title: [
-            {
-              text: {
-                content: bookingData.customerName
-              }
-            }
-          ]
+        summary: bookingData.customerName,
+        date: {
+          start: `${bookingData.date}T${bookingData.time}:00+09:00`,
+          end: `${bookingData.date}T${String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0')}:00:00+09:00`
         },
-        '予定日': {
-          date: {
-            start: `${bookingData.date}T${bookingData.time}+09:00`,
-            end: `${bookingData.date}T${String(parseInt(bookingData.time.split(':')[0]) + 1).padStart(2, '0')}:00+09:00`
-          }
-        },
-        '備考': {
-          rich_text: bookingData.remarks ? [
-            {
-              text: {
-                content: bookingData.remarks
-              }
-            }
-          ] : []
-        },
-        '対応者': {
-          people: [
-            {
-              id: '1ffd872b-594c-8107-b306-000269021f07'
-            }
-          ]
-        }
+        remarks: bookingData.remarks || '',
+        xLink: bookingData.xLink || '',
+        route: bookingData.routeTag || '',
+        callMethod: bookingData.callMethod || '',
+        myfansStatus: bookingData.myfansStatus || '',
+        premiumStatus: bookingData.premiumStatus || '',
+        assignee: '町谷有里',
+        lineUserId: '',
+        sessionId: ''
       };
-
-      // Xリンクがある場合は追加
-      if (bookingData.xLink) {
-        properties['X'] = {
-          url: bookingData.xLink
-        };
-      }
-
-      // 経路タグがある場合は追加
-      if (bookingData.routeTag) {
-        properties['経路'] = {
-          select: {
-            name: bookingData.routeTag
-          }
-        };
-      }
-
-      // myfans登録状況を追加
-      if (bookingData.myfansStatus) {
-        properties['myfans登録状況'] = {
-          select: {
-            name: bookingData.myfansStatus
-          }
-        };
-      }
-
-      // プレミアムクリエイター登録状況を追加（myfans登録済の場合のみ）
-      if (bookingData.premiumStatus) {
-        properties['P登録状況'] = {
-          select: {
-            name: bookingData.premiumStatus
-          }
-        };
-      }
 
       // セッションID方式の場合
       const requestBody = bookingData.sessionId

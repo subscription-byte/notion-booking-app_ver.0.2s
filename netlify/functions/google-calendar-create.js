@@ -166,10 +166,20 @@ exports.handler = async (event, context) => {
       }
 
       const bookingDate = new Date(bookingDateStr);
-      const timeHour = bookingDate.getUTCHours() + 9; // JST変換
+      if (isNaN(bookingDate.getTime())) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Invalid booking date format' })
+        };
+      }
 
-      // 土日チェック
-      const dayOfWeek = bookingDate.getDay();
+      // JSTの日付・時刻を取得（UTCから+9時間）
+      const jstOffset = 9 * 60; // 分単位
+      const jstDate = new Date(bookingDate.getTime() + jstOffset * 60 * 1000);
+      const timeHour = jstDate.getUTCHours();
+
+      // 土日チェック（JST基準）
+      const dayOfWeek = jstDate.getUTCDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         return {
           statusCode: 403,
@@ -177,8 +187,8 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // 祝日チェック
-      if (isHoliday(bookingDate)) {
+      // 祝日チェック（JST基準）
+      if (isHoliday(jstDate)) {
         return {
           statusCode: 403,
           body: JSON.stringify({ error: 'Holidays are not available for booking' })
@@ -193,8 +203,8 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Googleカレンダーから既存予約を取得して重複チェック
-      const dayStart = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+      // Googleカレンダーから既存予約を取得して重複チェック（JST基準の日付）
+      const dayStart = new Date(jstDate.getUTCFullYear(), jstDate.getUTCMonth(), jstDate.getUTCDate());
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 
       const queryExistingResponse = await calendar.events.list({
@@ -348,10 +358,20 @@ P登録状況: ${properties.premiumStatus || ''}`;
     }
 
     const bookingDate = new Date(bookingDateStr);
-    const timeHour = bookingDate.getUTCHours() + 9; // JST変換
+    if (isNaN(bookingDate.getTime())) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Invalid booking date format' })
+      };
+    }
 
-    // 土日チェック
-    const dayOfWeek = bookingDate.getDay();
+    // JSTの日付・時刻を取得（UTCから+9時間）
+    const jstOffset = 9 * 60; // 分単位
+    const jstDate = new Date(bookingDate.getTime() + jstOffset * 60 * 1000);
+    const timeHour = jstDate.getUTCHours();
+
+    // 土日チェック（JST基準）
+    const dayOfWeek = jstDate.getUTCDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       return {
         statusCode: 403,
@@ -359,24 +379,24 @@ P登録状況: ${properties.premiumStatus || ''}`;
       };
     }
 
-    // 祝日チェック
-    if (isHoliday(bookingDate)) {
+    // 祝日チェック（JST基準）
+    if (isHoliday(jstDate)) {
       return {
         statusCode: 403,
         body: JSON.stringify({ error: 'Holidays are not available for booking' })
       };
     }
 
-    // 固定ブロック時間チェック
-    if (isFixedBlockedTime(bookingDate, timeHour)) {
+    // 固定ブロック時間チェック（JST基準）
+    if (isFixedBlockedTime(jstDate, timeHour)) {
       return {
         statusCode: 403,
         body: JSON.stringify({ error: 'This time slot is blocked by fixed rules' })
       };
     }
 
-    // Googleカレンダーから既存予約を取得
-    const dayStart = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+    // Googleカレンダーから既存予約を取得（JST基準の日付）
+    const dayStart = new Date(jstDate.getUTCFullYear(), jstDate.getUTCMonth(), jstDate.getUTCDate());
     const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const queryResponse = await calendar.events.list({
