@@ -663,12 +663,16 @@ const EnhancedNotionBooking = () => {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+
+        // エラー内容を画面に表示
+        alert(`予約エラー (${response.status}):\n${errorText}\n\nこのメッセージをスクショして送ってください`);
+
         // 409/403エラー = 予約重複・ブロック時間
         if (response.status === 409 || response.status === 403) {
           throw new Error('BOOKING_CONFLICT');
         }
-        const errorText = await response.text();
-        console.error('API Error:', response.status, errorText);
         throw new Error(`API Error: ${response.status}`);
       }
 
@@ -2024,18 +2028,16 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
               </div>
             )}
 
-            {(() => {
-              const shouldShowWeekSelection = !showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation;
-              console.log('画面表示状態:', {
-                showInitialForm,
-                showTimeSlots,
-                showBookingForm,
-                showConfirmScreen,
-                showConfirmation,
-                shouldShowWeekSelection
-              });
-              return shouldShowWeekSelection;
-            })() && (
+            {/* デバッグ用状態表示 */}
+            <div style={{ position: 'fixed', top: 0, left: 0, background: 'rgba(255, 255, 0, 0.9)', padding: '5px', zIndex: 9999, fontSize: '10px', maxWidth: '200px' }}>
+              <div>Initial: {String(showInitialForm)}</div>
+              <div>TimeSlots: {String(showTimeSlots)}</div>
+              <div>BookingForm: {String(showBookingForm)}</div>
+              <div>ConfirmScreen: {String(showConfirmScreen)}</div>
+              <div>Confirmation: {String(showConfirmation)}</div>
+            </div>
+
+            {!showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
                 <div className="rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-xl mx-5 sm:mx-9" style={{
