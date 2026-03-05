@@ -1,0 +1,30 @@
+{
+  "fixedBlockingRules": [
+    {
+      "dayOfWeek": 2,
+      "startHour": 11,
+      "endHour": 16
+    },
+    {
+      "dayOfWeek": 3,
+      "startHour": 13,
+      "endHour": 14
+    },
+    {
+      "dayOfWeek": null,
+      "excludeDays": [2],
+      "startHour": 15,
+      "endHour": 16
+    }
+  ],
+  "blockingSettings": {
+    "inPerson": {
+      "beforeHours": 3,
+      "afterHours": 3
+    },
+    "shooting": {
+      "startHour": 12,
+      "afterHours": 3
+    }
+  }
+}

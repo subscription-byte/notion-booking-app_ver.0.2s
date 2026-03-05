@@ -1,0 +1,40 @@
+{
+  "timeMs": {
+    "SECOND": 1000,
+    "MINUTE": 60000,
+    "HOUR": 3600000,
+    "DAY": 86400000,
+    "WEEK": 604800000
+  },
+  "timeMinutes": {
+    "MINUTE_1": 1,
+    "MINUTE_5": 5,
+    "MINUTE_10": 10,
+    "MINUTE_15": 15,
+    "MINUTE_30": 30,
+    "HOUR_1": 60,
+    "HOUR_2": 120
+  },
+  "timeDays": {
+    "DAY_1": 1,
+    "DAY_7": 7,
+    "DAY_14": 14,
+    "DAY_30": 30,
+    "DAY_60": 60,
+    "DAY_90": 90
+  },
+  "timeWeeks": {
+    "WEEK_1": 1,
+    "WEEK_2": 2,
+    "WEEK_4": 4,
+    "WEEK_8": 8,
+    "WEEK_12": 12
+  },
+  "retryDelays": {
+    "IMMEDIATE": 0,
+    "SHORT": 500,
+    "MEDIUM": 1000,
+    "LONG": 2000,
+    "VERY_LONG": 5000
+  }
+}

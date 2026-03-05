@@ -49,7 +49,8 @@
       "Bash(robocopy:*)",
       "Bash(ollama:*)",
       "Bash(curl -s https://mfagencybooking.netlify.app/)",
-      "Bash(curl -s \"https://mfagencybooking.netlify.app/static/js/main.443492dc.js\")"
+      "Bash(curl -s \"https://mfagencybooking.netlify.app/static/js/main.443492dc.js\")",
+      "Bash(echo \"Copied to: $USERPROFILE/.claude/commands/\")"
     ],
     "deny": [],
     "ask": [],

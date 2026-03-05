@@ -1,0 +1,10 @@
+{
+  "session": [
+    { "method": "popup", "minutes": 10 },
+    { "method": "popup", "minutes": 1 }
+  ],
+  "regular": [
+    { "method": "popup", "minutes": 10 },
+    { "method": "popup", "minutes": 0 }
+  ]
+}
