@@ -117,13 +117,15 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const eventEnd = event.properties['予定日']?.date?.end;
   const callMethod = event.properties['通話方法']?.select?.name;
   const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
+  const colorId = event.colorId || event.properties?.['カラーID']?.rich_text?.[0]?.text?.content || '';
 
   if (!eventStart) return false;
 
   // 対面通話判定
   const isInPerson =
     callMethod === rule.callMethodValue ||
-    rule.keywords.some(keyword => eventName.includes(keyword));
+    rule.keywords.some(keyword => eventName.includes(keyword)) ||
+    colorId === '7';
 
   if (!isInPerson) return false;
 
@@ -153,13 +155,15 @@ export const isShootingBlocked = (event, slotStart, slotEnd) => {
   const eventEnd = event.properties['予定日']?.date?.end;
   const callMethod = event.properties['通話方法']?.select?.name;
   const eventName = event.properties['名前']?.title?.[0]?.text?.content || '';
+  const colorId = event.colorId || event.properties?.['カラーID']?.rich_text?.[0]?.text?.content || '';
 
   if (!eventStart) return false;
 
   // 撮影判定
   const isShooting =
     callMethod === rule.callMethodValue ||
-    rule.keywords.some(keyword => eventName.includes(keyword));
+    rule.keywords.some(keyword => eventName.includes(keyword)) ||
+    colorId === '3';
 
   if (!isShooting) return false;
 

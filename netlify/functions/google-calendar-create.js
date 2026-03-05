@@ -47,10 +47,11 @@ const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const extendedProps = event.extendedProperties?.private || {};
   const callMethod = extendedProps.callMethod;
   const eventName = event.summary || '';
+  const colorId = event.colorId || '';
 
   if (!eventStart) return false;
 
-  const isInPerson = callMethod === '対面' || eventName.includes('対面');
+  const isInPerson = callMethod === '対面' || eventName.includes('対面') || colorId === '7';
   if (!isInPerson) return false;
 
   const existingStart = new Date(eventStart);
@@ -67,10 +68,11 @@ const isShootingBlocked = (event, slotStart, slotEnd) => {
   const extendedProps = event.extendedProperties?.private || {};
   const callMethod = extendedProps.callMethod;
   const eventName = event.summary || '';
+  const colorId = event.colorId || '';
 
   if (!eventStart) return false;
 
-  const isShooting = callMethod === '撮影' || eventName.includes('撮影');
+  const isShooting = callMethod === '撮影' || eventName.includes('撮影') || colorId === '3';
   if (!isShooting) return false;
 
   const existingStart = new Date(eventStart);

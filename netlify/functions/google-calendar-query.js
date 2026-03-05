@@ -50,6 +50,7 @@ exports.handler = async (event, context) => {
 
       return {
         id: event.id,
+        colorId: event.colorId || '',
         properties: {
           '名前': {
             title: [{ text: { content: event.summary || '' } }]
