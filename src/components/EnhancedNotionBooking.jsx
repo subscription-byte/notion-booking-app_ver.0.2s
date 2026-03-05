@@ -2028,15 +2028,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
               </div>
             )}
 
-            {/* デバッグ用状態表示 */}
-            <div style={{ position: 'fixed', top: 0, left: 0, background: 'rgba(255, 255, 0, 0.9)', padding: '5px', zIndex: 9999, fontSize: '10px', maxWidth: '200px' }}>
-              <div>Initial: {String(showInitialForm)}</div>
-              <div>TimeSlots: {String(showTimeSlots)}</div>
-              <div>BookingForm: {String(showBookingForm)}</div>
-              <div>ConfirmScreen: {String(showConfirmScreen)}</div>
-              <div>Confirmation: {String(showConfirmation)}</div>
-            </div>
-
             {!showInitialForm && !showTimeSlots && !showBookingForm && !showConfirmScreen && !showConfirmation && (
               <div className="scale-100" style={{ transformOrigin: 'top center' }}>
                 {/* 週選択 */}
