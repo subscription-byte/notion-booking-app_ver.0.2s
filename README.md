@@ -1,14 +1,30 @@
-# 予約システム - Notion連携予約アプリ
+# 予約システム - Googleカレンダー連携予約アプリ
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## 概要
 
-Notion APIと連携したモバイルファースト対応の予約システムです。URLパスで営業者を識別し、自動でNotionに予約データを登録・管理できます。
+Google Calendar APIと連携したモバイルファースト対応の予約システムです。URLパスで営業者を識別し、自動でGoogleカレンダーに予約データを登録・管理できます。
 
-**重要**: 将来的にGoogleカレンダー版への移行を予定しています。移行時に必要な修正内容は [MIGRATION_UPDATES.md](MIGRATION_UPDATES.md) に記録しています。
+**重要: このバージョンはGoogleカレンダー連携版です。Notion連携版は元のリポジトリ（booking-app）を参照してください。**
+
+## 開発者向けドキュメント
+
+- [Google Calendar API リファレンス](docs/google-calendar-api.md) - カレンダー色ID、API仕様、データ構造
 
 ## 最新の変更履歴
+
+### 2026年3月5日
+- **機能追加**: 予約元を一覧で識別できるように場所情報と色分けを追加
+  - 通常リンク: 場所「X DM」、colorId '2'（セージ色・緑）
+  - PersonA（LINE連携）: 場所「公式LINE（公認）」、colorId '11'（トマト色・赤）
+  - Googleカレンダーの一覧表示で予約元が一目で分かるように改善
+
+- **セキュリティ**: 検索エンジン・AI学習クローラーのアクセスを拒否
+  - robots.txt: 全クローラー + AI/LLMクローラーを明示的に拒否
+  - index.html: noindex/nofollowメタタグを追加
+  - 直リンクでのアクセスは引き続き可能
+  - Google検索結果に表示されず、AI学習データとして収集されない
 
 ### 2026年2月13日
 - **機能追加**: 通常リンク・personBでXリンク/IDのバリデーション実装
