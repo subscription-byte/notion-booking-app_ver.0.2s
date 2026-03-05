@@ -285,14 +285,19 @@ Xリンク: ${properties.xLink || ''}
 myfans登録状況: ${properties.myfansStatus || ''}
 P登録状況: ${properties.premiumStatus || ''}`;
 
+      // 場所情報を設定（一覧で見やすいように）
+      const location = '公式LINE（公認）';
+
       const updatedEvent = await calendar.events.patch({
         calendarId: GOOGLE_CALENDAR_ID,
         eventId: sessionEvent.id,
         requestBody: {
           summary: properties.summary,
           description: description,
+          location: location,
           start: { dateTime: bookingDateStr },
           end: { dateTime: new Date(slotEnd).toISOString() },
+          colorId: '11', // トマト色（赤）- LINE連携予約
           reminders: {
             useDefault: false,
             overrides: [
@@ -469,13 +474,18 @@ Xリンク: ${properties.xLink || ''}
 myfans登録状況: ${properties.myfansStatus || ''}
 P登録状況: ${properties.premiumStatus || ''}`;
 
+    // 場所情報を設定（一覧で見やすいように）
+    const location = 'X DM';
+
     const newEvent = await calendar.events.insert({
       calendarId: GOOGLE_CALENDAR_ID,
       requestBody: {
         summary: properties.summary,
         description: description,
+        location: location,
         start: { dateTime: bookingDateStr },
         end: { dateTime: new Date(slotEnd).toISOString() },
+        colorId: '2', // セージ色（緑）- 通常予約
         reminders: {
           useDefault: false,
           overrides: [
