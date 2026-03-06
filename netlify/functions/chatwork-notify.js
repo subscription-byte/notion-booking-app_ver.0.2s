@@ -36,13 +36,14 @@ exports.handler = async (event, context) => {
       }
 
       // データのサニタイズ（長さ制限）
+      const isLine = data.bookingType === 'line';
       const safeData = {
         date: String(data.date).substring(0, 50),
         time: String(data.time).substring(0, 20),
         customerName: String(data.customerName).substring(0, 100),
-        xLink: data.xLink ? String(data.xLink).substring(0, 200) : '',
+        xLink: data.xLink ? String(data.xLink).substring(0, 200) : 'なし',
         remarks: data.remarks ? String(data.remarks).substring(0, 300) : 'なし',
-        route: data.route ? String(data.route).substring(0, 50) : '',
+        route: data.route ? String(data.route).substring(0, 50) : 'なし',
         callMethod: data.callMethod ? String(data.callMethod).substring(0, 50) : 'なし',
         myfansStatus: data.myfansStatus ? String(data.myfansStatus).substring(0, 50) : '',
         premiumStatus: data.premiumStatus ? String(data.premiumStatus).substring(0, 50) : '',
@@ -52,7 +53,25 @@ exports.handler = async (event, context) => {
       const hourMatch = safeData.time.match(/^(\d+):/);
       const hourStr = hourMatch ? `${parseInt(hourMatch[1])}時` : safeData.time;
 
-      message = `日付: ${safeData.date} ${hourStr}\nお名前: ${safeData.customerName}\nXリンク: ${safeData.xLink}\n備考: ${safeData.remarks}\n経路: ${safeData.route}\n通話方法: ${safeData.callMethod}\nmyfans登録: ${safeData.myfansStatus}\nP登録: ${safeData.premiumStatus}`;
+      const title = isLine ? '【予約完了】PersonA（LINE連携）' : '【予約完了】通常予約';
+
+      let body = `日付: ${safeData.date} ${hourStr}\nお名前: ${safeData.customerName}`;
+      if (isLine) {
+        body += `\nLINE名: （LINE認証のみ）`;
+        body += `\nXリンク: ${safeData.xLink}`;
+        body += `\n備考: ${safeData.remarks}`;
+        body += `\n経路: ${safeData.route}`;
+        body += `\n通話方法: 公式LINE`;
+      } else {
+        body += `\nXリンク: ${safeData.xLink}`;
+        body += `\n備考: ${safeData.remarks}`;
+        body += `\n経路: ${safeData.route}`;
+        body += `\n通話方法: ${safeData.callMethod}`;
+        body += `\nmyfans登録: ${safeData.myfansStatus}`;
+        body += `\nP登録: ${safeData.premiumStatus}`;
+      }
+
+      message = `[info][title]${title}[/title]${body}[/info]`;
 
     } else if (type === 'date_mismatch') {
       // 必須フィールドの検証

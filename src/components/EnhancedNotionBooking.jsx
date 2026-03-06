@@ -1249,6 +1249,7 @@ const EnhancedNotionBooking = () => {
         await sendChatWorkAlert({
           type: 'booking_complete',
           data: {
+            bookingType: 'normal',
             date: `${year}年${month}月${day}日`,
             time: selectedTime,
             customerName: customerName,

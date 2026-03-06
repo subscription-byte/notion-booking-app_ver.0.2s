@@ -356,6 +356,37 @@ P登録状況: ${properties.premiumStatus || ''}`;
         }
       }
 
+      // 4. ChatWork予約完了通知（LINE連携）
+      const CHATWORK_API_TOKEN = process.env.CHATWORK_API_TOKEN;
+      const CHATWORK_BOOKING_ROOM_ID = process.env.CHATWORK_BOOKING_ROOM_ID;
+      if (CHATWORK_API_TOKEN && CHATWORK_BOOKING_ROOM_ID) {
+        try {
+          const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+          let dateStr = bookingDateStr;
+          let hourStr = '';
+          if (match) {
+            const [, year, month, day, hour] = match;
+            dateStr = `${year}年${parseInt(month)}月${parseInt(day)}日`;
+            hourStr = `${parseInt(hour)}時`;
+          }
+
+          const cwMessage = `[info][title]【予約完了】PersonA（LINE連携）[/title]日付: ${dateStr} ${hourStr}\nお名前: ${properties.summary || ''}\nLINE名: （LINE認証のみ）\nXリンク: なし\n備考: ${properties.remarks || 'なし'}\n経路: なし\n通話方法: 公式LINE[/info]`;
+
+          await fetch(`https://api.chatwork.com/v2/rooms/${CHATWORK_BOOKING_ROOM_ID}/messages`, {
+            method: 'POST',
+            headers: {
+              'X-ChatWorkToken': CHATWORK_API_TOKEN,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `body=${encodeURIComponent(cwMessage)}`,
+          });
+
+          console.log('ChatWork notification sent successfully');
+        } catch (cwError) {
+          console.error('ChatWork notification error:', cwError);
+        }
+      }
+
       return {
         statusCode: 200,
         headers: {
