@@ -1508,6 +1508,7 @@ const EnhancedNotionBooking = () => {
                   {SYSTEM_SETTINGS.systemTitle}
                 </h1>
                 <p className="text-pink-600 text-xs sm:text-sm font-light tracking-wide">{SYSTEM_SETTINGS.description}</p>
+                <p className="text-pink-400 text-xs font-light tracking-wide mt-0.5">（営業時間　12:00~21:00（土日祝、休業日を除く））</p>
               </div>
             </div>
 

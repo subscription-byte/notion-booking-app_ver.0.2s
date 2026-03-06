@@ -19,15 +19,15 @@ exports.handler = async (event, context) => {
     const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID;
     const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
     const REDIRECT_URI = 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback';
-    const NOTION_TOKEN = process.env.NOTION_TOKEN;
-    const NOTION_DB_ID = process.env.NOTION_DB_ID;
+    const GOOGLE_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
+    const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
     console.log('LINE_CHANNEL_ID:', LINE_CHANNEL_ID ? 'Set' : 'Missing');
     console.log('LINE_CHANNEL_SECRET:', LINE_CHANNEL_SECRET ? 'Set' : 'Missing');
-    console.log('NOTION_TOKEN:', NOTION_TOKEN ? 'Set' : 'Missing');
-    console.log('NOTION_DB_ID:', NOTION_DB_ID ? 'Set' : 'Missing');
+    console.log('GOOGLE_CALENDAR_ID:', GOOGLE_CALENDAR_ID ? 'Set' : 'Missing');
+    console.log('GOOGLE_SERVICE_ACCOUNT_KEY:', GOOGLE_SERVICE_ACCOUNT_KEY ? 'Set' : 'Missing');
 
-    if (!LINE_CHANNEL_ID || !LINE_CHANNEL_SECRET || !NOTION_TOKEN || !NOTION_DB_ID) {
+    if (!LINE_CHANNEL_ID || !LINE_CHANNEL_SECRET || !GOOGLE_CALENDAR_ID || !GOOGLE_SERVICE_ACCOUNT_KEY) {
       console.log('Error: Required credentials not configured');
       throw new Error('Required credentials not configured');
     }
@@ -90,48 +90,33 @@ exports.handler = async (event, context) => {
 
     // セッションIDを生成（UUID v4）
     const crypto = require('crypto');
+    const { google } = require('googleapis');
     const sessionId = crypto.randomUUID();
     console.log('Generated session ID:', sessionId);
 
-    // Notionに仮レコードを作成（セッション情報を保存）
-    console.log('Creating temporary session record in Notion...');
-    const notionResponse = await fetch('https://api.notion.com/v1/pages', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NOTION_TOKEN}`,
-        'Content-Type': 'application/json',
-        'Notion-Version': '2022-06-28'
-      },
-      body: JSON.stringify({
-        parent: { database_id: NOTION_DB_ID },
-        properties: {
-          '名前': {
-            title: [{ text: { content: '（LINE認証のみ）' } }]
-          },
-          'セッションID': {
-            rich_text: [{ text: { content: sessionId } }]
-          },
-          'LINE User ID': {
-            rich_text: [{ text: { content: userId } }]
-          },
-          '予約システム状況': {
-            select: { name: '仮登録' }
-          },
-          '予定日': {
-            date: { start: '2099-12-31T00:00:00+09:00' }
-          },
-          '対応者': {
-            people: [{ id: '1ffd872b-594c-8107-b306-000269021f07' }]
+    // Google Calendarに仮レコードを作成（セッション情報を保存）
+    console.log('Creating temporary session record in Google Calendar...');
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(GOOGLE_SERVICE_ACCOUNT_KEY),
+      scopes: ['https://www.googleapis.com/auth/calendar'],
+    });
+    const calendar = google.calendar({ version: 'v3', auth });
+
+    await calendar.events.insert({
+      calendarId: GOOGLE_CALENDAR_ID,
+      requestBody: {
+        summary: '（LINE認証のみ）',
+        start: { dateTime: '2099-12-31T00:00:00+09:00' },
+        end: { dateTime: '2099-12-31T01:00:00+09:00' },
+        extendedProperties: {
+          private: {
+            sessionId: sessionId,
+            lineUserId: userId,
+            bookingStatus: '仮登録',
           }
         }
-      })
+      }
     });
-
-    if (!notionResponse.ok) {
-      const errorText = await notionResponse.text();
-      console.log('Notion session creation error:', errorText);
-      throw new Error(`Failed to create session in Notion: ${errorText}`);
-    }
 
     console.log('Session record created successfully');
 
