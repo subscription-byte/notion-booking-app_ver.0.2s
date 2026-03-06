@@ -1243,24 +1243,26 @@ const EnhancedNotionBooking = () => {
           });
         }
 
-        // LINE通知はnotion-create.js内で自動送信される（セッション方式の場合）
+        // LINE通知・ChatWork通知はgoogle-calendar-create.js内で自動送信される（セッション方式の場合）
 
-        // ChatWork予約完了通知
-        await sendChatWorkAlert({
-          type: 'booking_complete',
-          data: {
-            bookingType: 'normal',
-            date: `${year}年${month}月${day}日`,
-            time: selectedTime,
-            customerName: customerName,
-            xLink: xLink,
-            remarks: remarks,
-            route: routeTag,
-            callMethod: '',
-            myfansStatus: myfansStatus,
-            premiumStatus: premiumStatus,
-          }
-        });
+        // ChatWork予約完了通知（LINE連携の場合はバックエンドで送信済みのためスキップ）
+        if (!sessionId) {
+          await sendChatWorkAlert({
+            type: 'booking_complete',
+            data: {
+              bookingType: 'normal',
+              date: `${year}年${month}月${day}日`,
+              time: selectedTime,
+              customerName: customerName,
+              xLink: xLink,
+              remarks: remarks,
+              route: routeTag,
+              callMethod: '',
+              myfansStatus: myfansStatus,
+              premiumStatus: premiumStatus,
+            }
+          });
+        }
 
         setShowBookingForm(false);
         setShowTimeSlots(false);
