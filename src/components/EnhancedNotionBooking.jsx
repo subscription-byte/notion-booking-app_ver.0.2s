@@ -669,10 +669,32 @@ const EnhancedNotionBooking = () => {
         // エラー内容を画面に表示
         alert(`予約エラー (${response.status}):\n${errorText}\n\nこのメッセージをスクショして送ってください`);
 
-        // 409/403エラー = 予約重複・ブロック時間
-        if (response.status === 409 || response.status === 403) {
+        const normalizedError = (errorText || '').toLowerCase();
+        const isExpectedBlockError =
+          response.status === 409 ||
+          (
+            response.status === 403 && (
+              normalizedError.includes('holiday or closed') ||
+              normalizedError.includes('blocked by fixed rules') ||
+              normalizedError.includes('blocked due to an in-person appointment') ||
+              normalizedError.includes('blocked due to a shooting session')
+            )
+          );
+
+        // 予約重複・ブロック時間は通常フロー
+        if (isExpectedBlockError) {
           throw new Error('BOOKING_CONFLICT');
         }
+
+        // 想定外の403/5xx/その他API異常はシステム通知
+        await sendChatWorkAlert({
+          type: 'system_error',
+          data: {
+            errorMessage: `Booking API error (${response.status}): ${errorText}`,
+            timestamp: new Date().toLocaleString('ja-JP')
+          }
+        });
+
         throw new Error(`API Error: ${response.status}`);
       }
 

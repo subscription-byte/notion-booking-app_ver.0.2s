@@ -3,7 +3,7 @@
 ### 2026年3月6日
 - **運用整理**: scheduled-reminder を前日通知専用に統一
   - 15分前通知ロジックを削除
-  - スケジュールを毎日18:00 JST 実行（`0 9 * * *` UTC）に変更
+  - スケジュールを毎日15:00 JST 実行（`0 6 * * *` UTC）に変更
 
 - **機能追加/修正**: 予約完了時のChatWork通知を実装・整理
   - `chatwork-notify.js`: `booking_complete` タイプを追加（`CHATWORK_BOOKING_ROOM_ID` の専用ルームへ送信）

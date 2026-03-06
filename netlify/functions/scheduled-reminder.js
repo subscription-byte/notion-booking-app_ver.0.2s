@@ -12,6 +12,8 @@ export const config = {
 
 const { google } = require('googleapis');
 
+const MAX_ERROR_DETAILS = 5;
+
 const getCalendarClient = () => {
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
@@ -21,18 +23,42 @@ const getCalendarClient = () => {
 };
 
 exports.handler = async (event, context) => {
-  console.log('🔔 Scheduled reminder function started');
+  const runId = `rem-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  console.log('🔔 Scheduled reminder function started', { runId });
 
   try {
     const now = new Date();
     const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    console.log('Current time (JST):', jstNow.toISOString());
+    console.log('Current time (JST):', jstNow.toISOString(), { runId });
 
-    await sendDayBeforeReminders(jstNow);
+    const summary = await sendDayBeforeReminders(jstNow, runId);
+    console.log('Scheduled reminder summary:', JSON.stringify({ runId, ...summary }));
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Reminder check completed' }) };
+    if (summary.failed > 0) {
+      await sendSystemErrorToChatWork({
+        runId,
+        stage: 'day_before_reminder',
+        message: '定期リマインドで失敗が発生しました',
+        summary
+      });
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Reminder check completed',
+        runId,
+        ...summary
+      })
+    };
   } catch (error) {
-    console.error('❌ Error in scheduled reminder:', error);
+    console.error('❌ Error in scheduled reminder:', error, { runId });
+    await sendSystemErrorToChatWork({
+      runId,
+      stage: 'handler',
+      message: error.message || 'Unknown scheduled reminder error',
+      summary: null
+    });
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
@@ -89,39 +115,134 @@ async function sendLineNotification(userId, message) {
       body: JSON.stringify({ to: userId, messages: [{ type: 'text', text: message }] })
     });
     if (!res.ok) {
-      console.error('LINE API error:', await res.json());
-      return false;
+      const errorText = await res.text();
+      console.error('LINE API error:', res.status, errorText);
+      return { ok: false, status: res.status, error: errorText };
     }
-    return true;
+    return { ok: true };
   } catch (e) {
     console.error('Error sending LINE notification:', e);
-    return false;
+    return { ok: false, status: 0, error: e.message || 'LINE send failed' };
   }
 }
 
-async function sendDayBeforeReminders(jstNow) {
-  if (jstNow.getHours() !== 15) return;
-  console.log('📅 Checking day-before reminders...');
+function buildErrorDetail(eventId, phase, detail) {
+  return {
+    eventId: eventId || 'unknown',
+    phase,
+    detail: truncate(detail || 'unknown error', 300),
+  };
+}
+
+function truncate(value, max) {
+  const s = String(value ?? '');
+  if (s.length <= max) return s;
+  return `${s.slice(0, max)}...`;
+}
+
+async function sendDayBeforeReminders(jstNow, runId) {
+  if (jstNow.getHours() !== 15) {
+    return {
+      targetDate: null,
+      totalCandidates: 0,
+      success: 0,
+      failed: 0,
+      skippedAlreadySent: 0,
+      errors: []
+    };
+  }
+
+  console.log('📅 Checking day-before reminders...', { runId });
 
   const tomorrow = new Date(jstNow);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dateStr = formatDate(tomorrow);
 
   const bookings = await fetchBookingsForDate(dateStr);
-  console.log(`Found ${bookings.length} bookings for tomorrow`);
+  console.log(`Found ${bookings.length} bookings for tomorrow`, { runId, dateStr });
+
+  const summary = {
+    targetDate: dateStr,
+    totalCandidates: bookings.length,
+    success: 0,
+    failed: 0,
+    skippedAlreadySent: 0,
+    errors: []
+  };
 
   for (const booking of bookings) {
     const props = booking.extendedProperties?.private || {};
-    if (props.dayBeforeReminderSent === 'true') continue;
+    if (props.dayBeforeReminderSent === 'true') {
+      summary.skippedAlreadySent += 1;
+      continue;
+    }
 
     const dateTime = booking.start.dateTime || booking.start.date;
     const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}\n\n明日はよろしくお願いいたします！`;
 
-    const success = await sendLineNotification(props.lineUserId, message);
-    if (success) {
-      await markDayBeforeReminderSent(booking.id);
-      console.log('✅ Day-before reminder sent:', booking.id);
+    const lineResult = await sendLineNotification(props.lineUserId, message);
+    if (!lineResult.ok) {
+      summary.failed += 1;
+      summary.errors.push(buildErrorDetail(booking.id, 'line_push', `status=${lineResult.status} ${lineResult.error}`));
+      continue;
     }
+
+    try {
+      await markDayBeforeReminderSent(booking.id);
+      summary.success += 1;
+      console.log('✅ Day-before reminder sent:', booking.id, { runId });
+    } catch (error) {
+      summary.failed += 1;
+      summary.errors.push(buildErrorDetail(booking.id, 'mark_sent', error.message));
+    }
+  }
+
+  summary.errors = summary.errors.slice(0, MAX_ERROR_DETAILS);
+  return summary;
+}
+
+async function sendSystemErrorToChatWork({ runId, stage, message, summary }) {
+  try {
+    const token = process.env.CHATWORK_API_TOKEN;
+    const roomId = process.env.CHATWORK_ROOM_ID;
+    if (!token || !roomId) {
+      console.error('ChatWork env vars missing for scheduled reminder alert', { runId });
+      return;
+    }
+
+    const summaryText = summary
+      ? `対象日: ${summary.targetDate || 'なし'}\n対象件数: ${summary.totalCandidates}\n成功: ${summary.success}\n失敗: ${summary.failed}\n送信済みスキップ: ${summary.skippedAlreadySent}`
+      : 'サマリーなし';
+
+    const detailLines = summary?.errors?.length
+      ? `\n詳細:\n${summary.errors.map((e, i) => `${i + 1}. event=${e.eventId} phase=${e.phase} detail=${e.detail}`).join('\n')}`
+      : '';
+
+    const body = `[toall]
+[緊急] 定期リマインドエラー
+
+runId: ${runId}
+stage: ${stage}
+message: ${truncate(message, 500)}
+${summaryText}${detailLines}
+
+Netlify Logs で runId を検索して詳細を確認してください。`;
+
+    const response = await fetch(`https://api.chatwork.com/v2/rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: {
+        'X-ChatWorkToken': token,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: `body=${encodeURIComponent(body)}`
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Failed to send scheduled reminder alert to ChatWork', response.status, err, { runId });
+    }
+  } catch (error) {
+    console.error('sendSystemErrorToChatWork failed', error, { runId });
   }
 }
 
