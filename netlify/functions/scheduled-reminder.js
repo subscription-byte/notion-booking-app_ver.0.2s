@@ -2,12 +2,12 @@
  * Netlify Scheduled Function - LINE自動リマインド送信
  *
  * 実行タイミング:
- * - 毎日18:00 (JST) → 翌日の予約に前日リマインド送信
- * - 15分おき → 15分後の予約に当日リマインド送信
+ * - 毎日15:00 (JST) → 翌日の予約に前日リマインド送信
  */
 
 export const config = {
-  schedule: "*/15 * * * *"
+  // Netlify cron は UTC 基準。15:00 JST = 06:00 UTC
+  schedule: "0 6 * * *"
 };
 
 const { google } = require('googleapis');
@@ -57,7 +57,7 @@ async function fetchBookingsForDate(dateStr) {
   });
 }
 
-async function markReminderSent(eventId, type) {
+async function markDayBeforeReminderSent(eventId) {
   const calendar = getCalendarClient();
   const calendarId = process.env.GOOGLE_CALENDAR_ID;
 
@@ -71,7 +71,7 @@ async function markReminderSent(eventId, type) {
       extendedProperties: {
         private: {
           ...existing,
-          [type === 'day_before' ? 'dayBeforeReminderSent' : 'fifteenMinReminderSent']: 'true',
+          dayBeforeReminderSent: 'true',
         }
       }
     }
@@ -100,7 +100,7 @@ async function sendLineNotification(userId, message) {
 }
 
 async function sendDayBeforeReminders(jstNow) {
-  if (jstNow.getHours() !== 18) return;
+  if (jstNow.getHours() !== 15) return;
   console.log('📅 Checking day-before reminders...');
 
   const tomorrow = new Date(jstNow);
@@ -119,7 +119,7 @@ async function sendDayBeforeReminders(jstNow) {
 
     const success = await sendLineNotification(props.lineUserId, message);
     if (success) {
-      await markReminderSent(booking.id, 'day_before');
+      await markDayBeforeReminderSent(booking.id);
       console.log('✅ Day-before reminder sent:', booking.id);
     }
   }

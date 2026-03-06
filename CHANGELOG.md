@@ -1,14 +1,18 @@
 ## 最新の変更履歴
 
 ### 2026年3月6日
-- **機能追加**: 予約完了時のChatWork通知を実装・復元
+- **運用整理**: scheduled-reminder を前日通知専用に統一
+  - 15分前通知ロジックを削除
+  - スケジュールを毎日18:00 JST 実行（`0 9 * * *` UTC）に変更
+
+- **機能追加/修正**: 予約完了時のChatWork通知を実装・整理
   - `chatwork-notify.js`: `booking_complete` タイプを追加（`CHATWORK_BOOKING_ROOM_ID` の専用ルームへ送信）
+  - `google-calendar-create.js`: 予約完了通知をバックエンド送信に統一（通常予約/LINE予約）
   - 通常予約とLINE連携の2パターンを `bookingType` フィールドで判別
   - ChatWorkマークアップ `[info][title]...[/title]...[/info]` 形式で送信
   - 通常予約フォーマット: 日付・お名前・Xリンク・備考・経路・通話方法・myfans登録・P登録
   - LINE連携フォーマット: 日付・お名前・LINE名・Xリンク・備考・経路・通話方法（公式LINE固定）
-  - `EnhancedNotionBooking.jsx`: 予約確定後に `sendChatWorkAlert({ type: 'booking_complete' })` を呼び出し
-  - `google-calendar-create.js`: LINE予約完了時にサーバーサイドから直接ChatWork APIを呼び出し
+  - `EnhancedNotionBooking.jsx`: フロント側の予約完了通知呼び出しは削除し、二重送信を解消
 
 ### 2026年3月5日
 - **UX改善**: 画面左上のデバッグ状態表示を削除
