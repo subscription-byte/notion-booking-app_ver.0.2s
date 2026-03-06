@@ -85,6 +85,28 @@ const isShootingBlocked = (event, slotStart, slotEnd) => {
   return (dayStart <= slotEnd && blockEnd >= slotStart);
 };
 
+const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
+  const token = process.env.CHATWORK_API_TOKEN;
+  const roomId = process.env.CHATWORK_BOOKING_ROOM_ID;
+  if (!token || !roomId) return;
+  try {
+    await fetch(`https://api.chatwork.com/v2/rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: { 'X-ChatWorkToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `body=${encodeURIComponent(message)}`,
+    });
+  } catch (e) {
+    console.error('ChatWork notification error:', e);
+  }
+};
+
+const formatBookingDateTime = (bookingDateStr) => {
+  const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!match) return { dateStr: bookingDateStr, hourStr: '' };
+  const [, year, month, day, hour] = match;
+  return { dateStr: `${year}年${parseInt(month)}月${parseInt(day)}日`, hourStr: `${parseInt(hour)}時` };
+};
+
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -357,35 +379,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
       }
 
       // 4. ChatWork予約完了通知（LINE連携）
-      const CHATWORK_API_TOKEN = process.env.CHATWORK_API_TOKEN;
-      const CHATWORK_BOOKING_ROOM_ID = process.env.CHATWORK_BOOKING_ROOM_ID;
-      if (CHATWORK_API_TOKEN && CHATWORK_BOOKING_ROOM_ID) {
-        try {
-          const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-          let dateStr = bookingDateStr;
-          let hourStr = '';
-          if (match) {
-            const [, year, month, day, hour] = match;
-            dateStr = `${year}年${parseInt(month)}月${parseInt(day)}日`;
-            hourStr = `${parseInt(hour)}時`;
-          }
-
-          const cwMessage = `[info][title]【予約完了】PersonA（LINE連携）[/title]日付: ${dateStr} ${hourStr}\nお名前: ${properties.summary || ''}\nLINE名: （LINE認証のみ）\nXリンク: なし\n備考: ${properties.remarks || 'なし'}\n経路: なし\n通話方法: 公式LINE[/info]`;
-
-          await fetch(`https://api.chatwork.com/v2/rooms/${CHATWORK_BOOKING_ROOM_ID}/messages`, {
-            method: 'POST',
-            headers: {
-              'X-ChatWorkToken': CHATWORK_API_TOKEN,
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `body=${encodeURIComponent(cwMessage)}`,
-          });
-
-          console.log('ChatWork notification sent successfully');
-        } catch (cwError) {
-          console.error('ChatWork notification error:', cwError);
-        }
-      }
+      const { dateStr: lineDateStr, hourStr: lineHourStr } = formatBookingDateTime(bookingDateStr);
+      await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】PersonA（LINE連携）[/title]日付: ${lineDateStr} ${lineHourStr}\nお名前: ${properties.summary || ''}\nLINE名: （LINE認証のみ）\nXリンク: なし\n備考: ${properties.remarks || 'なし'}\n経路: なし\n通話方法: 公式LINE[/info]`);
 
       return {
         statusCode: 200,
@@ -544,33 +539,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
     });
 
     // ChatWork予約完了通知（通常予約）
-    const CHATWORK_API_TOKEN_N = process.env.CHATWORK_API_TOKEN;
-    const CHATWORK_BOOKING_ROOM_ID_N = process.env.CHATWORK_BOOKING_ROOM_ID;
-    if (CHATWORK_API_TOKEN_N && CHATWORK_BOOKING_ROOM_ID_N) {
-      try {
-        const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-        let dateStr = bookingDateStr;
-        let hourStr = '';
-        if (match) {
-          const [, year, month, day, hour] = match;
-          dateStr = `${year}年${parseInt(month)}月${parseInt(day)}日`;
-          hourStr = `${parseInt(hour)}時`;
-        }
-        const myfansStatus = properties.myfansStatus || '';
-        const premiumStatus = properties.premiumStatus || '';
-        const cwMessage = `[info][title]【予約完了】通常予約[/title]日付: ${dateStr} ${hourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${properties.route || 'なし'}\n通話方法: ${properties.callMethod || 'なし'}\nmyfans登録: ${myfansStatus}\nP登録: ${premiumStatus}[/info]`;
-        await fetch(`https://api.chatwork.com/v2/rooms/${CHATWORK_BOOKING_ROOM_ID_N}/messages`, {
-          method: 'POST',
-          headers: {
-            'X-ChatWorkToken': CHATWORK_API_TOKEN_N,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `body=${encodeURIComponent(cwMessage)}`,
-        });
-      } catch (cwError) {
-        console.error('ChatWork notification error:', cwError);
-      }
-    }
+    const { dateStr: normDateStr, hourStr: normHourStr } = formatBookingDateTime(bookingDateStr);
+    await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】通常予約[/title]日付: ${normDateStr} ${normHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${properties.route || 'なし'}\n通話方法: ${properties.callMethod || 'なし'}\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
 
     return {
       statusCode: 200,
