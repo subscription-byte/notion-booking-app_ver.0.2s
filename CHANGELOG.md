@@ -1,6 +1,16 @@
 ## 最新の変更履歴
 
 ### 2026年3月6日
+- **リファクタリング**: 未使用のNotion関連ファイルを削除（デッドコード整理）
+  - `netlify/functions/notion-query.js` 削除
+  - `netlify/functions/notion-create.js` 削除
+  - `netlify/functions/notion-archive.js` 削除
+  - `src/components/NotionBookingSystem.jsx` 削除（`App.js` から未参照）
+  - `src/components/ModernBookingSystem.jsx` 削除（`App.js` から未参照）
+  - `src/components/EnhancedNotionBooking.jsx.backup` 削除（不要バックアップ）
+  - 現在の有効コンポーネントは `EnhancedNotionBooking.jsx` のみ
+
+### 2026年3月6日
 - **運用整理**: scheduled-reminder を前日通知専用に統一
   - 15分前通知ロジックを削除
   - スケジュールを毎日15:00 JST 実行（`0 6 * * *` UTC）に変更
