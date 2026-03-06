@@ -1245,6 +1245,22 @@ const EnhancedNotionBooking = () => {
 
         // LINE通知はnotion-create.js内で自動送信される（セッション方式の場合）
 
+        // ChatWork予約完了通知
+        await sendChatWorkAlert({
+          type: 'booking_complete',
+          data: {
+            date: `${year}年${month}月${day}日`,
+            time: selectedTime,
+            customerName: customerName,
+            xLink: xLink,
+            remarks: remarks,
+            route: routeTag,
+            callMethod: '',
+            myfansStatus: myfansStatus,
+            premiumStatus: premiumStatus,
+          }
+        });
+
         setShowBookingForm(false);
         setShowTimeSlots(false);
         setShowConfirmation(true);
