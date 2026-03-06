@@ -29,7 +29,6 @@ exports.handler = async (event, context) => {
     console.log('Current time (JST):', jstNow.toISOString());
 
     await sendDayBeforeReminders(jstNow);
-    await send15MinuteReminders(jstNow);
 
     return { statusCode: 200, body: JSON.stringify({ message: 'Reminder check completed' }) };
   } catch (error) {
@@ -126,33 +125,6 @@ async function sendDayBeforeReminders(jstNow) {
   }
 }
 
-async function send15MinuteReminders(jstNow) {
-  console.log('⏰ Checking 15-minute reminders...');
-
-  const in15 = new Date(jstNow.getTime() + 15 * 60 * 1000);
-  const dateStr = formatDate(in15);
-  const targetHour = in15.getHours();
-  const targetMin = in15.getMinutes();
-
-  const bookings = await fetchBookingsForDate(dateStr);
-
-  for (const booking of bookings) {
-    const props = booking.extendedProperties?.private || {};
-    if (props.fifteenMinReminderSent === 'true') continue;
-
-    const dateTime = booking.start.dateTime || booking.start.date;
-    const bookingDate = new Date(dateTime);
-    if (bookingDate.getHours() !== targetHour || bookingDate.getMinutes() !== targetMin) continue;
-
-    const message = `【ご予約15分前のお知らせ】\n\n本日はよろしくお願いいたします！\nお時間になりましたらご入室をお願いいたします！\n\n（※担当者の状況により、直接のご連絡と前後して本通知が送られている場合がございます。ご容赦くださいますと幸いです。）`;
-
-    const success = await sendLineNotification(props.lineUserId, message);
-    if (success) {
-      await markReminderSent(booking.id, '15_minutes');
-      console.log('✅ 15-minute reminder sent:', booking.id);
-    }
-  }
-}
 
 function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
