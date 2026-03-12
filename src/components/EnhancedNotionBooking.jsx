@@ -1557,13 +1557,13 @@ const EnhancedNotionBooking = () => {
                           <i className="fas fa-user mr-2 text-purple-500"></i>
                           お名前 <span className="text-red-500">*</span>
                         </label>
-                        <p className="text-xs text-gray-600 mb-2">X上でのお名前をご入力ください</p>
+                        <p className="text-xs text-gray-600 mb-2">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名をご入力ください' : 'X上でのお名前をご入力ください'}</p>
                         <input
                           type="text"
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
-                          placeholder="X上でのお名前を入力"
+                          placeholder={routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名を入力' : 'X上でのお名前を入力'}
                         />
                       </div>
 
@@ -1692,21 +1692,17 @@ const EnhancedNotionBooking = () => {
 
             {/* 確認画面 */}
             {showConfirmScreen && !showConfirmation && (
-              <div className="space-y-6 px-3 sm:px-0">
-                <div className="flex items-center">
+              <div className="scale-90 px-3 sm:px-0 relative" style={{ transformOrigin: 'top center' }}>
+                <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl pt-10">
                   <button
                     onClick={() => {
                       setShowConfirmScreen(false);
                       setShowBookingForm(true);
                     }}
-                    className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
+                    className="absolute top-2 left-5 z-10 p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
                     <i className="fas fa-arrow-left"></i>
                   </button>
-                  <h2 className="ml-3 sm:ml-4 text-lg sm:text-2xl font-bold text-gradient">予約内容の確認</h2>
-                </div>
-
-                <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
                   {/* 通常リンク: 予約確定後の流れを最上部に表示 */}
                   {routeConfig?.routeTag === '公認X' && (
                     <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-6">
@@ -2403,7 +2399,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 予約フォーム */}
             {showBookingForm && (
-              <div className="space-y-3 sm:space-y-6 px-3 sm:px-0">
+              <div className="space-y-3 sm:space-y-6 scale-90 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
                 <div className="flex items-center">
                   <button
                     onClick={() => {
@@ -2414,7 +2410,6 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                   >
                     <i className="fas fa-arrow-left text-sm sm:text-base"></i>
                   </button>
-                  <h2 className="ml-2 sm:ml-4 text-base sm:text-2xl font-bold text-gradient">予約情報入力</h2>
                 </div>
 
                 <div className="glassmorphism rounded-lg sm:rounded-2xl p-3 sm:p-6 shadow-xl">
