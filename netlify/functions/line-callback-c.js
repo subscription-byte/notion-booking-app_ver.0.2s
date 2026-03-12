@@ -4,7 +4,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('LINE callback started');
+    console.log('LINE callback (personC) started');
     const { code, state } = event.queryStringParameters;
     console.log('Code received:', code ? 'Yes' : 'No');
 
@@ -16,14 +16,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID;
-    const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
-    const REDIRECT_URI = 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback';
+    const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID_C;
+    const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET_C;
+    const REDIRECT_URI = 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback-c';
     const GOOGLE_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
     const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
-    console.log('LINE_CHANNEL_ID:', LINE_CHANNEL_ID ? 'Set' : 'Missing');
-    console.log('LINE_CHANNEL_SECRET:', LINE_CHANNEL_SECRET ? 'Set' : 'Missing');
+    console.log('LINE_CHANNEL_ID_C:', LINE_CHANNEL_ID ? 'Set' : 'Missing');
+    console.log('LINE_CHANNEL_SECRET_C:', LINE_CHANNEL_SECRET ? 'Set' : 'Missing');
     console.log('GOOGLE_CALENDAR_ID:', GOOGLE_CALENDAR_ID ? 'Set' : 'Missing');
     console.log('GOOGLE_SERVICE_ACCOUNT_KEY:', GOOGLE_SERVICE_ACCOUNT_KEY ? 'Set' : 'Missing');
 
@@ -112,7 +112,7 @@ exports.handler = async (event, context) => {
           private: {
             sessionId: sessionId,
             lineUserId: userId,
-            lineChannel: 'personA',
+            lineChannel: 'personC',
             bookingStatus: '仮登録',
           }
         }
@@ -138,9 +138,8 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('LINE callback error:', error);
+    console.error('LINE callback (personC) error:', error);
 
-    // エラー時はトップページにリダイレクト（エラーメッセージ付き）
     return {
       statusCode: 302,
       headers: {

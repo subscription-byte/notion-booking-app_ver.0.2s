@@ -31,7 +31,10 @@ exports.handler = async (event, context) => {
   try {
     const requestBody = JSON.parse(event.body);
     const GOOGLE_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
-    const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    const LINE_ACCESS_TOKENS = {
+      personA: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+      personC: process.env.LINE_CHANNEL_ACCESS_TOKEN_C,
+    };
 
     // セキュリティ: 許可されたカレンダーIDのみ書き込み可能
     const targetCalendarId = requestBody?.calendarId;
@@ -255,6 +258,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
               myfansStatus: properties.myfansStatus || '',
               premiumStatus: properties.premiumStatus || '',
               lineUserId: lineUserId,
+              lineChannel: sessionEvent.extendedProperties?.private?.lineChannel || 'personA',
               bookingStatus: '予約完了',
               sessionId: '', // セッションIDを削除
             }
@@ -265,7 +269,9 @@ P登録状況: ${properties.premiumStatus || ''}`;
       console.log('Booking updated successfully');
 
       // 3. LINE通知を送信
-      if (LINE_CHANNEL_ACCESS_TOKEN && lineUserId) {
+      const lineChannel = sessionEvent.extendedProperties?.private?.lineChannel || 'personA';
+      const lineToken = LINE_ACCESS_TOKENS[lineChannel] || LINE_ACCESS_TOKENS.personA;
+      if (lineToken && lineUserId) {
         try {
           const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
           let formattedDate = bookingDateStr;
@@ -280,7 +286,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
+              'Authorization': `Bearer ${lineToken}`
             },
             body: JSON.stringify({
               to: lineUserId,

@@ -1,6 +1,18 @@
 ## 最新の変更履歴
 
 ### 2026年3月12日
+- **機能追加**: PersonC用LINE連携フローを実装
+  - `netlify/functions/line-callback-c.js` 新規作成（`LINE_CHANNEL_ID_C` / `LINE_CHANNEL_SECRET_C` 使用）
+  - `lineChannel: 'personC'` をセッション・予約イベントに保存
+  - `google-calendar-create.js`: LINE予約完了通知をチャネル別トークンで送信（`LINE_ACCESS_TOKENS` マップ）
+  - `scheduled-reminder.js`: token mapに `personC` エントリ追加
+  - Netlifyへの登録が必要な環境変数: `LINE_CHANNEL_ID_C` / `LINE_CHANNEL_SECRET_C` / `LINE_CHANNEL_ACCESS_TOKEN_C`
+
+- **機能追加**: `lineChannel` プロパティをPersonAフローにも明示保存
+  - `line-callback.js`: セッション作成時に `lineChannel: 'personA'` を保存
+  - `google-calendar-create.js`: 予約確定時にセッションから `lineChannel` を引き継ぎ
+  - 既存データ（フィールドなし）は `personA` にフォールバック
+
 - **機能追加**: 前日リマインドにGoogle MeetリンクをLINE通知へ自動付与
   - `scheduled-reminder.js`: カレンダーイベントの `hangoutLink` / `conferenceData` からMeetURLを取得
   - Meetリンクが設定されていれば通知文に `Google Meet: <URL>` を追加、なければ省略

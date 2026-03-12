@@ -105,13 +105,19 @@ async function markDayBeforeReminderSent(eventId) {
   });
 }
 
-async function sendLineNotification(userId, message) {
+const LINE_ACCESS_TOKENS = {
+  personA: process.env.LINE_CHANNEL_ACCESS_TOKEN,
+  personC: process.env.LINE_CHANNEL_ACCESS_TOKEN_C,
+};
+
+async function sendLineNotification(userId, message, lineChannel) {
+  const token = LINE_ACCESS_TOKENS[lineChannel] || LINE_ACCESS_TOKENS.personA;
   try {
     const res = await fetch('https://api.line.me/v2/bot/message/push', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ to: userId, messages: [{ type: 'text', text: message }] })
     });
@@ -185,7 +191,8 @@ async function sendDayBeforeReminders(jstNow, runId) {
     const meetLine = meetUrl ? `\nGoogle Meet: ${meetUrl}` : '';
     const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}${meetLine}\n\n明日はよろしくお願いいたします！`;
 
-    const lineResult = await sendLineNotification(props.lineUserId, message);
+    const lineChannel = props.lineChannel || 'personA';
+    const lineResult = await sendLineNotification(props.lineUserId, message, lineChannel);
     if (!lineResult.ok) {
       summary.failed += 1;
       summary.errors.push(buildErrorDetail(booking.id, 'line_push', `status=${lineResult.status} ${lineResult.error}`));
