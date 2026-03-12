@@ -1692,17 +1692,20 @@ const EnhancedNotionBooking = () => {
 
             {/* 確認画面 */}
             {showConfirmScreen && !showConfirmation && (
-              <div className="scale-90 px-3 sm:px-0 relative" style={{ transformOrigin: 'top center' }}>
-                <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl pt-10">
+              <div className="px-3 sm:px-0">
+                <div className="flex items-center mb-2">
                   <button
                     onClick={() => {
                       setShowConfirmScreen(false);
                       setShowBookingForm(true);
                     }}
-                    className="absolute top-2 left-5 z-10 p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
+                    className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
-                    <i className="fas fa-arrow-left"></i>
+                    <i className="fas fa-arrow-left text-sm"></i>
                   </button>
+                  <h2 className="ml-2 sm:ml-3 text-sm sm:text-xl font-bold text-gradient">予約内容の確認</h2>
+                </div>
+                <div className="glassmorphism rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-2xl">
                   {/* 通常リンク: 予約確定後の流れを最上部に表示 */}
                   {routeConfig?.routeTag === '公認X' && (
                     <div className="mb-3 sm:mb-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-orange-400 rounded-lg sm:rounded-xl p-3 sm:p-6">
@@ -1786,15 +1789,9 @@ const EnhancedNotionBooking = () => {
                         <i className="fab fa-x-twitter mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
                         Xリンク
                       </span>
-                      <a
-                        href={xLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm sm:text-lg font-bold text-blue-600 hover:text-blue-800 transition-colors break-all"
-                      >
-                        <i className="fas fa-external-link-alt mr-1 text-sm"></i>
-                        リンクを開く
-                      </a>
+                      <span className="text-sm sm:text-base font-bold text-gray-800 break-all">
+                        {xLink}
+                      </span>
                     </div>
                     )}
 
@@ -1812,7 +1809,7 @@ const EnhancedNotionBooking = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-2 sm:space-x-4">
+                <div className="flex space-x-2 sm:space-x-4 mt-3">
                   <button
                     onClick={() => {
                       setShowConfirmScreen(false);
@@ -1834,10 +1831,10 @@ const EnhancedNotionBooking = () => {
                         処理中...
                       </>
                     ) : routeConfig?.routeTag === '公認X' ? (
-                      <>
-                        <i className="fas fa-rocket mr-2"></i>
-                        確定してXのDMへ進む
-                      </>
+                      <span className="flex flex-col items-center leading-tight">
+                        <span><i className="fas fa-rocket mr-1"></i>確定してXの</span>
+                        <span>DMへ進む</span>
+                      </span>
                     ) : (
                       <>
                         <i className="fas fa-check-circle mr-2"></i>
@@ -2342,7 +2339,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                     }}
                     className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
-                    <i className="fas fa-arrow-left"></i>
+                    <i className="fas fa-arrow-left text-sm"></i>
                   </button>
                   <div className="ml-4">
                     <h2 className="text-lg font-bold text-gradient">時間を選択</h2>
@@ -2399,19 +2396,19 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 予約フォーム */}
             {showBookingForm && (
-              <div className="space-y-3 sm:space-y-6 scale-90 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
-                <div className="flex items-center">
+              <div className="space-y-3 sm:space-y-6 px-3 sm:px-0 overflow-y-auto"
+                style={{ maxHeight: 'calc(100dvh - 80px)', WebkitOverflowScrolling: 'touch', paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}>
+                <div className="flex items-center mb-2">
                   <button
                     onClick={() => {
                       setShowBookingForm(false);
                       setShowTimeSlots(true);
                     }}
-                    className="p-2 sm:p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95 sm:hover:shadow-xl transition-all duration-300 sm:hover:scale-110"
+                    className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-110"
                   >
-                    <i className="fas fa-arrow-left text-sm sm:text-base"></i>
+                    <i className="fas fa-arrow-left text-sm"></i>
                   </button>
                 </div>
-
                 <div className="glassmorphism rounded-lg sm:rounded-2xl p-3 sm:p-6 shadow-xl">
                   <div className="text-sm sm:text-lg font-bold text-purple-800 mb-2 sm:mb-3">予約内容確認</div>
                   <div className="space-y-1 sm:space-y-2">
@@ -2439,13 +2436,13 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
                         </span>
                       )}
                     </label>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">X上でのお名前をご入力ください</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名をご入力ください' : 'X上でのお名前をご入力ください'}</p>
                     <input
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
-                      placeholder="X上でのお名前を入力"
+                      placeholder={routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名を入力' : 'X上でのお名前を入力'}
                       required
                     />
                   </div>
