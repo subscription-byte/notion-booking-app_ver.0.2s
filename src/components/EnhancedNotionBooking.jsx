@@ -1372,7 +1372,7 @@ const EnhancedNotionBooking = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden overscroll-none touch-pan-y" style={{ overscrollBehavior: 'none' }}>
+    <div className="min-h-screen relative overflow-x-hidden overscroll-none touch-pan-y" style={{ overscrollBehavior: 'none' }}>
       {/* Fluid Background Canvas */}
       <FluidCanvas />
 
