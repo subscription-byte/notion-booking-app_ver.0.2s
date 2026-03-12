@@ -1855,7 +1855,7 @@ const EnhancedNotionBooking = () => {
 
             {/* 予約完了画面 */}
             {showConfirmation && completedBooking && (
-              <div className="space-y-6 px-3 sm:px-0">
+              <div className="space-y-6 scale-90 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
                 <div className="rounded-xl sm:rounded-2xl p-3 sm:p-8 shadow-xl" style={{
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
@@ -2333,7 +2333,7 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
 
             {/* 時間選択画面 */}
             {showTimeSlots && !showBookingForm && (
-              <div className="space-y-4 scale-100 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
+              <div className="space-y-4 scale-90 px-3 sm:px-0" style={{ transformOrigin: 'top center' }}>
                 <div className="flex items-center">
                   <button
                     onClick={() => {

@@ -1,6 +1,17 @@
 ## 最新の変更履歴
 
 ### 2026年3月12日
+- **UX改善**: 時間選択・予約完了画面を縮小して1画面に収まるよう修正
+  - `EnhancedNotionBooking.jsx`: 時間選択画面・予約完了画面のコンテナを `scale-90` に変更
+  - 19時・20時の時間ボタンおよび「トップに戻る」ボタンが画面外にはみ出す問題を解消
+
+### 2026年3月12日
+- **バグ修正**: 時間選択画面・予約完了画面でコンテンツが画面外にはみ出しスクロール不可だった問題を修正
+  - `EnhancedNotionBooking.jsx`: ルートコンテナの `overflow-hidden` を `overflow-x-hidden` に変更
+  - 19時・20時の時間ボタンおよび「トップに戻る」ボタンがスクロールで届くように修正
+  - 背景アニメーションの横方向はみ出し防止は維持
+
+### 2026年3月12日
 - **機能追加**: PersonC予約リンク（`?ref=personC`）を実装
   - `routeConfig.js`: `personC` エントリ追加（`lineLogin` モード）
   - `apiConfig.js`: PersonC用redirect URI (`line-callback-c`) を追加、`generateLineAuthUrl` をref別callback URL対応に変更
