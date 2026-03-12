@@ -1,5 +1,11 @@
 ## 最新の変更履歴
 
+### 2026年3月12日
+- **機能追加**: 前日リマインドにGoogle MeetリンクをLINE通知へ自動付与
+  - `scheduled-reminder.js`: カレンダーイベントの `hangoutLink` / `conferenceData` からMeetURLを取得
+  - Meetリンクが設定されていれば通知文に `Google Meet: <URL>` を追加、なければ省略
+  - `events.list` に `conferenceDataVersion: 1` を追加（conferenceData取得に必要）
+
 ### 2026年3月6日
 - **リファクタリング**: 未使用のNotion関連ファイルを削除（デッドコード整理）
   - `netlify/functions/notion-query.js` 削除

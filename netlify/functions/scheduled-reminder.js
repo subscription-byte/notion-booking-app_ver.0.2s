@@ -75,6 +75,7 @@ async function fetchBookingsForDate(dateStr) {
     timeMin: dayStart.toISOString(),
     timeMax: dayEnd.toISOString(),
     singleEvents: true,
+    conferenceDataVersion: 1,
   });
 
   return (res.data.items || []).filter(e => {
@@ -178,7 +179,11 @@ async function sendDayBeforeReminders(jstNow, runId) {
     }
 
     const dateTime = booking.start.dateTime || booking.start.date;
-    const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}\n\n明日はよろしくお願いいたします！`;
+    const meetUrl = booking.hangoutLink
+      || booking.conferenceData?.entryPoints?.find(e => e.entryPointType === 'video')?.uri
+      || null;
+    const meetLine = meetUrl ? `\nGoogle Meet: ${meetUrl}` : '';
+    const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}${meetLine}\n\n明日はよろしくお願いいたします！`;
 
     const lineResult = await sendLineNotification(props.lineUserId, message);
     if (!lineResult.ok) {
