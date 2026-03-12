@@ -1,6 +1,14 @@
 ## 最新の変更履歴
 
 ### 2026年3月12日
+- **機能追加**: PersonC予約リンク（`?ref=personC`）を実装
+  - `routeConfig.js`: `personC` エントリ追加（`lineLogin` モード）
+  - `apiConfig.js`: PersonC用redirect URI (`line-callback-c`) を追加、`generateLineAuthUrl` をref別callback URL対応に変更
+  - `EnhancedNotionBooking.jsx`: PersonCのLINEボタンは `REACT_APP_LINE_CHANNEL_ID_C` を使用
+  - Netlifyに追加が必要な環境変数: `REACT_APP_LINE_CHANNEL_ID_C`
+  - PersonC予約URL: `https://mfagencybooking.netlify.app/?ref=personC`
+
+### 2026年3月12日
 - **機能追加**: PersonC用LINE連携フローを実装
   - `netlify/functions/line-callback-c.js` 新規作成（`LINE_CHANNEL_ID_C` / `LINE_CHANNEL_SECRET_C` 使用）
   - `lineChannel: 'personC'` をセッション・予約イベントに保存

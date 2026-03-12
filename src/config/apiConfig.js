@@ -24,6 +24,7 @@ export const LINE_CONFIG = {
   // LINE認証URL生成用
   authBaseUrl: 'https://access.line.me/oauth2/v2.1/authorize',
   redirectUri: 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback',
+  redirectUriC: 'https://mfagencybooking.netlify.app/.netlify/functions/line-callback-c',
   scope: 'profile openid',
 
   // LINE Messaging APIエンドポイント（Netlify Functions経由）
@@ -48,7 +49,8 @@ export const CHATWORK_CONFIG = {
  * @returns {string} - LINE認証URL
  */
 export const generateLineAuthUrl = (channelId, ref = '') => {
-  const redirectUri = encodeURIComponent(LINE_CONFIG.redirectUri);
+  const baseRedirectUri = ref === 'personC' ? LINE_CONFIG.redirectUriC : LINE_CONFIG.redirectUri;
+  const redirectUri = encodeURIComponent(baseRedirectUri);
   // stateにrefパラメータを含める（カンマ区切りでランダム文字列と結合）
   const randomState = Math.random().toString(36).substring(7);
   const state = ref ? `${randomState},${ref}` : randomState;

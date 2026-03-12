@@ -29,6 +29,14 @@ export const ROUTE_CONFIG = {
     requireXLink: true,        // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須
   },
+
+  // personC（?ref=personC）
+  personC: {
+    mode: 'lineLogin',         // 'nameAndX' | 'lineLogin'
+    routeTag: '',              // 経路タグ（空＝手動入力）
+    requireXLink: false,       // Xリンク入力必須
+    requireRouteTag: false,    // 経路タグ選択必須
+  },
 };
 
 /**
@@ -49,5 +57,6 @@ export const ROUTE_TAG_OPTIONS = [
 export const getRouteConfig = (ref) => {
   if (ref === 'personA') return ROUTE_CONFIG.personA;
   if (ref === 'personB') return ROUTE_CONFIG.personB;
+  if (ref === 'personC') return ROUTE_CONFIG.personC;
   return ROUTE_CONFIG.normal;
 };
