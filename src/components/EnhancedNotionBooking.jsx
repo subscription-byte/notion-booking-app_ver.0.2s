@@ -1616,7 +1616,13 @@ const EnhancedNotionBooking = () => {
                     )}
 
                     {/* LINE連携 */}
-                    {routeConfig.mode === 'lineLogin' && (process.env.REACT_APP_LINE_CHANNEL_ID || process.env.REACT_APP_LINE_CHANNEL_ID_C) && (
+                    {routeConfig.mode === 'lineLogin' && (() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      const ref = urlParams.get('ref') || '';
+                      return ref === 'personC'
+                        ? !!process.env.REACT_APP_LINE_CHANNEL_ID_C
+                        : !!process.env.REACT_APP_LINE_CHANNEL_ID;
+                    })() && (
                     <div className="space-y-4">
                       <button
                         onClick={() => {
