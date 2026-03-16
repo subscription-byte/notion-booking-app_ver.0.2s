@@ -185,11 +185,11 @@ async function sendDayBeforeReminders(jstNow, runId) {
     }
 
     const dateTime = booking.start.dateTime || booking.start.date;
-    const meetUrl = booking.hangoutLink
-      || booking.conferenceData?.entryPoints?.find(e => e.entryPointType === 'video')?.uri
-      || null;
-    const meetLine = meetUrl ? `\nGoogle Meet: ${meetUrl}` : '';
-    const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}${meetLine}\n\n明日はよろしくお願いいたします！`;
+    const description = booking.description || '';
+    const zoomMatch = description.match(/https:\/\/[\w.-]*zoom\.us\/\S+/);
+    const zoomUrl = zoomMatch ? zoomMatch[0] : null;
+    const zoomLine = zoomUrl ? `\nZoom: ${zoomUrl}` : '';
+    const message = `【ご予約日前日のお知らせ】\n\n${formatDateTime(dateTime)}${zoomLine}\n\n明日はよろしくお願いいたします！`;
 
     const lineChannel = props.lineChannel || 'personA';
     const lineResult = await sendLineNotification(props.lineUserId, message, lineChannel);

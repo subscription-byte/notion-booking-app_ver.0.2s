@@ -1,5 +1,10 @@
 ## 最新の変更履歴
 
+### 2026年3月13日
+- **仕様変更**: 前日リマインダーをGoogle MeetリンクからZOOMリンクに変更
+  - `scheduled-reminder.js`: カレンダーイベントのメモ欄（description）から `zoom.us` URLを正規表現で抽出して送信
+  - ZOOMリンクがある場合のみ `Zoom: {url}` を追記、ない場合は省略
+
 ### 2026年3月12日
 - **UX改善**: 戻るボタンの位置・サイズを全画面で統一
   - `EnhancedNotionBooking.jsx`: 予約フォーム画面（showBookingForm）の戻るボタンをabsolute配置からインラインflex配置に変更
