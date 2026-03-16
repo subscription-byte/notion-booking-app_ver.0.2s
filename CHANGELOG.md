@@ -1,6 +1,14 @@
 ## 最新の変更履歴
 
 ### 2026年3月16日
+- **バグ修正・仕様変更**: ChatWork予約完了通知のフォーマットを全経路で統一
+  - `google-calendar-create.js`: LINE連携通知にmyfans登録・P登録を追加
+  - LINE連携通知のPersonA/C表記・経路欄をlineChannelで動的に切替（PersonA=公認LINE、PersonC=まえかぶLINE）
+  - LINE連携通知から不要な「LINE名」「通話方法」を削除
+  - 通常予約通知から「通話方法」を削除、経路欄を「X DM（通常）」固定に変更
+  - Xリンク未入力時は「なし」表示（LINE連携でプロパティなしの場合も対応）
+
+### 2026年3月16日
 - **仕様変更**: Googleカレンダーの予約色を予約経路別に再整理
   - `google-calendar-create.js`: PersonA（LINE）= `'2'`トマト、PersonC（LINE）= `'11'`セージ、通常リンク = `'7'`ピーコック（水色）に変更
   - `shared/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`ピーコック → `'1'`ラベンダーに変更（通常予約の色と競合解消）

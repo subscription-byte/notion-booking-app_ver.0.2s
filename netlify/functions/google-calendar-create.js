@@ -302,7 +302,9 @@ P登録状況: ${properties.premiumStatus || ''}`;
 
       // 4. ChatWork予約完了通知（LINE連携）
       const { dateStr: lineDateStr, hourStr: lineHourStr } = formatBookingDateTime(bookingDateStr);
-      await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】PersonA（LINE連携）[/title]日付: ${lineDateStr} ${lineHourStr}\nお名前: ${properties.summary || ''}\nLINE名: （LINE認証のみ）\nXリンク: なし\n備考: ${properties.remarks || 'なし'}\n経路: なし\n通話方法: 公式LINE[/info]`);
+      const lineChannelTitle = lineChannel === 'personC' ? 'PersonC（LINE連携）' : 'PersonA（LINE連携）';
+      const lineChannelRoute = lineChannel === 'personC' ? 'まえかぶLINE（PersonC）' : '公認LINE（PersonA）';
+      await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】${lineChannelTitle}[/title]日付: ${lineDateStr} ${lineHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${lineChannelRoute}\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
 
       return {
         statusCode: 200,
@@ -462,7 +464,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
 
     // ChatWork予約完了通知（通常予約）
     const { dateStr: normDateStr, hourStr: normHourStr } = formatBookingDateTime(bookingDateStr);
-    await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】通常予約[/title]日付: ${normDateStr} ${normHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${properties.route || 'なし'}\n通話方法: ${properties.callMethod || 'なし'}\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
+    await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】通常予約[/title]日付: ${normDateStr} ${normHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: X DM（通常）\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
 
     return {
       statusCode: 200,
