@@ -1,5 +1,10 @@
 ## 最新の変更履歴
 
+### 2026年3月16日
+- **仕様変更**: Googleカレンダーの予約色を予約経路別に再整理
+  - `google-calendar-create.js`: PersonA（LINE）= `'2'`トマト、PersonC（LINE）= `'11'`セージ、通常リンク = `'7'`ピーコック（水色）に変更
+  - `shared/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`ピーコック → `'1'`ラベンダーに変更（通常予約の色と競合解消）
+
 ### 2026年3月13日
 - **仕様変更**: 前日リマインダーをGoogle MeetリンクからZOOMリンクに変更
   - `scheduled-reminder.js`: カレンダーイベントのメモ欄（description）から `zoom.us` URLを正規表現で抽出して送信

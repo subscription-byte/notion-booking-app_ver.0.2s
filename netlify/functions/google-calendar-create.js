@@ -240,7 +240,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
           location: location,
           start: { dateTime: bookingDateStr },
           end: { dateTime: new Date(slotEnd).toISOString() },
-          colorId: '11', // トマト色（赤）- LINE連携予約
+          colorId: (sessionEvent.extendedProperties?.private?.lineChannel === 'personC') ? '11' : '2', // PersonC=セージ、PersonA=トマト
           reminders: {
             useDefault: false,
             overrides: [
@@ -435,7 +435,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
         location: location,
         start: { dateTime: bookingDateStr },
         end: { dateTime: new Date(slotEnd).toISOString() },
-        colorId: '2', // セージ色（緑）- 通常予約
+        colorId: '7', // ピーコック（水色）- 通常予約
         reminders: {
           useDefault: false,
           overrides: [

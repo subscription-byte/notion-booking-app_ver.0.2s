@@ -78,8 +78,8 @@ const isInPersonBlocked = (event, slotStart, slotEnd) => {
 
   if (!eventStart) return false;
 
-  // callMethod, イベント名、またはラベル色（ピーコック = '7'）で判定
-  const isInPerson = callMethod === '対面' || eventName.includes('対面') || colorId === '7';
+  // callMethod, イベント名、またはラベル色（ラベンダー = '1'）で判定
+  const isInPerson = callMethod === '対面' || eventName.includes('対面') || colorId === '1';
   if (!isInPerson) return false;
 
   const existingStart = new Date(eventStart);
