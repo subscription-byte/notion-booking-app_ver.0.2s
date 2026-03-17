@@ -125,7 +125,7 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const isInPerson =
     callMethod === rule.callMethodValue ||
     rule.keywords.some(keyword => eventName.includes(keyword)) ||
-    colorId === '7';
+    colorId === '1';
 
   if (!isInPerson) return false;
 

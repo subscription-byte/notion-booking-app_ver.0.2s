@@ -72,7 +72,7 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
 
   if (!eventStart) return false;
 
-  const isInPerson = callMethod === '対面' || eventName.includes('対面') || colorId === '7';
+  const isInPerson = callMethod === '対面' || eventName.includes('対面') || colorId === '1';
   if (!isInPerson) return false;
 
   const existingStart = new Date(eventStart);

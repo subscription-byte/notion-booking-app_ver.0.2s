@@ -1,5 +1,12 @@
 ## 最新の変更履歴
 
+### 2026年3月17日
+- **バグ修正・仕様整理**: カレンダー色IDのPersonA/PersonC割り当てが逆になっていた問題を修正
+  - `google-calendar-create.js`: PersonA LINE連携予約 = `'11'`（トマト）、PersonC LINE連携予約 = `'2'`（セージ）に修正（三項演算子が逆だった）
+  - `src/config/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`（ピーコック）→ `'1'`（ラベンダー）に修正（通常予約色`'7'`と競合していた）
+  - `src/config/blockingRules.js`: 同上（フロントエンド側も修正）
+  - `docs/google-calendar-api.md` / `README.md`: 色ID運用ルールのドキュメントを正確な内容に更新
+
 ### 2026年3月16日
 - **バグ修正・仕様変更**: ChatWork予約完了通知のフォーマットを全経路で統一
   - `google-calendar-create.js`: LINE連携通知にmyfans登録・P登録を追加
