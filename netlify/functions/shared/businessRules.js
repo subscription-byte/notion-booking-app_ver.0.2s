@@ -87,7 +87,7 @@ const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const blockStart = new Date(existingStart.getTime() - BLOCKING_SETTINGS.inPerson.beforeHours * TIME_MS.HOUR);
   const blockEnd = new Date(existingEnd.getTime() + BLOCKING_SETTINGS.inPerson.afterHours * TIME_MS.HOUR);
 
-  return (blockStart <= slotEnd && blockEnd >= slotStart);
+  return (blockStart < slotEnd && blockEnd > slotStart);
 };
 
 /**
@@ -116,7 +116,7 @@ const isShootingBlocked = (event, slotStart, slotEnd) => {
   dayStart.setHours(BLOCKING_SETTINGS.shooting.startHour, 0, 0, 0);
   const blockEnd = new Date(existingEnd.getTime() + BLOCKING_SETTINGS.shooting.afterHours * TIME_MS.HOUR);
 
-  return (dayStart <= slotEnd && blockEnd >= slotStart);
+  return (dayStart < slotEnd && blockEnd > slotStart);
 };
 
 module.exports = {

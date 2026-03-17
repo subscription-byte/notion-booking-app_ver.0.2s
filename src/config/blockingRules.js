@@ -137,7 +137,7 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const blockStart = new Date(existingStart.getTime() - rule.beforeHours * 60 * 60 * 1000);
   const blockEnd = new Date(existingEnd.getTime() + rule.afterHours * 60 * 60 * 1000);
 
-  return (blockStart <= slotEnd && blockEnd >= slotStart);
+  return (blockStart < slotEnd && blockEnd > slotStart);
 };
 
 /**
@@ -184,5 +184,5 @@ export const isShootingBlocked = (event, slotStart, slotEnd) => {
 
   const blockEnd = new Date(existingEnd.getTime() + rule.afterHours * 60 * 60 * 1000);
 
-  return (blockStart <= slotEnd && blockEnd >= slotStart);
+  return (blockStart < slotEnd && blockEnd > slotStart);
 };

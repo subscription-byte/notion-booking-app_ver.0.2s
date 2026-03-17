@@ -1,6 +1,11 @@
 ## 最新の変更履歴
 
 ### 2026年3月17日
+- **バグ修正**: ブロック判定の境界値ずれを修正（ブロック終了時刻ちょうどのスロットが誤ってブロックされていた）
+  - `netlify/functions/shared/businessRules.js` / `src/config/businessRules.js` / `src/config/blockingRules.js`: 判定条件を `>=` / `<=` から `>` / `<` に変更
+  - 例: 対面15:00終了 + 3時間後ブロック → 18:00スロットが正しく開放されるように修正
+
+### 2026年3月17日
 - **バグ修正・仕様整理**: カレンダー色IDのPersonA/PersonC割り当てが逆になっていた問題を修正
   - `google-calendar-create.js`: PersonA LINE連携予約 = `'11'`（トマト）、PersonC LINE連携予約 = `'2'`（セージ）に修正（三項演算子が逆だった）
   - `src/config/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`（ピーコック）→ `'1'`（ラベンダー）に修正（通常予約色`'7'`と競合していた）

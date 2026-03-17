@@ -80,7 +80,7 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
   const blockStart = new Date(existingStart.getTime() - BLOCKING_SETTINGS.inPerson.beforeHours * TIME_MS.HOUR);
   const blockEnd = new Date(existingEnd.getTime() + BLOCKING_SETTINGS.inPerson.afterHours * TIME_MS.HOUR);
 
-  return (blockStart <= slotEnd && blockEnd >= slotStart);
+  return (blockStart < slotEnd && blockEnd > slotStart);
 };
 
 /**
