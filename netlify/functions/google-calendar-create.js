@@ -176,6 +176,8 @@ exports.handler = async (event, context) => {
       const slotStart = new Date(bookingDateStr);
       const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
+      console.log(`[重複チェック] slotStart=${slotStart.toISOString()} slotEnd=${slotEnd.toISOString()} 取得イベント数=${existingEvents.length}`);
+
       // 既存予約との重複チェック（仮登録以外）
       for (const evt of existingEvents) {
         const eventStatus = evt.extendedProperties?.private?.bookingStatus;
@@ -184,8 +186,11 @@ exports.handler = async (event, context) => {
         const existingStart = new Date(evt.start.dateTime || evt.start.date);
         const existingEnd = new Date(evt.end.dateTime || evt.end.date || new Date(existingStart.getTime() + 60 * 60 * 1000));
 
+        console.log(`[重複チェック] イベント: "${evt.summary}" start=${existingStart.toISOString()} end=${existingEnd.toISOString()} colorId=${evt.colorId || 'none'} status=${eventStatus || 'none'}`);
+
         // 直接の時間重複チェック
         if (existingStart < slotEnd && existingEnd > slotStart) {
+          console.log(`[重複チェック] 重複検出 → 409返却`);
           return {
             statusCode: 409,
             body: JSON.stringify({ error: 'This time slot is already booked' })
