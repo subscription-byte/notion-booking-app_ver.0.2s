@@ -104,7 +104,7 @@ export const isFixedBlockedTime = (date, timeHour) => {
 
 /**
  * イベントタイプ別ブロック判定（対面通話）
- * @param {object} event - Notionイベントオブジェクト
+ * @param {object} event - Googleカレンダーイベントオブジェクト
  * @param {Date} slotStart - スロット開始時刻
  * @param {Date} slotEnd - スロット終了時刻
  * @returns {boolean} - ブロック対象の場合 true
@@ -142,7 +142,7 @@ export const isInPersonBlocked = (event, slotStart, slotEnd) => {
 
 /**
  * イベントタイプ別ブロック判定（撮影）
- * @param {object} event - Notionイベントオブジェクト
+ * @param {object} event - Googleカレンダーイベントオブジェクト
  * @param {Date} slotStart - スロット開始時刻
  * @param {Date} slotEnd - スロット終了時刻
  * @returns {boolean} - ブロック対象の場合 true

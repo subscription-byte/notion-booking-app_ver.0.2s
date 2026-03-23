@@ -1,11 +1,10 @@
-import EnhancedNotionBooking from './components/EnhancedNotionBooking';
+import CalendarBooking from './components/CalendarBooking';
 import './App.css';
 
 function App() {
-  // 現行UIは EnhancedNotionBooking を使用（旧 NotionBookingSystem / ModernBookingSystem は未使用）
   return (
     <div className="App">
-      <EnhancedNotionBooking />
+      <CalendarBooking />
     </div>
   );
 }

@@ -50,7 +50,11 @@
       "Bash(ollama:*)",
       "Bash(curl -s https://mfagencybooking.netlify.app/)",
       "Bash(curl -s \"https://mfagencybooking.netlify.app/static/js/main.443492dc.js\")",
-      "Bash(echo \"Copied to: $USERPROFILE/.claude/commands/\")"
+      "Bash(echo \"Copied to: $USERPROFILE/.claude/commands/\")",
+      "Bash(git ls-tree 23392a3 src/config/)",
+      "Bash(git ls-tree -r 23392a3 booking-app/)",
+      "Bash(git log --all -S \"colorId === ''''7''''\" --oneline)",
+      "Bash(npx netlify api listSiteDeploys --data '{\"\"site_id\"\": \"\"\"\"}')"
     ],
     "deny": [],
     "ask": [],

@@ -9,7 +9,7 @@ export const ROUTE_CONFIG = {
   // 通常リンク（refパラメータなし）
   normal: {
     mode: 'nameAndX',          // 'nameAndX' | 'lineLogin'
-    routeTag: '公認X',         // Notionの経路タグ
+    routeTag: '公認X',         // 経路タグ
     requireXLink: true,        // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須（modeがnameAndXの場合のみ有効）
   },
@@ -17,7 +17,7 @@ export const ROUTE_CONFIG = {
   // personA（?ref=personA）
   personA: {
     mode: 'lineLogin',         // 'nameAndX' | 'lineLogin'
-    routeTag: '',              // Notionの経路タグ（空＝Notion側で手動入力）
+    routeTag: '',              // 経路タグ（空＝手動入力）
     requireXLink: false,       // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須（falseでプルダウン非表示）
   },
@@ -25,7 +25,7 @@ export const ROUTE_CONFIG = {
   // personB（?ref=personB）
   personB: {
     mode: 'nameAndX',          // 'nameAndX' | 'lineLogin'
-    routeTag: 'まゆ紹介',      // Notionの経路タグ
+    routeTag: 'まゆ紹介',      // 経路タグ
     requireXLink: true,        // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須
   },

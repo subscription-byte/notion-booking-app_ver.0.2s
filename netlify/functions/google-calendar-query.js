@@ -44,7 +44,7 @@ exports.handler = async (event, context) => {
       maxResults: 2500,
     });
 
-    // Notion形式のレスポンスに変換
+    // レスポンスを統一形式に変換
     const results = response.data.items.map(event => {
       const extendedProps = event.extendedProperties?.private || {};
 

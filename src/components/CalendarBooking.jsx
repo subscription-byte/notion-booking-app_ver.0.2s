@@ -5,9 +5,9 @@ import { BUSINESS_HOURS, generateTimeSlots, getWeekdayDates } from '../config/bu
 import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
 import { isUnavailableDay } from '../config/holidays';
 import { ALERT_MESSAGES, SYSTEM_SETTINGS } from '../config/uiConfig';
-import { NOTION_CONFIG, generateLineAuthUrl } from '../config/apiConfig';
+import { CALENDAR_CONFIG, generateLineAuthUrl } from '../config/apiConfig';
 
-const EnhancedNotionBooking = () => {
+const CalendarBooking = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [bookingData, setBookingData] = useState({});
@@ -37,7 +37,7 @@ const EnhancedNotionBooking = () => {
   const allWeeksDataRef = useRef({}); // 全週データのキャッシュ（Ref版）
   const isInitialLoadDoneRef = useRef(false); // 初回ロード完了フラグ
 
-  const [notionEvents, setNotionEvents] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
   const [nextWeekEvents, setNextWeekEvents] = useState([]);
   const [allWeeksData, setAllWeeksData] = useState({}); // 全週データのキャッシュ（{ weekKey: { data, timestamp } }）
@@ -168,7 +168,7 @@ const EnhancedNotionBooking = () => {
 
   // 設定は config ファイルからインポート済み
 
-  const validateNotionData = (data, expectedDateRange, isInitialLoad) => {
+  const validateCalendarData = (data, expectedDateRange, isInitialLoad) => {
     // API接続失敗
     if (!data || !data.results) {
       return { valid: false, reason: 'データ取得に失敗しました' };
@@ -280,11 +280,11 @@ const EnhancedNotionBooking = () => {
         } else {
           if (cachedPrev) console.log('前週データ: キャッシュ期限切れ、再取得');
         // 前週のデータ取得
-        const prevResponse = await fetch(NOTION_CONFIG.endpoints.query, {
+        const prevResponse = await fetch(CALENDAR_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             filter: {
               date: {
                 on_or_after: prevWeekDates[0].getFullYear() + '-' +
@@ -319,11 +319,11 @@ const EnhancedNotionBooking = () => {
       } else {
         if (cachedNext) console.log('翌週データ: キャッシュ期限切れ、再取得');
         // 翌週のデータ取得
-        const nextResponse = await fetch(NOTION_CONFIG.endpoints.query, {
+        const nextResponse = await fetch(CALENDAR_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             filter: {
               date: {
                 on_or_after: nextWeekDates[0].getFullYear() + '-' +
@@ -353,11 +353,11 @@ const EnhancedNotionBooking = () => {
 
       if (!isNextNextCacheValid) {
         if (cachedNextNext) console.log('翌々週データ: キャッシュ期限切れ、再取得');
-        const nextNextResponse = await fetch(NOTION_CONFIG.endpoints.query, {
+        const nextNextResponse = await fetch(CALENDAR_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             filter: {
               date: {
                 on_or_after: nextNextWeekDates[0].getFullYear() + '-' +
@@ -386,14 +386,14 @@ const EnhancedNotionBooking = () => {
     }
   };
 
-  const fetchNotionCalendar = async (isWeekChange = false, targetWeekDates = null, currentWeekOffset = null) => {
-    // 開発環境ではNotion API呼び出しをスキップ
+  const fetchCalendar = async (isWeekChange = false, targetWeekDates = null, currentWeekOffset = null) => {
+    // 開発環境ではGoogle Calendar API呼び出しをスキップ
     if (process.env.NODE_ENV !== 'production') {
-      console.log('開発環境: Notion APIカレンダー取得をスキップ');
+      console.log('開発環境: Google Calendar APIカレンダー取得をスキップ');
       setIsLoading(false);
       setIsInitialLoading(false);
       setIsWeekChanging(false);
-      setNotionEvents([]);
+      setCalendarEvents([]);
       setSystemStatus({
         healthy: true,
         message: '',
@@ -413,7 +413,7 @@ const EnhancedNotionBooking = () => {
       const datesForQuery = targetWeekDates || weekDates;
 
       const fetchBody = JSON.stringify({
-        calendarId: NOTION_CONFIG.calendarDatabaseId,
+        calendarId: CALENDAR_CONFIG.calendarDatabaseId,
         filter: {
           date: {
             on_or_after: datesForQuery[0].getFullYear() + '-' +
@@ -432,7 +432,7 @@ const EnhancedNotionBooking = () => {
       let lastFetchError;
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          response = await fetch(NOTION_CONFIG.endpoints.query, {
+          response = await fetch(CALENDAR_CONFIG.endpoints.query, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: fetchBody,
@@ -458,7 +458,7 @@ const EnhancedNotionBooking = () => {
       const isProduction = process.env.NODE_ENV === 'production';
 
       if (isProduction) {
-        const validation = validateNotionData(
+        const validation = validateCalendarData(
           data,
           {
             start: datesForQuery[0],
@@ -489,7 +489,7 @@ const EnhancedNotionBooking = () => {
         console.log('開発環境: データ検証をスキップ');
       }
 
-      setNotionEvents(fetchedEvents);
+      setCalendarEvents(fetchedEvents);
       setSystemStatus({
         healthy: true,
         message: '',
@@ -527,7 +527,7 @@ const EnhancedNotionBooking = () => {
 
           // テスト予定を削除（アーカイブ）
           try {
-            await fetch(NOTION_CONFIG.endpoints.archive, {
+            await fetch(CALENDAR_CONFIG.endpoints.archive, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pageId: eventId })
@@ -548,7 +548,7 @@ const EnhancedNotionBooking = () => {
 
           // テスト予定を削除（アーカイブ）
           try {
-            await fetch(NOTION_CONFIG.endpoints.archive, {
+            await fetch(CALENDAR_CONFIG.endpoints.archive, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ pageId: eventId })
@@ -562,8 +562,8 @@ const EnhancedNotionBooking = () => {
       return fetchedEvents; // handleBookingの最新データチェックに使用
 
     } catch (error) {
-      console.error('Notionカレンダーの取得に失敗（リトライ全滅）:', error);
-      setNotionEvents([]);
+      console.error('Googleカレンダーの取得に失敗（リトライ全滅）:', error);
+      setCalendarEvents([]);
 
       // リトライ全滅後は全エラーでUIブロック（Load failedも含む）
       setSystemStatus({
@@ -591,10 +591,10 @@ const EnhancedNotionBooking = () => {
     }
   };
 
-  const createNotionEvent = async (bookingData) => {
+  const createCalendarEvent = async (bookingData) => {
     // 開発環境では常に成功を返す
     if (process.env.NODE_ENV !== 'production') {
-      console.log('開発環境: Notion API呼び出しをスキップ', bookingData);
+      console.log('開発環境: Google Calendar API呼び出しをスキップ', bookingData);
       await new Promise(resolve => setTimeout(resolve, 500)); // 疑似遅延
       return true;
     }
@@ -625,15 +625,15 @@ const EnhancedNotionBooking = () => {
       const requestBody = bookingData.sessionId
         ? {
             sessionId: bookingData.sessionId,
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             properties: properties
           }
         : {
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             properties: properties
           };
 
-      const response = await fetch(NOTION_CONFIG.endpoints.create, {
+      const response = await fetch(CALENDAR_CONFIG.endpoints.create, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -679,7 +679,7 @@ const EnhancedNotionBooking = () => {
 
       return true;
     } catch (error) {
-      console.error('Notion予約作成エラー:', error);
+      console.error('Googleカレンダー予約作成エラー:', error);
       if (error.message === 'BOOKING_CONFLICT') {
         throw error; // 上位に伝播させる
       }
@@ -720,7 +720,7 @@ const EnhancedNotionBooking = () => {
       const cachedData = cachedWeek.data;
       console.log('キャッシュから取得（有効）:', cachedData.length, '件');
       console.log('キャッシュデータの日付:', cachedData.map(e => e.properties?.['予定日']?.date?.start).filter(Boolean));
-      setNotionEvents(cachedData);
+      setCalendarEvents(cachedData);
       // 前後週のデータも更新（newOffsetを渡す）
       await fetchAdjacentWeeksData(newOffset);
       setIsWeekChanging(false);
@@ -728,7 +728,7 @@ const EnhancedNotionBooking = () => {
       // キャッシュ期限切れまたは存在しない → API呼び出し
       if (cachedWeek) console.log('キャッシュ期限切れ、APIから再取得');
       else console.log('キャッシュなし、APIから新規取得');
-      await fetchNotionCalendar(true, newWeekDates, newOffset);
+      await fetchCalendar(true, newWeekDates, newOffset);
     }
   };
 
@@ -804,13 +804,13 @@ const EnhancedNotionBooking = () => {
 
       // この週のデータを取得
       try {
-        const response = await fetch(NOTION_CONFIG.endpoints.query, {
+        const response = await fetch(CALENDAR_CONFIG.endpoints.query, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             filter: {
               date: {
                 on_or_after: testWeekDates[0].getFullYear() + '-' +
@@ -856,7 +856,7 @@ const EnhancedNotionBooking = () => {
 
       // 開発環境では通常通り
       if (process.env.NODE_ENV !== 'production') {
-        fetchNotionCalendar(false);
+        fetchCalendar(false);
         return;
       }
 
@@ -878,11 +878,11 @@ const EnhancedNotionBooking = () => {
         );
 
         // 1回のAPI呼び出しで4週分取得
-        const response = await fetch(NOTION_CONFIG.endpoints.query, {
+        const response = await fetch(CALENDAR_CONFIG.endpoints.query, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            calendarId: NOTION_CONFIG.calendarDatabaseId,
+            calendarId: CALENDAR_CONFIG.calendarDatabaseId,
             filter: {
               date: {
                 on_or_after: week0Monday.getFullYear() + '-' +
@@ -957,7 +957,7 @@ const EnhancedNotionBooking = () => {
 
         // 見つかった週に移動
         setWeekOffset(targetOffset);
-        setNotionEvents(allWeeksCache[targetOffset]?.data || []);
+        setCalendarEvents(allWeeksCache[targetOffset]?.data || []);
 
         // 前後週データも設定
         if (allWeeksCache[targetOffset - 1]) {
@@ -978,7 +978,7 @@ const EnhancedNotionBooking = () => {
       } catch (error) {
         console.error('初回データ取得エラー:', error);
         // エラー時は通常のフローに戻す
-        fetchNotionCalendar(false);
+        fetchCalendar(false);
       }
     };
 
@@ -1019,7 +1019,7 @@ const EnhancedNotionBooking = () => {
   }, []); // 初回マウント時のみ実行
 
   const getBookingStatus = (date, time, eventsToCheck = null) => {
-    const events = eventsToCheck || notionEvents;
+    const events = eventsToCheck || calendarEvents;
     if (isUnavailableDay(date)) {
       return 'holiday';
     }
@@ -1052,7 +1052,7 @@ const EnhancedNotionBooking = () => {
 
     if (hasBlockedTimeForShooting) return 'booked';
 
-    const hasNotionEvent = events.some(event => {
+    const hasCalendarEvent = events.some(event => {
       const eventStart = event.properties['予定日']?.date?.start;
       const eventEnd = event.properties['予定日']?.date?.end;
 
@@ -1070,7 +1070,7 @@ const EnhancedNotionBooking = () => {
       return (existingStart < slotEnd && existingEnd > slotStart);
     });
 
-    if (hasNotionEvent) return 'booked';
+    if (hasCalendarEvent) return 'booked';
 
     const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${time}`;
     return bookingData[key] || 'available';
@@ -1118,7 +1118,7 @@ const EnhancedNotionBooking = () => {
     setIsLoading(true);
 
     try {
-      const latestEvents = await fetchNotionCalendar();
+      const latestEvents = await fetchCalendar();
 
       if (isUnavailableDay(selectedDate)) {
         alert(ALERT_MESSAGES.holidayError);
@@ -1155,7 +1155,7 @@ const EnhancedNotionBooking = () => {
 
       let success;
       try {
-        success = await createNotionEvent(bookingDataObj);
+        success = await createCalendarEvent(bookingDataObj);
       } catch (error) {
         if (error.message === 'BOOKING_CONFLICT') {
           // 予約重複エラー: キャッシュをクリアして最新データを再取得
@@ -1169,18 +1169,18 @@ const EnhancedNotionBooking = () => {
           setShowTimeSlots(false);
           setSelectedDate(null);
           setSelectedTime(null);
-          await fetchNotionCalendar(false, weekDates, weekOffset); // 最新データ取得
+          await fetchCalendar(false, weekDates, weekOffset); // 最新データ取得
           return;
         }
         throw error; // その他のエラーは通常フローへ
       }
 
       if (success) {
-        // 日付ズレ検知: Notionから最新データを取得して確認
-        await fetchNotionCalendar();
+        // 日付ズレ検知: Googleカレンダーから最新データを取得して確認
+        await fetchCalendar();
 
         // 作成した予定を探す（名前とXリンクで特定）
-        const justCreatedEvent = notionEvents.find(event =>
+        const justCreatedEvent = calendarEvents.find(event =>
           event.properties['名前']?.title?.[0]?.text?.content === customerName &&
           event.properties['X']?.url === xLink
         );
@@ -2666,4 +2666,4 @@ Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
   );
 };
 
-export default EnhancedNotionBooking;
+export default CalendarBooking;

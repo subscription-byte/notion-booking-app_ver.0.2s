@@ -3,10 +3,10 @@
  */
 
 /**
- * Google Calendar API設定（旧Notion API設定から移行）
+ * Google Calendar API設定
  */
-export const NOTION_CONFIG = {
-  // GoogleカレンダーID（互換性のため変数名は維持）
+export const CALENDAR_CONFIG = {
+  // GoogleカレンダーID
   calendarDatabaseId: 'c763018544ac641008a928e7411242bdefc77de1f79fc28ef22d30ab0ea0321b@group.calendar.google.com',
 
   // Google Calendar APIエンドポイント（Netlify Functions経由）
