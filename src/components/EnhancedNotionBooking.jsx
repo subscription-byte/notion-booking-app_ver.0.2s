@@ -1568,17 +1568,17 @@ const EnhancedNotionBooking = () => {
             {showInitialForm && (
               <div>
                 {/* 注意事項 */}
-                <div className="mx-5 sm:mx-9 mb-3 rounded-xl p-3 sm:p-4 text-xs sm:text-sm text-gray-700 space-y-2" style={{
+                <div className="mx-5 sm:mx-9 mb-3 rounded-xl p-3 sm:p-4 space-y-2 text-left" style={{
                   background: 'rgba(255, 255, 255, 0.85)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 192, 203, 0.3)'
                 }}>
-                  <p className="font-bold text-pink-600 text-sm sm:text-base mb-1">
+                  <p className="font-bold text-pink-600 mb-1" style={{ fontSize: '0.8rem' }}>
                     <i className="fas fa-info-circle mr-1"></i>ご予約の前にお読みください
                   </p>
-                  <p>・本ツールにて表示以外の時間での対応は行っておりません。表示中の空きがございますお日時にてご都合を調整していただけますと幸いです。</p>
-                  <p>・ご予約後、完了画面に表示される内容を窓口またはチャットまでお送りください。ご連絡いただけない場合、ご予約を取り消しさせて頂く場合がございます。</p>
-                  <p>・チャット等での対応は、12:00〜21:00までとなっております。時間外にご予約・ご連絡いただいた場合、翌営業日のお返事となりますことをご了承ください。</p>
+                  <p style={{ fontSize: '0.7rem', color: '#374151' }}>・本ツールにて表示以外の時間での対応は行っておりません。表示中の空きがございますお日時にてご都合を調整していただけますと幸いです。</p>
+                  <p style={{ fontSize: '0.7rem', color: '#374151' }}>・ご予約後、完了画面に表示される内容を窓口またはチャットまでお送りください。ご連絡いただけない場合、ご予約を取り消しさせて頂く場合がございます。</p>
+                  <p style={{ fontSize: '0.7rem', color: '#374151' }}>・チャット等での対応は、12:00〜21:00までとなっております。時間外にご予約・ご連絡いただいた場合、翌営業日のお返事となりますことをご了承ください。</p>
                 </div>
               <div className="flex items-center justify-center">
                 {/* routeConfig読み込み中はローディング表示 */}
