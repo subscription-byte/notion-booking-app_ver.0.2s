@@ -546,6 +546,8 @@ const EnhancedNotionBooking = () => {
         }
       }
 
+      return fetchedEvents; // handleBookingの最新データチェックに使用
+
     } catch (error) {
       console.error('Notionカレンダーの取得に失敗:', error);
       setNotionEvents([]);
