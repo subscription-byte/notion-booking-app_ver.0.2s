@@ -24,7 +24,7 @@ const EnhancedNotionBooking = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedBooking, setCompletedBooking] = useState(null);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
-  const [countdown, setCountdown] = useState(10); // リダイレクトまでのカウントダウン
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // テストモード関連
   const [isTestMode, setIsTestMode] = useState(false);
@@ -118,38 +118,6 @@ const EnhancedNotionBooking = () => {
     }
   }, []);
 
-  // 通常リンク: 予約完了後の自動リダイレクト（10秒カウントダウン）
-  useEffect(() => {
-    console.log('🔍 Auto redirect check:', {
-      showConfirmation,
-      hasCompletedBooking: !!completedBooking,
-      routeTag: routeConfig?.routeTag,
-      shouldRedirect: showConfirmation && completedBooking && routeConfig?.routeTag === '公認X'
-    });
-
-    if (showConfirmation && completedBooking && routeConfig?.routeTag === '公認X') {
-      console.log('✅ Starting 10 second countdown for auto redirect');
-      setCountdown(10); // カウントダウン初期化
-
-      // 1秒ごとにカウントダウン
-      const countdownInterval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            console.log('🚀 Auto redirecting to X profile...');
-            window.location.href = 'https://x.com/myfans_agency_';
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => {
-        console.log('❌ Timer cleared');
-        clearInterval(countdownInterval);
-      };
-    }
-  }, [showConfirmation, completedBooking, routeConfig]);
 
   // 3回タップでテストログイン画面表示
   const handleSecretTap = () => {
@@ -1270,6 +1238,7 @@ const EnhancedNotionBooking = () => {
         setShowBookingForm(false);
         setShowTimeSlots(false);
         setShowConfirmation(true);
+        setShowCompletionModal(true);
       } else {
         alert(ALERT_MESSAGES.bookingFailed);
       }
@@ -1447,6 +1416,57 @@ const EnhancedNotionBooking = () => {
         </div>
       )}
 
+      {/* 予約完了モーダル */}
+      {showCompletionModal && completedBooking && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black bg-opacity-60 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 sm:p-8">
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="fas fa-exclamation-triangle text-orange-500 text-xl"></i>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2">ご連絡をお忘れなく</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
+                完了画面に表示される予約情報を、窓口またはチャットまでお送りください。<br />
+                <span className="font-bold text-red-600">ご連絡がない場合、ご予約を取り消しさせていただく場合がございます。</span>
+              </p>
+            </div>
+            <div className="space-y-2">
+              {routeConfig?.routeTag === '公認X' ? (
+                <button
+                  onClick={() => {
+                    const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
+                    navigator.clipboard.writeText(bookingText);
+                    setShowCompletionModal(false);
+                    window.open('https://x.com/myfans_agency_', '_blank');
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
+                >
+                  <i className="fab fa-x-twitter mr-2"></i>
+                  コピーしてXへ移動
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowCompletionModal(false);
+                    window.open('line://', '_blank');
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
+                >
+                  <i className="fab fa-line mr-2"></i>
+                  LINEを開く
+                </button>
+              )}
+              <button
+                onClick={() => setShowCompletionModal(false)}
+                className="w-full py-2 text-gray-500 text-sm font-medium"
+              >
+                あとで送る
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* コピー完了通知 */}
       {showCopyNotification && (
         <div
@@ -1527,7 +1547,21 @@ const EnhancedNotionBooking = () => {
           <div className="p-1.5 sm:p-4 space-y-2 sm:space-y-4">
             {/* 初期フォーム画面（LINE連携 or 名前入力） */}
             {showInitialForm && (
-              <div className="flex items-center justify-center min-h-[60vh]">
+              <div>
+                {/* 注意事項 */}
+                <div className="mx-5 sm:mx-9 mb-3 rounded-xl p-3 sm:p-4 text-xs sm:text-sm text-gray-700 space-y-2" style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 192, 203, 0.3)'
+                }}>
+                  <p className="font-bold text-pink-600 text-sm sm:text-base mb-1">
+                    <i className="fas fa-info-circle mr-1"></i>ご予約の前にお読みください
+                  </p>
+                  <p>・本ツールにて表示以外の時間での対応は行っておりません。表示中の空きがございますお日時にてご都合を調整していただけますと幸いです。</p>
+                  <p>・ご予約後、完了画面に表示される内容を窓口またはチャットまでお送りください。ご連絡いただけない場合、ご予約を取り消しさせて頂く場合がございます。</p>
+                  <p>・チャット等での対応は、12:00〜21:00までとなっております。時間外にご予約・ご連絡いただいた場合、翌営業日のお返事となりますことをご了承ください。</p>
+                </div>
+              <div className="flex items-center justify-center">
                 {/* routeConfig読み込み中はローディング表示 */}
                 {!routeConfig ? (
                   <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
@@ -1651,6 +1685,7 @@ const EnhancedNotionBooking = () => {
                   </div>
                 )}
               </div>
+            </div>
             )}
 
             {/* システムエラー画面 */}
@@ -1863,42 +1898,24 @@ const EnhancedNotionBooking = () => {
 
                     <h2 className="text-base sm:text-xl font-bold text-black mb-2 sm:mb-4">予約が完了しました！</h2>
 
-                    {/* 通常リンク: リダイレクト待ち画面 */}
+                    {/* 通常リンク: X送信案内 */}
                     {routeConfig?.routeTag === '公認X' && (
-                      <div className="mb-3 sm:mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 sm:border-3 border-blue-400 rounded-lg sm:rounded-xl p-3 sm:p-4 shadow-xl">
+                      <div className="mb-3 sm:mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-lg sm:rounded-xl p-3 sm:p-4">
                         <div className="text-center">
-                          {/* 確定日時を大きく表示 */}
-                          <div className="mb-3 sm:mb-4 bg-white/80 rounded-lg p-2 sm:p-3">
-                            <div className="flex items-center justify-center text-sm sm:text-lg font-bold text-gray-800">
-                              <i className="fas fa-calendar-check mr-2 text-blue-600"></i>
-                              <span>{completedBooking.year}年{completedBooking.month}月{completedBooking.day}日({completedBooking.dayName}) {completedBooking.time}</span>
-                            </div>
-                          </div>
-
-                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg">
-                            <i className="fas fa-exclamation-circle text-white text-lg sm:text-2xl"></i>
-                          </div>
-                          <h3 className="text-base sm:text-lg font-bold text-blue-700 mb-1.5 sm:mb-2">
-                            📋 予約情報をコピーしてXへ移動
-                          </h3>
-                          <p className="text-lg sm:text-xl font-bold text-blue-800 mb-2 sm:mb-3">
-                            🚀 {countdown}秒後に自動で移動します...
-                          </p>
-                          <p className="text-xs sm:text-sm text-blue-700 mb-2 sm:mb-3">
-                            👉 X公認代理店のDMで貼り付けて送信<br />
+                          <p className="text-xs sm:text-sm text-blue-700 mb-2">
+                            👉 X公認代理店のDMで予約情報を貼り付けて送信してください<br />
                             <span className="font-bold">送信完了で予約確定となります</span>
                           </p>
-
                           <button
                             onClick={() => {
                               const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
                               navigator.clipboard.writeText(bookingText);
                               window.open('https://x.com/myfans_agency_', '_blank');
                             }}
-                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
+                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 transition-transform"
                           >
-                            <i className="fas fa-rocket mr-1 sm:mr-2"></i>
-                            コピーしてすぐに移動する
+                            <i className="fab fa-x-twitter mr-1 sm:mr-2"></i>
+                            コピーしてXへ移動
                           </button>
                         </div>
                       </div>
