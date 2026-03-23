@@ -1,6 +1,21 @@
 const { google } = require('googleapis');
 const { isHoliday, isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } = require('./shared/businessRules');
 
+const sendChatWorkSystemAlert = async (message) => {
+  const token = process.env.CHATWORK_API_TOKEN;
+  const roomId = process.env.CHATWORK_ROOM_ID;
+  if (!token || !roomId) return;
+  try {
+    await fetch(`https://api.chatwork.com/v2/rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: { 'X-ChatWorkToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `body=${encodeURIComponent(message)}`,
+    });
+  } catch (e) {
+    console.error('ChatWork system alert error:', e);
+  }
+};
+
 const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
   const token = process.env.CHATWORK_API_TOKEN;
   const roomId = process.env.CHATWORK_BOOKING_ROOM_ID;
@@ -273,6 +288,34 @@ P登録状況: ${properties.premiumStatus || ''}`;
 
       console.log('Booking updated successfully');
 
+      // 予約完了後の重複検証（アラート送信用）
+      try {
+        const verifyResponse = await calendar.events.list({
+          calendarId: GOOGLE_CALENDAR_ID,
+          timeMin: slotStart.toISOString(),
+          timeMax: slotEnd.toISOString(),
+          singleEvents: true,
+        });
+        const createdEventId = updatedEvent.data.id;
+        const overlapping = (verifyResponse.data.items || []).filter(evt => {
+          if (evt.id === createdEventId) return false;
+          const evtStatus = evt.extendedProperties?.private?.bookingStatus;
+          if (evtStatus === '仮登録') return false;
+          const evtStart = new Date(evt.start.dateTime || evt.start.date);
+          const evtEnd = new Date(evt.end.dateTime || evt.end.date || new Date(evtStart.getTime() + 60 * 60 * 1000));
+          return evtStart < slotEnd && evtEnd > slotStart;
+        });
+        if (overlapping.length > 0) {
+          const { dateStr: alertDateStr, hourStr: alertHourStr } = formatBookingDateTime(bookingDateStr);
+          const overlapSummary = overlapping.map(e => `"${e.summary}" (${e.start.dateTime || e.start.date})`).join(', ');
+          const alertMsg = `[警告] 予約完了後に時間重複を検出\n日時: ${alertDateStr} ${alertHourStr}\n予約者: ${properties.summary}\n重複イベント: ${overlapSummary}`;
+          await sendChatWorkSystemAlert(alertMsg);
+          console.warn('[重複警告] 予約完了後に重複イベントを検出:', overlapSummary);
+        }
+      } catch (verifyError) {
+        console.error('[重複検証] エラー:', verifyError);
+      }
+
       // 3. LINE通知を送信
       const lineChannel = sessionEvent.extendedProperties?.private?.lineChannel || 'personA';
       const lineToken = LINE_ACCESS_TOKENS[lineChannel] || LINE_ACCESS_TOKENS.personA;
@@ -466,6 +509,34 @@ P登録状況: ${properties.premiumStatus || ''}`;
         }
       }
     });
+
+    // 予約完了後の重複検証（アラート送信用）
+    try {
+      const verifyNormResponse = await calendar.events.list({
+        calendarId: GOOGLE_CALENDAR_ID,
+        timeMin: slotStart.toISOString(),
+        timeMax: slotEnd.toISOString(),
+        singleEvents: true,
+      });
+      const createdNormEventId = newEvent.data.id;
+      const overlappingNorm = (verifyNormResponse.data.items || []).filter(evt => {
+        if (evt.id === createdNormEventId) return false;
+        const evtStatus = evt.extendedProperties?.private?.bookingStatus;
+        if (evtStatus === '仮登録') return false;
+        const evtStart = new Date(evt.start.dateTime || evt.start.date);
+        const evtEnd = new Date(evt.end.dateTime || evt.end.date || new Date(evtStart.getTime() + 60 * 60 * 1000));
+        return evtStart < slotEnd && evtEnd > slotStart;
+      });
+      if (overlappingNorm.length > 0) {
+        const { dateStr: alertDateStr, hourStr: alertHourStr } = formatBookingDateTime(bookingDateStr);
+        const overlapSummary = overlappingNorm.map(e => `"${e.summary}" (${e.start.dateTime || e.start.date})`).join(', ');
+        const alertMsg = `[警告] 予約完了後に時間重複を検出\n日時: ${alertDateStr} ${alertHourStr}\n予約者: ${properties.summary}\n重複イベント: ${overlapSummary}`;
+        await sendChatWorkSystemAlert(alertMsg);
+        console.warn('[重複警告] 予約完了後に重複イベントを検出:', overlapSummary);
+      }
+    } catch (verifyError) {
+      console.error('[重複検証] エラー:', verifyError);
+    }
 
     // ChatWork予約完了通知（通常予約）
     const { dateStr: normDateStr, hourStr: normHourStr } = formatBookingDateTime(bookingDateStr);
