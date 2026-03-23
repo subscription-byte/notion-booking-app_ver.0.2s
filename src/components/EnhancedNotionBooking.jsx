@@ -25,6 +25,7 @@ const EnhancedNotionBooking = () => {
   const [completedBooking, setCompletedBooking] = useState(null);
   const [showCopyNotification, setShowCopyNotification] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [copiedForX, setCopiedForX] = useState(false);
 
   // テストモード関連
   const [isTestMode, setIsTestMode] = useState(false);
@@ -1432,18 +1433,36 @@ const EnhancedNotionBooking = () => {
             </div>
             <div className="space-y-2">
               {routeConfig?.routeTag === '公認X' ? (
-                <button
-                  onClick={() => {
-                    const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
-                    navigator.clipboard.writeText(bookingText);
-                    setShowCompletionModal(false);
-                    window.open('https://x.com/myfans_agency_', '_blank');
-                  }}
-                  className="w-full py-3 bg-gradient-to-r from-black to-gray-800 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
-                >
-                  <i className="fab fa-x-twitter mr-2"></i>
-                  コピーしてXへ移動
-                </button>
+                <div>
+                  <p className="text-xs text-gray-500 text-center mb-2">
+                    ボタンを押すと予約情報が自動でコピーされます。<br />
+                    X（DM画面）で<span className="font-bold text-gray-700">貼り付け・ペースト</span>するだけで送信できます。
+                  </p>
+                  <button
+                    disabled={copiedForX}
+                    onClick={() => {
+                      const bookingText = `【予約完了】\n日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})\n時間: ${completedBooking.time}\nお名前: ${completedBooking.customerName}\nXリンク: ${completedBooking.xLink}${completedBooking.remarks ? `\n備考: ${completedBooking.remarks}` : ''}`;
+                      navigator.clipboard.writeText(bookingText);
+                      setCopiedForX(true);
+                      setTimeout(() => {
+                        setShowCompletionModal(false);
+                        setCopiedForX(false);
+                        window.open('https://x.com/myfans_agency_', '_blank');
+                      }, 1500);
+                    }}
+                    className={`w-full py-3 text-white font-bold text-sm rounded-xl shadow-lg transition-all ${
+                      copiedForX
+                        ? 'bg-green-500'
+                        : 'bg-gradient-to-r from-black to-gray-800 active:scale-95'
+                    }`}
+                  >
+                    {copiedForX ? (
+                      <><i className="fas fa-check mr-2"></i>コピーしました！ Xへ移動中...</>
+                    ) : (
+                      <><i className="fab fa-x-twitter mr-2"></i>コピーしてXへ移動</>
+                    )}
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => {
