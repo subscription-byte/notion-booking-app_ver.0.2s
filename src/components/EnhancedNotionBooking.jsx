@@ -412,31 +412,44 @@ const EnhancedNotionBooking = () => {
 
       const datesForQuery = targetWeekDates || weekDates;
 
-      const response = await fetch(NOTION_CONFIG.endpoints.query, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          calendarId: NOTION_CONFIG.calendarDatabaseId,
-          filter: {
-            date: {
-              on_or_after: datesForQuery[0].getFullYear() + '-' +
-                          String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' +
-                          String(datesForQuery[0].getDate()).padStart(2, '0'),
-              on_or_before: datesForQuery[4].getFullYear() + '-' +
-                           String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' +
-                           String(datesForQuery[4].getDate()).padStart(2, '0')
-            }
+      const fetchBody = JSON.stringify({
+        calendarId: NOTION_CONFIG.calendarDatabaseId,
+        filter: {
+          date: {
+            on_or_after: datesForQuery[0].getFullYear() + '-' +
+                        String(datesForQuery[0].getMonth() + 1).padStart(2, '0') + '-' +
+                        String(datesForQuery[0].getDate()).padStart(2, '0'),
+            on_or_before: datesForQuery[4].getFullYear() + '-' +
+                         String(datesForQuery[4].getMonth() + 1).padStart(2, '0') + '-' +
+                         String(datesForQuery[4].getDate()).padStart(2, '0')
           }
-        })
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('API Error:', response.status, errorData);
-        throw new Error(`API Error: ${response.status} - ${errorData}`);
+      // リトライ付きfetch（最大3回・2秒間隔）
+      const MAX_RETRIES = 3;
+      let response;
+      let lastFetchError;
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          response = await fetch(NOTION_CONFIG.endpoints.query, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: fetchBody,
+          });
+          if (response.ok) break; // 成功
+          // HTTPエラーはリトライしない（4xx等）
+          const errorData = await response.text();
+          throw new Error(`API Error: ${response.status} - ${errorData}`);
+        } catch (err) {
+          lastFetchError = err;
+          console.warn(`カレンダー取得失敗 (${attempt}/${MAX_RETRIES}):`, err.message);
+          if (attempt < MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, 2000));
+          }
+        }
       }
+      if (!response || !response.ok) throw lastFetchError;
 
       const data = await response.json();
       const fetchedEvents = data.results || [];
@@ -549,18 +562,18 @@ const EnhancedNotionBooking = () => {
       return fetchedEvents; // handleBookingの最新データチェックに使用
 
     } catch (error) {
-      console.error('Notionカレンダーの取得に失敗:', error);
+      console.error('Notionカレンダーの取得に失敗（リトライ全滅）:', error);
       setNotionEvents([]);
 
-      // Load failed（デプロイ中の一時的エラー）は除外
-      if (error.message !== 'Load failed') {
-        setSystemStatus({
-          healthy: false,
-          message: 'システムエラーが発生しました',
-          lastChecked: new Date()
-        });
+      // リトライ全滅後は全エラーでUIブロック（Load failedも含む）
+      setSystemStatus({
+        healthy: false,
+        message: 'データの取得に失敗しました。画面を更新してください。',
+        lastChecked: new Date()
+      });
 
-        // ChatWork通知
+      // ChatWork通知（デプロイ中エラーは除外）
+      if (error.message !== 'Load failed') {
         await sendChatWorkAlert({
           type: 'system_error',
           data: {
@@ -568,11 +581,6 @@ const EnhancedNotionBooking = () => {
             timestamp: new Date().toLocaleString('ja-JP')
           }
         });
-      }
-      
-      // ネットワークエラーの場合はユーザーに通知
-      if (error.message.includes('fetch') || error.message.includes('NetworkError') || !navigator.onLine) {
-        alert(ALERT_MESSAGES.siteUpdating);
       }
 
       return [];
