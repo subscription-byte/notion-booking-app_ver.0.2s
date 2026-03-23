@@ -1,6 +1,17 @@
 ## 最新の変更履歴
 
 ### 2026年3月23日
+- **リファクタリング**: Notion関連の命名をGoogleカレンダー対応に全面変更
+  - `src/components/EnhancedNotionBooking.jsx` → `CalendarBooking.jsx`（ファイル名変更）
+  - コンポーネント名: `EnhancedNotionBooking` → `CalendarBooking`
+  - 設定オブジェクト: `NOTION_CONFIG` → `CALENDAR_CONFIG`（`apiConfig.js`）
+  - State: `notionEvents` / `setNotionEvents` → `calendarEvents` / `setCalendarEvents`
+  - 関数: `fetchNotionCalendar` → `fetchCalendar`、`createNotionEvent` → `createCalendarEvent`、`validateNotionData` → `validateCalendarData`
+  - 変数: `hasNotionEvent` → `hasCalendarEvent`
+  - コメント内「Notion API」→「Google Calendar API」に修正（各所）
+  - `src/setupProxy.js`（旧Notion開発プロキシ・未使用）を削除
+
+### 2026年3月23日
 - **強化**: 予約作成後の重複検証アラートを追加
   - `google-calendar-create.js`: セッションフロー・通常フロー両方の予約作成後にGoogleカレンダーを再クエリし、作成済みイベント以外に時間重複するイベントがあればChatWork（`CHATWORK_ROOM_ID`）にアラートを送信
   - 重複時メッセージ例: `[警告] 予約完了後に時間重複を検出 / 日時・予約者・重複イベント名`
