@@ -96,6 +96,19 @@ const CalendarBooking = () => {
     setRouteConfig(config);
     setRouteTag(config.routeTag);
 
+    // 通常フロー（X経由）のみキャッシュから入力済みデータを復元
+    if (config.mode === 'nameAndX') {
+      try {
+        const cached = JSON.parse(localStorage.getItem('bookingUserCache') || '{}');
+        if (cached.customerName) setCustomerName(cached.customerName);
+        if (cached.xLink) setXLink(cached.xLink);
+        if (cached.myfansStatus) setMyfansStatus(cached.myfansStatus);
+        if (cached.premiumStatus) setPremiumStatus(cached.premiumStatus);
+      } catch (e) {
+        // キャッシュ読み込み失敗は無視
+      }
+    }
+
     if (session && lineName) {
       setSessionId(session);
       setCustomerName(lineName); // 名前を自動入力
@@ -1236,6 +1249,7 @@ const CalendarBooking = () => {
           remarks: remarks
         });
 
+        // 通常フロー（X経由）: 入力内容をキャッシュ保存（次回入力省略用）
         // 通常リンク: 確定ボタン押下時に予約情報を自動コピー
         if (routeTag === '公認X') {
           const bookingText = `【予約完了】\n日付: ${year}年${month}月${day}日 (${dayName})\n時間: ${selectedTime}\nお名前: ${customerName}\nXリンク: ${xLink}${remarks ? `\n備考: ${remarks}` : ''}`;
@@ -1667,6 +1681,14 @@ const CalendarBooking = () => {
                               return;
                             }
                           }
+                          try {
+                            localStorage.setItem('bookingUserCache', JSON.stringify({
+                              customerName,
+                              xLink,
+                              myfansStatus,
+                              premiumStatus,
+                            }));
+                          } catch (e) { /* 保存失敗は無視 */ }
                           setShowInitialForm(false);
                         }}
                         disabled={!customerName.trim() || !xLink.trim()}

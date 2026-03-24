@@ -1,5 +1,11 @@
 ## 最新の変更履歴
 
+### 2026年3月24日
+- **機能追加**: 通常フロー（X経由）の入力キャッシュ機能
+  - `CalendarBooking.jsx`: 名前・Xリンク・myfans/P登録状況を初期フォーム通過時にlocalStorageへ保存
+  - 次回アクセス時に自動復元し入力の手間を省略
+- **スキル更新**: `/dplogupd` `/upd` にREADME確認ルールを追記（リファクタリング時も旧記述チェックを必須化）
+
 ### 2026年3月23日
 - **リファクタリング**: Notion関連の命名をGoogleカレンダー対応に全面変更
   - `src/components/EnhancedNotionBooking.jsx` → `CalendarBooking.jsx`（ファイル名変更）
