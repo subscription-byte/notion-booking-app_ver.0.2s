@@ -249,7 +249,8 @@ myfans登録状況: ${properties.myfansStatus || ''}
 P登録状況: ${properties.premiumStatus || ''}`;
 
       // 場所情報を設定（一覧で見やすいように）
-      const location = '公式LINE（公認）';
+      const lineChannelForLocation = sessionEvent.extendedProperties?.private?.lineChannel || 'personA';
+      const location = lineChannelForLocation === 'personC' ? '公式LINE（まえかぶ）' : '公式LINE（公認）';
 
       const updatedEvent = await calendar.events.patch({
         calendarId: GOOGLE_CALENDAR_ID,

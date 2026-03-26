@@ -1,6 +1,15 @@
 ## 最新の変更履歴
 
 ### 2026年3月26日
+- **バグ修正**: セッションフローのカレンダー場所欄がPersonA/C共通になっていた問題を修正
+  - `google-calendar-create.js`: PersonA=`公式LINE（公認）`、PersonC=`公式LINE（まえかぶ）` に分岐
+- **修正**: PersonCのリダイレクト設定が未登録だった問題を修正
+  - `public/_redirects`: `/personC → /?ref=personC` を追加
+- **ドキュメント整備**: README のPersonC関連記述を追加・全環境変数を網羅
+  - アクセスURL・LINE連携・環境変数セクションにPersonC情報を追記
+  - 環境変数セクションをPersonA/C両対応の全量記載に更新
+
+### 2026年3月26日
 - **バグ修正**: GoogleカレンダーへのPersonA/PersonC色ID書き込みが逆になっていた問題を修正
   - `google-calendar-create.js`: PersonA='2'（セージ）、PersonC='11'（トマト）に修正
   - `docs/google-calendar-api.md` / `README.md` / `CHANGELOG.md`: 関連ドキュメントの色ID記述も全て修正
