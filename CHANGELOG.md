@@ -1,5 +1,10 @@
 ## 最新の変更履歴
 
+### 2026年3月26日
+- **バグ修正**: GoogleカレンダーへのPersonA/PersonC色ID書き込みが逆になっていた問題を修正
+  - `google-calendar-create.js`: PersonA='2'（セージ）、PersonC='11'（トマト）に修正
+  - `docs/google-calendar-api.md` / `README.md` / `CHANGELOG.md`: 関連ドキュメントの色ID記述も全て修正
+
 ### 2026年3月24日
 - **機能追加**: 通常フロー（X経由）の入力キャッシュ機能
   - `CalendarBooking.jsx`: 名前・Xリンク・myfans/P登録状況を初期フォーム通過時にlocalStorageへ保存
@@ -53,7 +58,7 @@
 
 ### 2026年3月17日
 - **バグ修正・仕様整理**: カレンダー色IDのPersonA/PersonC割り当てが逆になっていた問題を修正
-  - `google-calendar-create.js`: PersonA LINE連携予約 = `'11'`（トマト）、PersonC LINE連携予約 = `'2'`（セージ）に修正（三項演算子が逆だった）
+  - `google-calendar-create.js`: PersonA LINE連携予約 = `'2'`（セージ）、PersonC LINE連携予約 = `'11'`（トマト）に修正（三項演算子が逆だった）
   - `src/config/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`（ピーコック）→ `'1'`（ラベンダー）に修正（通常予約色`'7'`と競合していた）
   - `src/config/blockingRules.js`: 同上（フロントエンド側も修正）
   - `docs/google-calendar-api.md` / `README.md`: 色ID運用ルールのドキュメントを正確な内容に更新
@@ -68,7 +73,7 @@
 
 ### 2026年3月16日
 - **仕様変更**: Googleカレンダーの予約色を予約経路別に再整理
-  - `google-calendar-create.js`: PersonA（LINE）= `'2'`トマト、PersonC（LINE）= `'11'`セージ、通常リンク = `'7'`ピーコック（水色）に変更
+  - `google-calendar-create.js`: PersonA（LINE）= `'2'`セージ、PersonC（LINE）= `'11'`トマト、通常リンク = `'7'`ピーコック（水色）に変更
   - `shared/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`ピーコック → `'1'`ラベンダーに変更（通常予約の色と競合解消）
 
 ### 2026年3月13日

@@ -181,8 +181,8 @@ REACT_APP_TEST_USER_PW=your_test_user_password
 5. **撮影**: 当日すべて + 後3時間ブロック
 6. **Googleカレンダー色ID判定（機能色）**:
    - `7`（ピーコック）= 通常予約（X DM経由）
-   - `2`（セージ）= PersonC LINE連携予約
-   - `11`（トマト）= PersonA LINE連携予約
+   - `2`（セージ）= PersonA LINE連携予約
+   - `11`（トマト）= PersonC LINE連携予約
    - `1`（ラベンダー）= 対面ブロック扱い（手動設定時）
    - `3`（ブドウ）= 撮影ブロック扱い（手動設定時）
 
