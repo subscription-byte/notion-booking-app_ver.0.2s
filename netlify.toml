@@ -5,9 +5,6 @@
 [build.environment]
   REACT_APP_LINE_CHANNEL_ID = "2008606907"
 
-[functions]
-  node_bundler = "esbuild"
-
 [functions."scheduled-reminder"]
   schedule = "0 6 * * *"
 

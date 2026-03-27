@@ -32,6 +32,9 @@ exports.handler = async (event, context) => {
     const summary = await sendDayBeforeReminders(jstNow, runId);
     console.log('Scheduled reminder summary:', JSON.stringify({ runId, ...summary }));
 
+    // 毎回実行結果をChatWorkに報告（cronが動いているか確認用）
+    await sendChatWorkReminderReport(summary, runId);
+
     if (summary.failed > 0) {
       await sendSystemErrorToChatWork({
         runId,
@@ -40,7 +43,6 @@ exports.handler = async (event, context) => {
         summary
       });
     } else if (summary.totalCandidates > 0 && summary.success === 0 && summary.skippedAlreadySent === 0) {
-      // 候補があるのに送信も送信済みスキップもゼロ（異常）
       await sendSystemErrorToChatWork({
         runId,
         stage: 'day_before_reminder',
@@ -224,6 +226,30 @@ async function sendDayBeforeReminders(jstNow, runId) {
 
   summary.errors = summary.errors.slice(0, MAX_ERROR_DETAILS);
   return summary;
+}
+
+async function sendChatWorkReminderReport(summary, runId) {
+  try {
+    const token = process.env.CHATWORK_API_TOKEN;
+    const roomId = process.env.CHATWORK_ROOM_ID;
+    if (!token || !roomId) return;
+
+    const skipped = summary.skippedAlreadySent > 0 ? `\n送信済みスキップ: ${summary.skippedAlreadySent}` : '';
+    const errDetail = summary.errors?.length
+      ? `\nエラー: ${summary.errors.map(e => `${e.phase}/${e.detail}`).join(', ')}`
+      : '';
+    const body = summary.targetDate
+      ? `[前日リマインド実行]\n対象日: ${summary.targetDate}\n対象件数: ${summary.totalCandidates}\n成功: ${summary.success} / 失敗: ${summary.failed}${skipped}${errDetail}`
+      : `[前日リマインド] 時刻チェックによりスキップ（runId: ${runId}）`;
+
+    await fetch(`https://api.chatwork.com/v2/rooms/${roomId}/messages`, {
+      method: 'POST',
+      headers: { 'X-ChatWorkToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `body=${encodeURIComponent(body)}`,
+    });
+  } catch (e) {
+    console.error('sendChatWorkReminderReport error:', e);
+  }
 }
 
 async function sendSystemErrorToChatWork({ runId, stage, message, summary }) {
