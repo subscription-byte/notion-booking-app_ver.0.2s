@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { sendChatWorkSystemAlert } = require('./shared/chatwork');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -54,6 +55,7 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Google Calendar delete error:', error);
+    await sendChatWorkSystemAlert(`[エラー] カレンダー削除失敗\n${error.message}`);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

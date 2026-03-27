@@ -9,6 +9,7 @@
 // 毎日 06:00 UTC (15:00 JST) に実行
 
 const { google } = require('googleapis');
+const { sendChatWorkSystemAlert } = require('./shared/chatwork');
 
 const MAX_ERROR_DETAILS = 5;
 

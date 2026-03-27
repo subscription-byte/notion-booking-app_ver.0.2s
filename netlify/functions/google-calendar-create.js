@@ -1,20 +1,6 @@
 const { google } = require('googleapis');
 const { isHoliday, isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } = require('./shared/businessRules');
-
-const sendChatWorkSystemAlert = async (message) => {
-  const token = process.env.CHATWORK_API_TOKEN;
-  const roomId = process.env.CHATWORK_ROOM_ID;
-  if (!token || !roomId) return;
-  try {
-    await fetch(`https://api.chatwork.com/v2/rooms/${roomId}/messages`, {
-      method: 'POST',
-      headers: { 'X-ChatWorkToken': token, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `body=${encodeURIComponent(message)}`,
-    });
-  } catch (e) {
-    console.error('ChatWork system alert error:', e);
-  }
-};
+const { sendChatWorkSystemAlert } = require('./shared/chatwork');
 
 const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
   const token = process.env.CHATWORK_API_TOKEN;
@@ -346,6 +332,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
           console.log('LINE notification sent successfully');
         } catch (lineError) {
           console.error('LINE notification error:', lineError);
+          await sendChatWorkSystemAlert(`[エラー] 予約完了LINE通知失敗（${lineChannel}）\nお名前: ${properties.summary}\n${lineError.message}`);
         }
       }
 
@@ -553,6 +540,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
     };
   } catch (error) {
     console.error('Google Calendar create error:', error);
+    await sendChatWorkSystemAlert(`[エラー] 予約作成処理失敗\n${error.message}`);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

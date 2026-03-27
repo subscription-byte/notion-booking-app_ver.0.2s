@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { sendChatWorkSystemAlert } = require('./shared/chatwork');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -105,6 +106,7 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Google Calendar query error:', error);
+    await sendChatWorkSystemAlert(`[エラー] カレンダー取得失敗\n${error.message}`);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })

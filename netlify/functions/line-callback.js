@@ -1,3 +1,5 @@
+const { sendChatWorkSystemAlert } = require('./shared/chatwork');
+
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -139,6 +141,7 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('LINE callback error:', error);
+    await sendChatWorkSystemAlert(`[エラー] LINEコールバック失敗（PersonA）\n${error.message}`);
 
     // エラー時はトップページにリダイレクト（エラーメッセージ付き）
     return {
