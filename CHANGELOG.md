@@ -1,6 +1,14 @@
 ## 最新の変更履歴
 
 ### 2026年3月27日
+- **機能強化**: 全Netlify FunctionsのエラーをChatWorkに通知
+  - `shared/chatwork.js` を新規作成し共通アラート関数 `sendChatWorkSystemAlert` を集約
+  - `google-calendar-create.js`: 予約作成失敗・LINE通知失敗をアラート通知
+  - `google-calendar-delete.js`: 削除失敗をアラート通知
+  - `google-calendar-query.js`: カレンダー取得失敗をアラート通知
+  - `line-callback.js` / `line-callback-c.js`: LINEコールバック失敗をアラート通知
+
+### 2026年3月27日
 - **バグ修正**: PersonA/PersonC のcolorId割り当てを正しい仕様に再修正
   - `google-calendar-create.js`: PersonA='11'（トマト/赤）、PersonC='2'（セージ/緑）が正仕様（前回の誤修正を戻し）
 - **機能強化**: 前日リマインドの異常をChatWorkに通知するよう強化
