@@ -5,10 +5,8 @@
  * - 毎日15:00 (JST) → 翌日の予約に前日リマインド送信
  */
 
-export const config = {
-  // Netlify cron は UTC 基準。15:00 JST = 06:00 UTC
-  schedule: "0 6 * * *"
-};
+// スケジュール設定は netlify.toml の [functions."scheduled-reminder"] schedule で管理
+// 毎日 06:00 UTC (15:00 JST) に実行
 
 const { google } = require('googleapis');
 
@@ -38,7 +36,15 @@ exports.handler = async (event, context) => {
       await sendSystemErrorToChatWork({
         runId,
         stage: 'day_before_reminder',
-        message: '定期リマインドで失敗が発生しました',
+        message: `定期リマインドで失敗が発生しました（成功: ${summary.success} / 失敗: ${summary.failed}）`,
+        summary
+      });
+    } else if (summary.totalCandidates > 0 && summary.success === 0 && summary.skippedAlreadySent === 0) {
+      // 候補があるのに送信も送信済みスキップもゼロ（異常）
+      await sendSystemErrorToChatWork({
+        runId,
+        stage: 'day_before_reminder',
+        message: `前日リマインド対象が ${summary.totalCandidates} 件あるにもかかわらず、1件も通知が送信されませんでした。`,
         summary
       });
     }
@@ -149,6 +155,13 @@ function truncate(value, max) {
 
 async function sendDayBeforeReminders(jstNow, runId) {
   if (jstNow.getHours() !== 15) {
+    // cronが意図しない時刻に実行されている異常
+    await sendSystemErrorToChatWork({
+      runId,
+      stage: 'hour_check',
+      message: `スケジュール関数が想定外の時刻に実行されました（JST ${jstNow.getHours()}時）。cronまたはタイムゾーン変換を確認してください。`,
+      summary: null
+    });
     return {
       targetDate: null,
       totalCandidates: 0,

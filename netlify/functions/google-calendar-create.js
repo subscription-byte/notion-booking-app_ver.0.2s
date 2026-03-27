@@ -261,7 +261,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
           location: location,
           start: { dateTime: bookingDateStr },
           end: { dateTime: new Date(slotEnd).toISOString() },
-          colorId: (sessionEvent.extendedProperties?.private?.lineChannel === 'personC') ? '11' : '2', // PersonC=トマト(11)、PersonA=セージ(2)
+          colorId: (sessionEvent.extendedProperties?.private?.lineChannel === 'personC') ? '2' : '11', // PersonC=セージ(2)、PersonA=トマト(11)
           reminders: {
             useDefault: false,
             overrides: [

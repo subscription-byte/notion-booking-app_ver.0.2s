@@ -1,5 +1,17 @@
 ## 最新の変更履歴
 
+### 2026年3月27日
+- **バグ修正**: PersonA/PersonC のcolorId割り当てを正しい仕様に再修正
+  - `google-calendar-create.js`: PersonA='11'（トマト/赤）、PersonC='2'（セージ/緑）が正仕様（前回の誤修正を戻し）
+- **機能強化**: 前日リマインドの異常をChatWorkに通知するよう強化
+  - cronが15時以外に実行された場合にアラート送信
+  - 送信対象があるのに1件も送信されなかった場合にアラート送信
+  - 失敗時メッセージに成功/失敗件数を追記
+- **設定修正**: `netlify.toml` にスケジュール関数の設定を追加
+  - `[functions."scheduled-reminder"] schedule = "0 6 * * *"` を明示的に記載
+  - `node_bundler = "esbuild"` を追加
+  - `scheduled-reminder.js` の `export const config` を削除（netlify.tomlで一元管理）
+
 ### 2026年3月26日
 - **バグ修正**: セッションフローのカレンダー場所欄がPersonA/C共通になっていた問題を修正
   - `google-calendar-create.js`: PersonA=`公式LINE（公認）`、PersonC=`公式LINE（まえかぶ）` に分岐
@@ -10,8 +22,8 @@
   - 環境変数セクションをPersonA/C両対応の全量記載に更新
 
 ### 2026年3月26日
-- **バグ修正**: GoogleカレンダーへのPersonA/PersonC色ID書き込みが逆になっていた問題を修正
-  - `google-calendar-create.js`: PersonA='2'（セージ）、PersonC='11'（トマト）に修正
+- **バグ修正**: GoogleカレンダーへのPersonA/PersonC色ID書き込みが逆になっていた問題を修正（誤修正を再修正）
+  - `google-calendar-create.js`: PersonA='11'（トマト/赤）、PersonC='2'（セージ/緑）が正しい仕様
   - `docs/google-calendar-api.md` / `README.md` / `CHANGELOG.md`: 関連ドキュメントの色ID記述も全て修正
 
 ### 2026年3月24日
@@ -67,7 +79,7 @@
 
 ### 2026年3月17日
 - **バグ修正・仕様整理**: カレンダー色IDのPersonA/PersonC割り当てが逆になっていた問題を修正
-  - `google-calendar-create.js`: PersonA LINE連携予約 = `'2'`（セージ）、PersonC LINE連携予約 = `'11'`（トマト）に修正（三項演算子が逆だった）
+  - `google-calendar-create.js`: PersonA LINE連携予約 = `'11'`（トマト/赤）、PersonC LINE連携予約 = `'2'`（セージ/緑）に修正（三項演算子が逆だった）
   - `src/config/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`（ピーコック）→ `'1'`（ラベンダー）に修正（通常予約色`'7'`と競合していた）
   - `src/config/blockingRules.js`: 同上（フロントエンド側も修正）
   - `docs/google-calendar-api.md` / `README.md`: 色ID運用ルールのドキュメントを正確な内容に更新
@@ -82,7 +94,7 @@
 
 ### 2026年3月16日
 - **仕様変更**: Googleカレンダーの予約色を予約経路別に再整理
-  - `google-calendar-create.js`: PersonA（LINE）= `'2'`セージ、PersonC（LINE）= `'11'`トマト、通常リンク = `'7'`ピーコック（水色）に変更
+  - `google-calendar-create.js`: PersonA（LINE）= `'11'`トマト/赤、PersonC（LINE）= `'2'`セージ/緑、通常リンク = `'7'`ピーコック（水色）に変更
   - `shared/businessRules.js`: 対面ブロック判定のcolorIdを `'7'`ピーコック → `'1'`ラベンダーに変更（通常予約の色と競合解消）
 
 ### 2026年3月13日
