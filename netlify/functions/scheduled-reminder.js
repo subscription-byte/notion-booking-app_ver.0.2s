@@ -305,5 +305,6 @@ function formatDate(date) {
 
 function formatDateTime(isoString) {
   const d = new Date(isoString);
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return `${jst.getUTCFullYear()}年${jst.getUTCMonth() + 1}月${jst.getUTCDate()}日 ${String(jst.getUTCHours()).padStart(2, '0')}:${String(jst.getUTCMinutes()).padStart(2, '0')}`;
 }
