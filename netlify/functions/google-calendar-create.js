@@ -1,6 +1,7 @@
 const { google } = require('googleapis');
 const { isHoliday, isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } = require('./shared/businessRules');
 const { sendChatWorkSystemAlert } = require('./shared/chatwork');
+const { formatBookingDateTime } = require('./shared/dateUtils');
 
 const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
   const token = process.env.CHATWORK_API_TOKEN;
@@ -17,12 +18,6 @@ const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
   }
 };
 
-const formatBookingDateTime = (bookingDateStr) => {
-  const match = bookingDateStr.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-  if (!match) return { dateStr: bookingDateStr, hourStr: '' };
-  const [, year, month, day, hour] = match;
-  return { dateStr: `${year}年${parseInt(month)}月${parseInt(day)}日`, hourStr: `${parseInt(hour)}時` };
-};
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {

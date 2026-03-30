@@ -10,6 +10,7 @@
 
 const { google } = require('googleapis');
 const { sendChatWorkSystemAlert } = require('./shared/chatwork');
+const { formatDateTime, formatDateJST } = require('./shared/dateUtils');
 
 const MAX_ERROR_DETAILS = 5;
 
@@ -179,7 +180,7 @@ async function sendDayBeforeReminders(jstNow, runId) {
 
   const tomorrow = new Date(jstNow);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = formatDate(tomorrow);
+  const dateStr = formatDateJST(tomorrow);
 
   const bookings = await fetchBookingsForDate(dateStr);
   console.log(`Found ${bookings.length} bookings for tomorrow`, { runId, dateStr });
@@ -299,12 +300,3 @@ Netlify Logs で runId を検索して詳細を確認してください。`;
 }
 
 
-function formatDate(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
-function formatDateTime(isoString) {
-  const d = new Date(isoString);
-  const jst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-  return `${jst.getUTCFullYear()}年${jst.getUTCMonth() + 1}月${jst.getUTCDate()}日 ${String(jst.getUTCHours()).padStart(2, '0')}:${String(jst.getUTCMinutes()).padStart(2, '0')}`;
-}

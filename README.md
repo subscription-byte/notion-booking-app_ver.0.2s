@@ -132,9 +132,18 @@ booking-app/
 │       ├── google-calendar-query.js    # Googleカレンダーデータ取得API
 │       ├── google-calendar-delete.js   # Googleカレンダー予定削除API
 │       ├── chatwork-notify.js          # ChatWork通知API
-│       ├── line-callback.js            # LINE OAuth コールバック
+│       ├── line-callback.js            # LINE OAuth コールバック（PersonA）
+│       ├── line-callback-c.js          # LINE OAuth コールバック（PersonC）
 │       ├── line-notify.js              # LINE通知送信API
-│       └── scheduled-reminder.js       # 定期リマインド送信
+│       ├── scheduled-reminder.js       # 定期リマインド送信
+│       └── shared/
+│           ├── chatwork.js             # ChatWorkアラート共通関数
+│           ├── dateUtils.js            # 日時フォーマット共通関数（タイムゾーン注意コメント付き）
+│           ├── messageTemplates.js     # LINEメッセージテンプレート
+│           ├── businessRules.js        # 予約ブロックルール
+│           ├── constants.js            # 定数定義
+│           ├── propertyMappers.js      # プロパティマッピング
+│           └── timeConstants.js        # 時間定数
 ├── netlify.toml                         # Netlify ビルド設定
 ├── public/
 │   └── _redirects                      # Netlifyリダイレクト設定

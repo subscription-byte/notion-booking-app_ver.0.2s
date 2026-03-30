@@ -1,5 +1,15 @@
 ## 最新の変更履歴
 
+### 2026年3月26日
+- **リファクタリング**: 日時フォーマット関数を `shared/dateUtils.js` に一本化
+  - `shared/dateUtils.js` を新規作成: タイムゾーン注意コメント付きで3関数を集約
+    - `formatDateTime(isoString)` - ISO文字列から「年月日 時」を正規表現で安全に抽出
+    - `formatBookingDateTime(isoString)` - 日付と時刻を分割して返す
+    - `formatDateJST(jstDate)` - JST調整済みDateから "YYYY-MM-DD" を返す
+  - `shared/messageTemplates.js`: ローカル定義を削除し `dateUtils` からインポート
+  - `google-calendar-create.js`: ローカル `formatBookingDateTime` を削除し `dateUtils` からインポート
+  - `scheduled-reminder.js`: ローカル `formatDate` / `formatDateTime` を削除し `dateUtils` からインポート
+
 ### 2026年3月27日
 - **機能強化**: 全Netlify FunctionsのエラーをChatWorkに通知
   - `shared/chatwork.js` を新規作成し共通アラート関数 `sendChatWorkSystemAlert` を集約
