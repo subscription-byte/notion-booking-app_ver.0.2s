@@ -34,8 +34,8 @@ exports.handler = async (event, context) => {
     const summary = await sendDayBeforeReminders(jstNow, runId);
     console.log('Scheduled reminder summary:', JSON.stringify({ runId, ...summary }));
 
-    // 毎回実行結果をChatWorkに報告（cronが動いているか確認用）
-    await sendChatWorkReminderReport(summary, runId);
+    // 毎回実行結果をChatWorkに報告（不要な場合はコメントアウト）
+    // await sendChatWorkReminderReport(summary, runId);
 
     if (summary.failed > 0) {
       await sendSystemErrorToChatWork({
