@@ -5,7 +5,8 @@ import { BUSINESS_HOURS, generateTimeSlots, getWeekdayDates } from '../config/bu
 import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
 import { isUnavailableDay } from '../config/holidays';
 import { ALERT_MESSAGES, SYSTEM_SETTINGS } from '../config/uiConfig';
-import { CALENDAR_CONFIG, generateLineAuthUrl } from '../config/apiConfig';
+import { CALENDAR_CONFIG } from '../config/apiConfig';
+import liff from '@line/liff';
 
 const CalendarBooking = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -67,26 +68,8 @@ const CalendarBooking = () => {
     const urlParams = new URLSearchParams(window.location.search);
     let ref = urlParams.get('ref');
 
-    // LINE連携のコールバック処理（セッション方式）
-    const session = urlParams.get('session_id');
-    const lineName = urlParams.get('line_name');
-    const lineError = urlParams.get('line_error');
-
-    // refがない場合の処理
-    if (!ref) {
-      // LINE連携コールバック時のみlocalStorageから復元
-      if (session || lineName || lineError) {
-        const savedRef = localStorage.getItem('routeRef');
-        if (savedRef) {
-          ref = savedRef;
-          // URLにrefを追加（LINE連携後のリダイレクト対策）
-          const newUrl = `${window.location.pathname}?ref=${ref}`;
-          window.history.replaceState({}, document.title, newUrl);
-        }
-      }
-      // 通常アクセス時はrefなしのまま（経路タグ「公認X」固定）
-    } else {
-      // refがある場合はlocalStorageに保存
+    // refがある場合はlocalStorageに保存
+    if (ref) {
       localStorage.setItem('routeRef', ref);
     }
 
@@ -109,20 +92,38 @@ const CalendarBooking = () => {
       }
     }
 
-    if (session && lineName) {
-      setSessionId(session);
-      setCustomerName(lineName); // 名前を自動入力
-      setShowInitialForm(false); // 初期フォームをスキップして週選択へ
-      alert(ALERT_MESSAGES.lineLoginSuccess(lineName));
-
-      // URLパラメータをクリア（refは保持）
-      const newUrl = ref ? `${window.location.pathname}?ref=${ref}` : window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    } else if (lineError) {
-      alert(ALERT_MESSAGES.lineLoginError(lineError));
-      // URLパラメータをクリア（refは保持）
-      const newUrl = ref ? `${window.location.pathname}?ref=${ref}` : window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+    // LIFF初期化（LINEログインルートのみ）
+    if (config.mode === 'lineLogin') {
+      const liffId = ref === 'personC'
+        ? process.env.REACT_APP_LIFF_ID_C
+        : process.env.REACT_APP_LIFF_ID;
+      if (liffId) {
+        liff.init({ liffId }).then(async () => {
+          if (liff.isLoggedIn()) {
+            try {
+              const profile = await liff.getProfile();
+              const response = await fetch('/.netlify/functions/line-session-create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: profile.userId, displayName: profile.displayName, ref: ref || '' })
+              });
+              const data = await response.json();
+              if (data.sessionId) {
+                setSessionId(data.sessionId);
+                setCustomerName(profile.displayName);
+                setShowInitialForm(false);
+                alert(ALERT_MESSAGES.lineLoginSuccess(profile.displayName));
+              } else {
+                alert(ALERT_MESSAGES.lineLoginError(data.error || 'セッション作成失敗'));
+              }
+            } catch (e) {
+              alert(ALERT_MESSAGES.lineLoginError(e.message));
+            }
+          }
+        }).catch(e => {
+          console.error('LIFF init error:', e);
+        });
+      }
     }
 
     // テストモードの永続化チェック
@@ -1705,22 +1706,13 @@ const CalendarBooking = () => {
                       const urlParams = new URLSearchParams(window.location.search);
                       const ref = urlParams.get('ref') || '';
                       return ref === 'personC'
-                        ? !!process.env.REACT_APP_LINE_CHANNEL_ID_C
-                        : !!process.env.REACT_APP_LINE_CHANNEL_ID;
+                        ? !!process.env.REACT_APP_LIFF_ID_C
+                        : !!process.env.REACT_APP_LIFF_ID;
                     })() && (
                     <div className="space-y-4">
                       <button
                         onClick={() => {
-                          const urlParams = new URLSearchParams(window.location.search);
-                          const ref = urlParams.get('ref') || '';
-                          const LINE_CHANNEL_ID = ref === 'personC'
-                            ? process.env.REACT_APP_LINE_CHANNEL_ID_C
-                            : process.env.REACT_APP_LINE_CHANNEL_ID;
-                          const lineAuthUrl = generateLineAuthUrl(LINE_CHANNEL_ID, ref);
-                          console.log('LINE認証URL:', lineAuthUrl);
-                          console.log('Channel ID:', LINE_CHANNEL_ID);
-                          console.log('Ref:', ref);
-                          window.location.href = lineAuthUrl;
+                          liff.login({ redirectUri: window.location.href });
                         }}
                         className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"
                       >
