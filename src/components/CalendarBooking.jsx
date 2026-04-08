@@ -37,6 +37,7 @@ const CalendarBooking = () => {
   const tapTimerRef = useRef(null);
   const allWeeksDataRef = useRef({}); // 全週データのキャッシュ（Ref版）
   const isInitialLoadDoneRef = useRef(false); // 初回ロード完了フラグ
+  const isBookingRef = useRef(false); // 予約確定の連打防止（state更新は非同期のためRefで管理）
 
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [prevWeekEvents, setPrevWeekEvents] = useState([]);
@@ -1127,8 +1128,9 @@ const CalendarBooking = () => {
   };
 
   const handleBooking = async () => {
-    // 連打防止: 処理開始時に即座にローディング状態にする
-    if (isLoading) return;
+    // 連打防止: Refで同期的にブロック（stateは非同期なので2連タップを防げない）
+    if (isBookingRef.current) return;
+    isBookingRef.current = true;
     setIsLoading(true);
 
     try {
@@ -1279,6 +1281,7 @@ const CalendarBooking = () => {
       }
     } finally {
       // 最終的にローディング解除
+      isBookingRef.current = false;
       setIsLoading(false);
     }
   };
