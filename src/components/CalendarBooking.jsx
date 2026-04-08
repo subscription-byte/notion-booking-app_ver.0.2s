@@ -1592,19 +1592,6 @@ const CalendarBooking = () => {
             {/* 初期フォーム画面（LINE連携 or 名前入力） */}
             {showInitialForm && (
               <div>
-                {/* 注意事項 */}
-                <div className="mx-5 sm:mx-9 mb-3 rounded-xl p-3 sm:p-4 space-y-2 text-left" style={{
-                  background: 'rgba(255, 255, 255, 0.85)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 192, 203, 0.3)'
-                }}>
-                  <p className="font-bold text-pink-600 mb-1 text-center" style={{ fontSize: '0.95rem' }}>
-                    <i className="fas fa-info-circle mr-1"></i>ご予約の前にお読みください
-                  </p>
-                  <p style={{ fontSize: '0.85rem', color: '#374151' }}>・本ツールにて表示以外の時間での対応は行っておりません。表示中の空きがございますお日時にてご都合を調整していただけますと幸いです。</p>
-                  <p style={{ fontSize: '0.85rem', color: '#374151' }}>・ご予約後、完了画面に表示される内容を窓口またはチャットまでお送りください。ご連絡いただけない場合、ご予約を取り消しさせて頂く場合がございます。</p>
-                  <p style={{ fontSize: '0.85rem', color: '#374151' }}>・チャット等での対応は、12:00〜21:00までとなっております。時間外にご予約・ご連絡いただいた場合、翌営業日のお返事となりますことをご了承ください。</p>
-                </div>
               <div className="flex items-center justify-center">
                 {/* routeConfig読み込み中はローディング表示 */}
                 {!routeConfig ? (
@@ -1615,8 +1602,20 @@ const CalendarBooking = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="glassmorphism rounded-2xl p-6 sm:p-8 shadow-xl max-w-md w-full mx-4">
-                    <div className="text-center mb-6">
+                  <div className="glassmorphism rounded-2xl p-4 sm:p-6 shadow-xl max-w-md w-full mx-4 overflow-y-auto" style={{ maxHeight: '100dvh' }}>
+                    {/* 注意事項 */}
+                    <div className="mb-3 rounded-xl p-2.5 space-y-1.5 text-left" style={{
+                      background: 'rgba(255, 240, 245, 0.9)',
+                      border: '1px solid rgba(255, 192, 203, 0.4)'
+                    }}>
+                      <p className="font-bold text-pink-600 mb-1 text-center" style={{ fontSize: '0.9rem' }}>
+                        <i className="fas fa-info-circle mr-1"></i>ご予約の前にお読みください
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: '#374151' }}>・本ツールにて表示以外の時間での対応は行っておりません。表示中の空きがございますお日時にてご都合を調整していただけますと幸いです。</p>
+                      <p style={{ fontSize: '0.8rem', color: '#374151' }}>・ご予約後、完了画面に表示される内容を窓口またはチャットまでお送りください。ご連絡いただけない場合、ご予約を取り消しさせて頂く場合がございます。</p>
+                      <p style={{ fontSize: '0.8rem', color: '#374151' }}>・チャット等での対応は、12:00〜21:00までとなっております。時間外にご予約・ご連絡いただいた場合、翌営業日以降でのお返事となりますことをご了承ください。</p>
+                    </div>
+                    <div className="text-center mb-3">
                       <h2 className="text-2xl font-bold text-gradient mb-2">
                         {routeConfig.mode === 'lineLogin' ? '予約を始める' : 'お名前とXリンクを入力'}
                       </h2>
@@ -1629,24 +1628,24 @@ const CalendarBooking = () => {
 
                     {/* 名前+X入力フォーム */}
                     {routeConfig.mode === 'nameAndX' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-gray-700 font-bold mb-2 text-sm">
+                        <label className="block text-gray-700 font-bold mb-1 text-sm">
                           <i className="fas fa-user mr-2 text-purple-500"></i>
                           お名前 <span className="text-red-500">*</span>
                         </label>
-                        <p className="text-xs text-gray-600 mb-2">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名をご入力ください' : 'X上でのお名前をご入力ください'}</p>
+                        <p className="text-xs text-gray-600 mb-1">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名をご入力ください' : 'X上でのお名前をご入力ください'}</p>
                         <input
                           type="text"
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
-                          className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
+                          className="w-full p-2.5 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
                           placeholder={routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名を入力' : 'X上でのお名前を入力'}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-gray-700 font-bold mb-2 text-sm">
+                        <label className="block text-gray-700 font-bold mb-1 text-sm">
                           <i className="fab fa-x-twitter mr-2 text-purple-500"></i>
                           Xリンク <span className="text-red-500">*</span>
                         </label>
@@ -1654,7 +1653,7 @@ const CalendarBooking = () => {
                           type="url"
                           value={xLink}
                           onChange={(e) => setXLink(e.target.value)}
-                          className="w-full p-3 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
+                          className="w-full p-2.5 rounded-lg border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all"
                           placeholder="https://x.com/username"
                         />
                       </div>
@@ -1693,7 +1692,7 @@ const CalendarBooking = () => {
                           setShowInitialForm(false);
                         }}
                         disabled={!customerName.trim() || !xLink.trim()}
-                        className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3 rounded-xl font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         予約画面へ進む
                         <i className="fas fa-arrow-right ml-2"></i>
