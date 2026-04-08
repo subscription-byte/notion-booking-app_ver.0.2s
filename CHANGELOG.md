@@ -1,6 +1,12 @@
 ## 最新の変更履歴
 
 ### 2026年4月8日
+- **バグ修正**: 予約確定ボタンの連打によるセッション二重送信を防止
+  - `CalendarBooking.jsx`: `isBookingRef`（useRef）を追加し同期的に連打をブロック
+  - 従来の `setIsLoading(true)` はReact state更新が非同期のため2連タップを防げなかった
+  - 症状: 1回目の予約成功後、2回目のリクエストがセッション消去済みで `Invalid or expired session (403)` エラーとなりChatWorkに誤アラートが飛んでいた
+
+### 2026年4月8日
 - **UI修正**: 初期フォームの表示崩れを修正
   - 注意事項ブロックをフォームカード外からカード内に移動
   - カードに `overflow-y-auto` / `max-height: 100dvh` を設定しスクロール対応
