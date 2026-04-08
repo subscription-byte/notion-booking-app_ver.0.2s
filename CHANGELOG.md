@@ -1,5 +1,20 @@
 ## 最新の変更履歴
 
+### 2026年4月8日
+- **UI修正**: 初期フォームの表示崩れを修正
+  - 注意事項ブロックをフォームカード外からカード内に移動
+  - カードに `overflow-y-auto` / `max-height: 100dvh` を設定しスクロール対応
+  - 余白・フォントサイズ・padding を縮小しボタン見切れを解消
+  - 文言修正: 「翌営業日のお返事」→「翌営業日以降でのお返事」
+
+### 2026年4月8日
+- **機能改修**: LINE認証をLIFF方式に移行（外部ブラウザ対応）
+  - `@line/liff` パッケージを追加
+  - `line-session-create.js` を新規作成（LIFFからのプロフィール受け取り→Googleカレンダーにセッション保存）
+  - `CalendarBooking.jsx`: `window.location.href` によるOAuthリダイレクトを `liff.init()` → `liff.login()` → `getProfile()` フローに置き換え
+  - `netlify.toml`: `REACT_APP_LIFF_ID` / `REACT_APP_LIFF_ID_C` を追加
+  - 外部ブラウザからLINE連携を行うと新タブが開いて `auth_failed` になる問題を根本解決
+
 ### 2026年3月26日
 - **リファクタリング**: 日時フォーマット関数を `shared/dateUtils.js` に一本化
   - `shared/dateUtils.js` を新規作成: タイムゾーン注意コメント付きで3関数を集約
