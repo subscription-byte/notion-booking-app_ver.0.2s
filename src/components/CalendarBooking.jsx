@@ -1499,7 +1499,7 @@ const CalendarBooking = () => {
                 <button
                   onClick={() => {
                     setShowCompletionModal(false);
-                    window.location.href = 'line://home';
+                    window.close();
                   }}
                   className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
                 >
@@ -2004,23 +2004,6 @@ const CalendarBooking = () => {
                           >
                             <i className="fas fa-copy mr-1 sm:mr-2"></i>
                             予約情報をコピー
-                          </button>
-
-                          {/* LINEで送るボタン */}
-                          <button
-                            onClick={() => {
-                              const bookingText = `【予約完了】
-日付: ${completedBooking.year}年${completedBooking.month}月${completedBooking.day}日 (${completedBooking.dayName})
-時間: ${completedBooking.time}
-お名前: ${completedBooking.customerName}
-Xリンク: ${completedBooking.xLink}${completedBooking.remarks ? `
-備考: ${completedBooking.remarks}` : ''}`;
-                              window.open(`https://line.me/R/msg/text/?${encodeURIComponent(bookingText)}`, '_blank');
-                            }}
-                            className="w-full py-2 sm:py-3 px-3 sm:px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-xs sm:text-base rounded-lg sm:rounded-xl shadow-lg active:scale-95 sm:hover:scale-105 transition-transform"
-                          >
-                            <i className="fab fa-line mr-1 sm:mr-2"></i>
-                            LINEで送る
                           </button>
 
                           {/* Xで送るボタン */}
