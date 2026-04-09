@@ -18,6 +18,54 @@ const sendChatWorkBookingNotice = async (bookingDateStr, message) => {
   }
 };
 
+// ── Zoom Server-to-Server OAuth ──────────────────────────────────────────────
+
+async function getZoomAccessToken() {
+  const accountId = process.env.ZOOM_ACCOUNT_ID;
+  const clientId = process.env.ZOOM_CLIENT_ID;
+  const clientSecret = process.env.ZOOM_CLIENT_SECRET;
+  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const res = await fetch(
+    `https://zoom.us/oauth/token?grant_type=account_credentials&account_id=${encodeURIComponent(accountId)}`,
+    { method: 'POST', headers: { 'Authorization': `Basic ${basic}` } }
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Zoom token error: ${res.status} ${err}`);
+  }
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function createZoomMeeting(topic, startDateStr, durationMin = 60) {
+  const token = await getZoomAccessToken();
+  // start_time must be UTC ISO 8601 (yyyy-MM-ddTHH:mm:ssZ)
+  const startUtc = new Date(startDateStr).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const res = await fetch('https://api.zoom.us/v2/users/me/meetings', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      topic,
+      type: 2, // scheduled meeting
+      start_time: startUtc,
+      duration: durationMin,
+      timezone: 'Asia/Tokyo',
+      settings: {
+        auto_recording: 'cloud',
+        auto_start_meeting_summary: true,
+        who_will_receive_summary: 1,
+        auto_start_ai_companion_questions: false,
+      }
+    })
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Zoom meeting create error: ${res.status} ${err}`);
+  }
+  const data = await res.json();
+  return data.join_url;
+}
+
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -270,6 +318,29 @@ P登録状況: ${properties.premiumStatus || ''}`;
 
       console.log('Booking updated successfully');
 
+      // ── Zoom ミーティング作成（失敗しても予約はそのまま通す）──────────────
+      let zoomJoinUrl = null;
+      if (process.env.ZOOM_ENABLED === 'true') {
+        try {
+          zoomJoinUrl = await createZoomMeeting(properties.summary || '予約', bookingDateStr);
+          console.log('✅ Zoom meeting created:', zoomJoinUrl);
+
+          // カレンダーの説明にZOOMリンクを追記
+          const descWithZoom = description + `\nZOOMリンク: ${zoomJoinUrl}`;
+          await calendar.events.patch({
+            calendarId: GOOGLE_CALENDAR_ID,
+            eventId: sessionEvent.id,
+            requestBody: { description: descWithZoom }
+          });
+          console.log('✅ Zoom link saved to calendar description');
+        } catch (zoomError) {
+          console.error('❌ Zoom creation failed (booking proceeds):', zoomError.message);
+          await sendChatWorkSystemAlert(
+            `[エラー] Zoom作成失敗（予約自体は完了済み）\nお名前: ${properties.summary}\n日時: ${bookingDateStr}\n${zoomError.message}`
+          );
+        }
+      }
+
       // 予約完了後の重複検証（アラート送信用）
       try {
         const verifyResponse = await calendar.events.list({
@@ -310,7 +381,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
             formattedDate = `${year}年${parseInt(month)}月${parseInt(day)}日 ${parseInt(hour)}時`;
           }
 
-          const message = `【予約完了】\n\n日付: ${formattedDate}\nお名前: ${properties.summary}\n${properties.remarks ? `備考: ${properties.remarks}\n` : ''}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
+          const zoomLine = zoomJoinUrl ? `\nZoom: ${zoomJoinUrl}` : '';
+          const message = `【予約完了】\n\n日付: ${formattedDate}\nお名前: ${properties.summary}\n${properties.remarks ? `備考: ${properties.remarks}\n` : ''}${zoomLine}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
 
           await fetch('https://api.line.me/v2/bot/message/push', {
             method: 'POST',
@@ -335,7 +407,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
       const { dateStr: lineDateStr, hourStr: lineHourStr } = formatBookingDateTime(bookingDateStr);
       const lineChannelTitle = lineChannel === 'personC' ? 'PersonC（LINE連携）' : 'PersonA（LINE連携）';
       const lineChannelRoute = lineChannel === 'personC' ? 'まえかぶLINE（PersonC）' : '公認LINE（PersonA）';
-      await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】${lineChannelTitle}[/title]日付: ${lineDateStr} ${lineHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${lineChannelRoute}\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
+      const zoomChatLine = zoomJoinUrl ? `\nZoom: ${zoomJoinUrl}` : '';
+      await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】${lineChannelTitle}[/title]日付: ${lineDateStr} ${lineHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: ${lineChannelRoute}\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}${zoomChatLine}[/info]`);
 
       return {
         statusCode: 200,

@@ -100,7 +100,11 @@ const CalendarBooking = () => {
         : process.env.REACT_APP_LIFF_ID;
       if (liffId) {
         liff.init({ liffId }).then(async () => {
-          if (liff.isLoggedIn()) {
+          // リダイレクト戻りの場合のみセッション作成・ポップアップ表示
+          // （キャッシュ済みトークンによる自動ポップアップを防ぐ）
+          const pending = sessionStorage.getItem('liff_login_pending');
+          if (liff.isLoggedIn() && pending) {
+            sessionStorage.removeItem('liff_login_pending');
             try {
               const profile = await liff.getProfile();
               const response = await fetch('/.netlify/functions/line-session-create', {
@@ -1495,7 +1499,7 @@ const CalendarBooking = () => {
                 <button
                   onClick={() => {
                     setShowCompletionModal(false);
-                    window.open('line://', '_blank');
+                    window.open('https://line.me/', '_blank');
                   }}
                   className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
                 >
@@ -1714,7 +1718,14 @@ const CalendarBooking = () => {
                     <div className="space-y-4">
                       <button
                         onClick={() => {
-                          liff.login({ redirectUri: window.location.href });
+                          if (liff.isLoggedIn()) {
+                            // キャッシュ済みトークンがある場合は直接セッション作成
+                            sessionStorage.setItem('liff_login_pending', '1');
+                            window.location.reload();
+                          } else {
+                            sessionStorage.setItem('liff_login_pending', '1');
+                            liff.login({ redirectUri: window.location.href });
+                          }
                         }}
                         className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"
                       >
