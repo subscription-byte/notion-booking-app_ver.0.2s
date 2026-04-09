@@ -1499,7 +1499,7 @@ const CalendarBooking = () => {
                 <button
                   onClick={() => {
                     setShowCompletionModal(false);
-                    window.location.href = 'https://line.me/R/';
+                    window.location.href = 'line://home';
                   }}
                   className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold text-sm rounded-xl shadow-lg active:scale-95 transition-transform"
                 >
