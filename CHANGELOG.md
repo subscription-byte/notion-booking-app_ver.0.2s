@@ -1,5 +1,23 @@
 ## 最新の変更履歴
 
+### 2026年4月9日
+- **機能追加**: 予約時にZoomミーティングを自動作成
+  - `google-calendar-create.js`: `ZOOM_ENABLED=true` のとき予約確定後にZoomミーティングを作成
+  - Server-to-Server OAuth（`account_credentials`）でアクセストークンを取得
+  - 作成成功時: カレンダー説明末尾に `ZOOMリンク: {url}` を追記、LINE通知・ChatWork通知にも含める
+  - 作成失敗時: ChatWorkにアラート送信のみで予約はそのまま完了（ノンブロッキング）
+  - 環境変数: `ZOOM_ENABLED` / `ZOOM_ACCOUNT_ID` / `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET`
+  - ミーティング設定: タイプ2（スケジュール済み）、タイムゾーンAsia/Tokyo、クラウド録画ON、サマリー自動生成ON
+- **バグ修正**: LIFFログイン後にノータイムで連携完了ポップアップが出る問題を修正
+  - `CalendarBooking.jsx`: `sessionStorage` の `liff_login_pending` フラグでボタン押下後のリダイレクト戻りのみセッション作成・ポップアップを表示
+  - キャッシュ済みLIFFトークンによる意図しない即時ポップアップを防止
+- **バグ修正**: 予約完了後の「LINEを開く」ボタンがLINEアプリではなくウェブサイトを開く問題を修正
+  - `CalendarBooking.jsx`: `https://line.me/` → `https://line.me/R/`（アプリ起動用ディープリンク）に変更
+- **不要コード削除**: 旧LINE OAuth関連ファイル・環境変数を削除
+  - `line-callback.js` / `line-callback-c.js` を削除（LIFF移行済みにより不要）
+  - Netlify環境変数 `LINE_CHANNEL_ID` / `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_ID_C` / `LINE_CHANNEL_SECRET_C` / `REACT_APP_LINE_CHANNEL_ID` / `REACT_APP_LINE_CHANNEL_ID_C` を削除
+  - AWS Lambda 4KB環境変数制限対応のため不要変数を整理
+
 ### 2026年4月8日
 - **バグ修正**: 予約確定ボタンの連打によるセッション二重送信を防止
   - `CalendarBooking.jsx`: `isBookingRef`（useRef）を追加し同期的に連打をブロック
