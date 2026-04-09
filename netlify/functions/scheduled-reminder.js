@@ -31,6 +31,9 @@ exports.handler = async (event, context) => {
     const jstNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
     console.log('Current time (JST):', jstNow.toISOString(), { runId });
 
+    // 24時間以上経過した仮登録セッションを削除
+    await cleanupStaleSessions(runId);
+
     const summary = await sendDayBeforeReminders(jstNow, runId);
     console.log('Scheduled reminder summary:', JSON.stringify({ runId, ...summary }));
 
@@ -228,6 +231,40 @@ async function sendDayBeforeReminders(jstNow, runId) {
 
   summary.errors = summary.errors.slice(0, MAX_ERROR_DETAILS);
   return summary;
+}
+
+async function cleanupStaleSessions(runId) {
+  try {
+    const calendar = getCalendarClient();
+    const calendarId = process.env.GOOGLE_CALENDAR_ID;
+
+    const res = await calendar.events.list({
+      calendarId,
+      timeMin: new Date('2099-01-01T00:00:00Z').toISOString(),
+      timeMax: new Date('2100-01-01T00:00:00Z').toISOString(),
+      singleEvents: true,
+      maxResults: 500,
+    });
+
+    const events = res.data.items || [];
+    const now = Date.now();
+    const stale = events.filter(e => {
+      const props = e.extendedProperties?.private || {};
+      if (props.bookingStatus !== '仮登録') return false;
+      const age = now - new Date(e.created).getTime();
+      return age > 24 * 60 * 60 * 1000; // 24時間超
+    });
+
+    console.log(`🧹 Stale sessions to delete: ${stale.length}`, { runId });
+
+    for (const e of stale) {
+      await calendar.events.delete({ calendarId, eventId: e.id });
+      console.log(`🗑️ Deleted stale session: ${e.id}`, { runId });
+    }
+  } catch (error) {
+    console.error('cleanupStaleSessions error:', error, { runId });
+    await sendChatWorkSystemAlert(`[エラー] 仮登録セッション削除失敗\n${error.message}`);
+  }
 }
 
 async function sendChatWorkReminderReport(summary, runId) {
