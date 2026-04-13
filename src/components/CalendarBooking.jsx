@@ -1050,12 +1050,17 @@ const CalendarBooking = () => {
       return 'booked';
     }
 
-    const dateString = date.getFullYear() + '-' + 
-                      String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+    const dateString = date.getFullYear() + '-' +
+                      String(date.getMonth() + 1).padStart(2, '0') + '-' +
                       String(date.getDate()).padStart(2, '0');
 
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
+
+    // 開始まで24時間未満の枠は予約不可
+    if (slotStart.getTime() - Date.now() < 24 * 60 * 60 * 1000) {
+      return 'booked';
+    }
 
     // 対面通話のブロック判定
     const hasBlockedTimeForInPerson = events.some(event =>

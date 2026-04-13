@@ -173,6 +173,14 @@ exports.handler = async (event, context) => {
         };
       }
 
+      // 24時間以内の予約は不可
+      if (bookingDate.getTime() - Date.now() < 24 * 60 * 60 * 1000) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ error: 'Bookings within 24 hours are not allowed' })
+        };
+      }
+
       // JSTの日付・時刻を取得（UTCから+9時間）
       const jstOffset = 9 * 60; // 分単位
       const jstDate = new Date(bookingDate.getTime() + jstOffset * 60 * 1000);
