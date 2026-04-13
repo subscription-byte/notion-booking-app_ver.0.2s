@@ -290,7 +290,7 @@ const CalendarBooking = () => {
       // 前週データの取得（offset 0以上の場合のみ）
       if (offset - 1 >= 0) {
         // キャッシュに前週データがあるか確認（有効期限チェック）
-        const cachedPrev = allWeeksData[prevWeekKey];
+        const cachedPrev = allWeeksDataRef.current[prevWeekKey];
         const isPrevCacheValid = cachedPrev && (Date.now() - cachedPrev.timestamp < CACHE_EXPIRY_MS);
 
         if (isPrevCacheValid) {
@@ -329,7 +329,7 @@ const CalendarBooking = () => {
       }
 
       // キャッシュに翌週データがあるか確認（有効期限チェック）
-      const cachedNext = allWeeksData[nextWeekKey];
+      const cachedNext = allWeeksDataRef.current[nextWeekKey];
       const isNextCacheValid = cachedNext && (Date.now() - cachedNext.timestamp < CACHE_EXPIRY_MS);
 
       if (isNextCacheValid) {
@@ -367,7 +367,7 @@ const CalendarBooking = () => {
       }
 
       // 翌々週データの事前読み込み（キャッシュ期限チェック）
-      const cachedNextNext = allWeeksData[nextNextWeekKey];
+      const cachedNextNext = allWeeksDataRef.current[nextNextWeekKey];
       const isNextNextCacheValid = cachedNextNext && (Date.now() - cachedNextNext.timestamp < CACHE_EXPIRY_MS);
 
       if (!isNextNextCacheValid) {
@@ -959,6 +959,7 @@ const CalendarBooking = () => {
 
         // キャッシュに一括保存（タイムスタンプ付き）
         setAllWeeksData(allWeeksCache);
+        allWeeksDataRef.current = allWeeksCache; // Refを即座に同期（state更新の非同期を回避）
         console.log('4週分のキャッシュ保存完了:', Object.keys(allWeeksCache), 'タイムスタンプ:', new Date().toLocaleTimeString());
 
         // 空きのある週を探す（キャッシュから）
