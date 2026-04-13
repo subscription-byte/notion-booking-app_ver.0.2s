@@ -1,5 +1,13 @@
 ## 最新の変更履歴
 
+### 2026年4月10日
+- **機能追加**: 開始24時間未満の予約枠を一律ブロック
+  - `CalendarBooking.jsx`: `getBookingStatus` でslotStartまで24h未満の場合は `booked` 扱いで表示
+  - `google-calendar-create.js`: 同条件で403を返すバックエンドチェックを追加
+- **バグ修正**: 週移動時に3週目で再読み込みが発生する問題を修正
+  - `CalendarBooking.jsx`: `fetchAdjacentWeeksData` 内のキャッシュ参照を `allWeeksData`（state）から `allWeeksDataRef.current` に変更
+  - 初回4週分一括取得後に `allWeeksDataRef.current` を即座に同期し、state更新の非同期タイミングによるキャッシュ未ヒットを解消
+
 ### 2026年4月9日
 - **機能追加**: 予約時にZoomミーティングを自動作成
   - `google-calendar-create.js`: `ZOOM_ENABLED=true` のとき予約確定後にZoomミーティングを作成
