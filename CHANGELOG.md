@@ -39,23 +39,13 @@
   - 余白・フォントサイズ・padding を縮小しボタン見切れを解消
   - 文言修正: 「翌営業日のお返事」→「翌営業日以降でのお返事」
 
-### 2026年4月8日
+### 2026年4月7日
 - **機能改修**: LINE認証をLIFF方式に移行（外部ブラウザ対応）
   - `@line/liff` パッケージを追加
   - `line-session-create.js` を新規作成（LIFFからのプロフィール受け取り→Googleカレンダーにセッション保存）
   - `CalendarBooking.jsx`: `window.location.href` によるOAuthリダイレクトを `liff.init()` → `liff.login()` → `getProfile()` フローに置き換え
   - `netlify.toml`: `REACT_APP_LIFF_ID` / `REACT_APP_LIFF_ID_C` を追加
   - 外部ブラウザからLINE連携を行うと新タブが開いて `auth_failed` になる問題を根本解決
-
-### 2026年3月26日
-- **リファクタリング**: 日時フォーマット関数を `shared/dateUtils.js` に一本化
-  - `shared/dateUtils.js` を新規作成: タイムゾーン注意コメント付きで3関数を集約
-    - `formatDateTime(isoString)` - ISO文字列から「年月日 時」を正規表現で安全に抽出
-    - `formatBookingDateTime(isoString)` - 日付と時刻を分割して返す
-    - `formatDateJST(jstDate)` - JST調整済みDateから "YYYY-MM-DD" を返す
-  - `shared/messageTemplates.js`: ローカル定義を削除し `dateUtils` からインポート
-  - `google-calendar-create.js`: ローカル `formatBookingDateTime` を削除し `dateUtils` からインポート
-  - `scheduled-reminder.js`: ローカル `formatDate` / `formatDateTime` を削除し `dateUtils` からインポート
 
 ### 2026年3月27日
 - **機能強化**: 全Netlify FunctionsのエラーをChatWorkに通知
@@ -64,8 +54,6 @@
   - `google-calendar-delete.js`: 削除失敗をアラート通知
   - `google-calendar-query.js`: カレンダー取得失敗をアラート通知
   - `line-callback.js` / `line-callback-c.js`: LINEコールバック失敗をアラート通知
-
-### 2026年3月27日
 - **バグ修正**: PersonA/PersonC のcolorId割り当てを正しい仕様に再修正
   - `google-calendar-create.js`: PersonA='11'（トマト/赤）、PersonC='2'（セージ/緑）が正仕様（前回の誤修正を戻し）
 - **機能強化**: 前日リマインドの異常をChatWorkに通知するよう強化
@@ -77,7 +65,15 @@
   - `node_bundler = "esbuild"` を追加
   - `scheduled-reminder.js` の `export const config` を削除（netlify.tomlで一元管理）
 
-### 2026年3月26日
+### 2026年3月30日
+- **リファクタリング**: 日時フォーマット関数を `shared/dateUtils.js` に一本化
+  - `shared/dateUtils.js` を新規作成: タイムゾーン注意コメント付きで3関数を集約
+    - `formatDateTime(isoString)` - ISO文字列から「年月日 時」を正規表現で安全に抽出
+    - `formatBookingDateTime(isoString)` - 日付と時刻を分割して返す
+    - `formatDateJST(jstDate)` - JST調整済みDateから "YYYY-MM-DD" を返す
+  - `shared/messageTemplates.js`: ローカル定義を削除し `dateUtils` からインポート
+  - `google-calendar-create.js`: ローカル `formatBookingDateTime` を削除し `dateUtils` からインポート
+  - `scheduled-reminder.js`: ローカル `formatDate` / `formatDateTime` を削除し `dateUtils` からインポート
 - **バグ修正**: セッションフローのカレンダー場所欄がPersonA/C共通になっていた問題を修正
   - `google-calendar-create.js`: PersonA=`公式LINE（公認）`、PersonC=`公式LINE（まえかぶ）` に分岐
 - **修正**: PersonCのリダイレクト設定が未登録だった問題を修正
@@ -85,8 +81,6 @@
 - **ドキュメント整備**: README のPersonC関連記述を追加・全環境変数を網羅
   - アクセスURL・LINE連携・環境変数セクションにPersonC情報を追記
   - 環境変数セクションをPersonA/C両対応の全量記載に更新
-
-### 2026年3月26日
 - **バグ修正**: GoogleカレンダーへのPersonA/PersonC色ID書き込みが逆になっていた問題を修正（誤修正を再修正）
   - `google-calendar-create.js`: PersonA='11'（トマト/赤）、PersonC='2'（セージ/緑）が正しい仕様
   - `docs/google-calendar-api.md` / `README.md` / `CHANGELOG.md`: 関連ドキュメントの色ID記述も全て修正
