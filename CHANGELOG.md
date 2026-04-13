@@ -1,5 +1,7 @@
 ## 最新の変更履歴
 
+> 日付は `git log --format="%ad %s" --date=short` の実際のコミット日付を基準に記載する。
+
 ### 2026年4月10日
 - **機能追加**: 開始24時間未満の予約枠を一律ブロック
   - `CalendarBooking.jsx`: `getBookingStatus` でslotStartまで24h未満の場合は `booked` 扱いで表示

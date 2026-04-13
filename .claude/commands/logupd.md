@@ -23,4 +23,4 @@
 
 注意:
 - README.mdは更新しない（変更履歴は CHANGELOG.md のみに記載）
-- 日付は今日の日付を使用
+- 日付は `git log --format="%ad %s" --date=short` で実際のコミット日付を確認してから記載する（会話中の「今日の日付」ではなくgit logを正とする）
