@@ -533,6 +533,28 @@ P登録状況: ${properties.premiumStatus || ''}`;
       }
     });
 
+    // ── Zoom ミーティング作成（失敗しても予約はそのまま通す）──────────────
+    let zoomJoinUrlNorm = null;
+    if (process.env.ZOOM_ENABLED === 'true') {
+      try {
+        zoomJoinUrlNorm = await createZoomMeeting(properties.summary || '予約', bookingDateStr);
+        console.log('✅ Zoom meeting created:', zoomJoinUrlNorm);
+
+        const descWithZoom = description + `\nZOOMリンク: ${zoomJoinUrlNorm}`;
+        await calendar.events.patch({
+          calendarId: GOOGLE_CALENDAR_ID,
+          eventId: newEvent.data.id,
+          requestBody: { description: descWithZoom }
+        });
+        console.log('✅ Zoom link saved to calendar description');
+      } catch (zoomError) {
+        console.error('❌ Zoom creation failed (booking proceeds):', zoomError.message);
+        await sendChatWorkSystemAlert(
+          `[エラー] Zoom作成失敗（予約自体は完了済み）\nお名前: ${properties.summary}\n日時: ${bookingDateStr}\n${zoomError.message}`
+        );
+      }
+    }
+
     // 予約完了後の重複検証（アラート送信用）
     try {
       const verifyNormResponse = await calendar.events.list({
@@ -563,7 +585,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
 
     // ChatWork予約完了通知（通常予約）
     const { dateStr: normDateStr, hourStr: normHourStr } = formatBookingDateTime(bookingDateStr);
-    await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】通常予約[/title]日付: ${normDateStr} ${normHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: X DM（通常）\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}[/info]`);
+    const zoomChatLineNorm = zoomJoinUrlNorm ? `\nZoom: ${zoomJoinUrlNorm}` : '';
+    await sendChatWorkBookingNotice(bookingDateStr, `[info][title]【予約完了】通常予約[/title]日付: ${normDateStr} ${normHourStr}\nお名前: ${properties.summary || ''}\nXリンク: ${properties.xLink || 'なし'}\n備考: ${properties.remarks || 'なし'}\n経路: X DM（通常）\nmyfans登録: ${properties.myfansStatus || ''}\nP登録: ${properties.premiumStatus || ''}${zoomChatLineNorm}[/info]`);
 
     return {
       statusCode: 200,
