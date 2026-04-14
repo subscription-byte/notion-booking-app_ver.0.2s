@@ -1003,7 +1003,7 @@ const CalendarBooking = () => {
     };
 
     initializeWithAvailableWeek();
-  }, [weekDates]); // weekDates が準備できたら実行
+  }, [weekOffset]); // weekOffset が変わったら実行（weekDatesは毎renderで新オブジェクトになるため参照比較が不安定）
 
   // allWeeksDataの変更をRefに同期
   useEffect(() => {
@@ -1030,7 +1030,7 @@ const CalendarBooking = () => {
         alert('セッションがタイムアウトしました。\n最新の情報を表示するためページを更新します。');
         window.location.reload();
       }
-    }, 1000); // 1秒ごとにチェック
+    }, 60000); // 1分ごとにチェック
 
     // クリーンアップ
     return () => {

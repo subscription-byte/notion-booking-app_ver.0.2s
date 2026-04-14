@@ -230,7 +230,7 @@ exports.handler = async (event, context) => {
 
       console.log(`[重複チェック] slotStart=${slotStart.toISOString()} slotEnd=${slotEnd.toISOString()} 取得イベント数=${existingEvents.length}`);
 
-      // 既存予約との重複チェック（仮登録以外）
+      // 重複・対面・撮影ブロックチェック（仮登録以外）
       for (const evt of existingEvents) {
         const eventStatus = evt.extendedProperties?.private?.bookingStatus;
         if (eventStatus === '仮登録') continue;
@@ -240,39 +240,15 @@ exports.handler = async (event, context) => {
 
         console.log(`[重複チェック] イベント: "${evt.summary}" start=${existingStart.toISOString()} end=${existingEnd.toISOString()} colorId=${evt.colorId || 'none'} status=${eventStatus || 'none'}`);
 
-        // 直接の時間重複チェック
         if (existingStart < slotEnd && existingEnd > slotStart) {
           console.log(`[重複チェック] 重複検出 → 409返却`);
-          return {
-            statusCode: 409,
-            body: JSON.stringify({ error: 'This time slot is already booked' })
-          };
+          return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is already booked' }) };
         }
-      }
-
-      // 対面通話ブロックチェック
-      for (const evt of existingEvents) {
-        const eventStatus = evt.extendedProperties?.private?.bookingStatus;
-        if (eventStatus === '仮登録') continue;
-
         if (isInPersonBlocked(evt, slotStart, slotEnd)) {
-          return {
-            statusCode: 409,
-            body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' })
-          };
+          return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' }) };
         }
-      }
-
-      // 撮影ブロックチェック
-      for (const evt of existingEvents) {
-        const eventStatus = evt.extendedProperties?.private?.bookingStatus;
-        if (eventStatus === '仮登録') continue;
-
         if (isShootingBlocked(evt, slotStart, slotEnd)) {
-          return {
-            statusCode: 409,
-            body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' })
-          };
+          return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' }) };
         }
       }
 
@@ -494,36 +470,19 @@ P登録状況: ${properties.premiumStatus || ''}`;
     const slotStart = new Date(bookingDateStr);
     const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
-    // 既存予約との重複チェック
+    // 重複・対面・撮影ブロックチェック
     for (const evt of existingEvents) {
       const existingStart = new Date(evt.start.dateTime || evt.start.date);
       const existingEnd = new Date(evt.end.dateTime || evt.end.date || new Date(existingStart.getTime() + 60 * 60 * 1000));
 
       if (existingStart < slotEnd && existingEnd > slotStart) {
-        return {
-          statusCode: 409,
-          body: JSON.stringify({ error: 'This time slot is already booked' })
-        };
+        return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is already booked' }) };
       }
-    }
-
-    // 対面通話ブロックチェック
-    for (const evt of existingEvents) {
       if (isInPersonBlocked(evt, slotStart, slotEnd)) {
-        return {
-          statusCode: 409,
-          body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' })
-        };
+        return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is blocked due to an in-person appointment' }) };
       }
-    }
-
-    // 撮影ブロックチェック
-    for (const evt of existingEvents) {
       if (isShootingBlocked(evt, slotStart, slotEnd)) {
-        return {
-          statusCode: 409,
-          body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' })
-        };
+        return { statusCode: 409, body: JSON.stringify({ error: 'This time slot is blocked due to a shooting session' }) };
       }
     }
 

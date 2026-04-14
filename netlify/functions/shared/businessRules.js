@@ -112,8 +112,10 @@ const isShootingBlocked = (event, slotStart, slotEnd) => {
   const existingStart = new Date(eventStart);
   const existingEnd = new Date(eventEnd || new Date(existingStart.getTime() + TIME_MS.HOUR));
 
-  const dayStart = new Date(existingStart);
-  dayStart.setHours(BLOCKING_SETTINGS.shooting.startHour, 0, 0, 0);
+  // JSTで当日の startHour 時を計算（NetlifyはUTC環境のためsetHoursは使わない）
+  const existingStartJST = new Date(existingStart.getTime() + 9 * 60 * 60 * 1000);
+  const jstDateStr = `${existingStartJST.getUTCFullYear()}-${String(existingStartJST.getUTCMonth()+1).padStart(2,'0')}-${String(existingStartJST.getUTCDate()).padStart(2,'0')}`;
+  const dayStart = new Date(`${jstDateStr}T${String(BLOCKING_SETTINGS.shooting.startHour).padStart(2,'0')}:00:00+09:00`);
   const blockEnd = new Date(existingEnd.getTime() + BLOCKING_SETTINGS.shooting.afterHours * TIME_MS.HOUR);
 
   return (dayStart < slotEnd && blockEnd > slotStart);

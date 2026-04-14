@@ -97,12 +97,9 @@ async function fetchBookingsForDate(dateStr) {
   });
 }
 
-async function markDayBeforeReminderSent(eventId) {
+async function markDayBeforeReminderSent(eventId, existingPrivateProps) {
   const calendar = getCalendarClient();
   const calendarId = process.env.GOOGLE_CALENDAR_ID;
-
-  const event = await calendar.events.get({ calendarId, eventId });
-  const existing = event.data.extendedProperties?.private || {};
 
   await calendar.events.patch({
     calendarId,
@@ -110,7 +107,7 @@ async function markDayBeforeReminderSent(eventId) {
     requestBody: {
       extendedProperties: {
         private: {
-          ...existing,
+          ...existingPrivateProps,
           dayBeforeReminderSent: 'true',
         }
       }
@@ -220,7 +217,7 @@ async function sendDayBeforeReminders(jstNow, runId) {
     }
 
     try {
-      await markDayBeforeReminderSent(booking.id);
+      await markDayBeforeReminderSent(booking.id, props);
       summary.success += 1;
       console.log('✅ Day-before reminder sent:', booking.id, { runId });
     } catch (error) {
