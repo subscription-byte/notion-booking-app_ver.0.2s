@@ -49,6 +49,9 @@ const CalendarBooking = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
+  const [isLiffLoading, setIsLiffLoading] = useState(false);
+  const [isLiffInitialized, setIsLiffInitialized] = useState(false);
+  const [liffSuccessName, setLiffSuccessName] = useState('');
   const [systemStatus, setSystemStatus] = useState({
     healthy: true,
     message: '',
@@ -95,16 +98,21 @@ const CalendarBooking = () => {
 
     // LIFF初期化（LINEログインルートのみ）
     if (config.mode === 'lineLogin') {
+      // リダイレクト戻り検出：ページ表示直後からローディングを出す
+      // LINEブラウザでsessionStorageが消える場合に備えlocalStorageも併用
+      const pendingCheck = sessionStorage.getItem('liff_login_pending') || localStorage.getItem('liff_login_pending');
+      if (pendingCheck) setIsLiffLoading(true);
+
       const liffId = ref === 'personC'
         ? process.env.REACT_APP_LIFF_ID_C
         : process.env.REACT_APP_LIFF_ID;
       if (liffId) {
         liff.init({ liffId }).then(async () => {
-          // リダイレクト戻りの場合のみセッション作成・ポップアップ表示
-          // （キャッシュ済みトークンによる自動ポップアップを防ぐ）
-          const pending = sessionStorage.getItem('liff_login_pending');
+          setIsLiffInitialized(true);
+          const pending = sessionStorage.getItem('liff_login_pending') || localStorage.getItem('liff_login_pending');
           if (liff.isLoggedIn() && pending) {
             sessionStorage.removeItem('liff_login_pending');
+            localStorage.removeItem('liff_login_pending');
             try {
               const profile = await liff.getProfile();
               const response = await fetch('/.netlify/functions/line-session-create', {
@@ -116,17 +124,24 @@ const CalendarBooking = () => {
               if (data.sessionId) {
                 setSessionId(data.sessionId);
                 setCustomerName(profile.displayName);
+                setIsLiffLoading(false);
                 setShowInitialForm(false);
-                alert(ALERT_MESSAGES.lineLoginSuccess(profile.displayName));
+                setLiffSuccessName(profile.displayName);
+                setTimeout(() => setLiffSuccessName(''), 3000);
               } else {
+                setIsLiffLoading(false);
                 alert(ALERT_MESSAGES.lineLoginError(data.error || 'セッション作成失敗'));
               }
             } catch (e) {
+              setIsLiffLoading(false);
               alert(ALERT_MESSAGES.lineLoginError(e.message));
             }
+          } else {
+            setIsLiffLoading(false);
           }
         }).catch(e => {
           console.error('LIFF init error:', e);
+          setIsLiffLoading(false);
         });
       }
     }
@@ -1600,6 +1615,30 @@ const CalendarBooking = () => {
             )}
           </div>
 
+          {/* LINE処理中ローディングオーバーレイ */}
+          {isLiffLoading && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-70">
+              <div className="bg-white rounded-2xl p-8 max-w-xs w-full mx-4 text-center shadow-2xl">
+                <div className="w-14 h-14 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-800 font-bold text-lg mb-1">LINE連携中...</p>
+                <p className="text-gray-500 text-sm">しばらくお待ちください</p>
+              </div>
+            </div>
+          )}
+
+          {/* LINE連携成功トースト */}
+          {liffSuccessName && (
+            <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 w-full max-w-sm px-4">
+              <div className="bg-green-500 text-white rounded-xl px-5 py-3 shadow-2xl flex items-center gap-3 animate-bounce-once">
+                <i className="fab fa-line text-2xl"></i>
+                <div>
+                  <p className="font-bold text-sm">LINE連携が完了しました</p>
+                  <p className="text-xs opacity-90">こんにちは、{liffSuccessName}さん</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* メインコンテンツ */}
           <div className="p-1.5 sm:p-4 space-y-2 sm:space-y-4">
             {/* 初期フォーム画面（LINE連携 or 名前入力） */}
@@ -1724,19 +1763,25 @@ const CalendarBooking = () => {
                     <div className="space-y-4">
                       <button
                         onClick={() => {
-                          if (liff.isLoggedIn()) {
-                            // キャッシュ済みトークンがある場合は直接セッション作成
+                          setIsLiffLoading(true);
+                          try {
                             sessionStorage.setItem('liff_login_pending', '1');
-                            window.location.reload();
-                          } else {
-                            sessionStorage.setItem('liff_login_pending', '1');
-                            liff.login({ redirectUri: window.location.href });
+                            localStorage.setItem('liff_login_pending', '1');
+                            if (liff.isLoggedIn()) {
+                              window.location.reload();
+                            } else {
+                              liff.login({ redirectUri: window.location.href });
+                            }
+                          } catch (e) {
+                            setIsLiffLoading(false);
+                            console.error('LIFF login error:', e);
                           }
                         }}
-                        className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center"
+                        disabled={!isLiffInitialized || isLiffLoading}
+                        className="w-full py-4 rounded-xl font-bold text-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-2xl transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <i className="fab fa-line mr-2 text-2xl"></i>
-                        LINEで予約する
+                        {isLiffLoading ? '処理中...' : 'LINEで予約する'}
                       </button>
 
                       <p className="text-xs text-gray-500 text-center">
