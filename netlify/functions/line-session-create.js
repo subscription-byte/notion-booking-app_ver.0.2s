@@ -14,6 +14,21 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'userId and displayName are required' }) };
     }
 
+    // 友達追加チェック（未追加の場合は早期return）
+    const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    if (LINE_CHANNEL_ACCESS_TOKEN) {
+      const friendRes = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
+        headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
+      });
+      if (!friendRes.ok) {
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ error: 'not_friend' })
+        };
+      }
+    }
+
     const GOOGLE_CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
     const GOOGLE_SERVICE_ACCOUNT_KEY = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 

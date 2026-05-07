@@ -52,6 +52,7 @@ const CalendarBooking = () => {
   const [isLiffLoading, setIsLiffLoading] = useState(false);
   const [isLiffInitialized, setIsLiffInitialized] = useState(false);
   const [liffSuccessName, setLiffSuccessName] = useState('');
+  const [showAddFriend, setShowAddFriend] = useState(false);
   const [systemStatus, setSystemStatus] = useState({
     healthy: true,
     message: '',
@@ -128,6 +129,9 @@ const CalendarBooking = () => {
                 setShowInitialForm(false);
                 setLiffSuccessName(profile.displayName);
                 setTimeout(() => setLiffSuccessName(''), 3000);
+              } else if (data.error === 'not_friend') {
+                setIsLiffLoading(false);
+                setShowAddFriend(true);
               } else {
                 setIsLiffLoading(false);
                 alert(ALERT_MESSAGES.lineLoginError(data.error || 'セッション作成失敗'));
@@ -1622,6 +1626,39 @@ const CalendarBooking = () => {
                 <div className="w-14 h-14 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="text-gray-800 font-bold text-lg mb-1">LINE連携中...</p>
                 <p className="text-gray-500 text-sm">しばらくお待ちください</p>
+              </div>
+            </div>
+          )}
+
+          {/* 友達追加促進画面 */}
+          {showAddFriend && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+              <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+                <div className="text-5xl mb-4">💬</div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">友達追加が必要です</h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  予約確認・リマインドをLINEでお送りするため、先に公式アカウントを友達追加してください。
+                </p>
+                <a
+                  href="https://line.me/R/ti/p/@567kljll"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-xl font-bold text-lg bg-green-500 text-white mb-3"
+                  onClick={() => setShowAddFriend(false)}
+                >
+                  <i className="fab fa-line mr-2"></i>友達追加する
+                </a>
+                <button
+                  onClick={() => {
+                    setShowAddFriend(false);
+                    sessionStorage.setItem('liff_login_pending', '1');
+                    localStorage.setItem('liff_login_pending', '1');
+                    window.location.reload();
+                  }}
+                  className="w-full py-3 rounded-xl font-bold text-sm bg-gray-100 text-gray-700"
+                >
+                  追加しました、予約に進む
+                </button>
               </div>
             </div>
           )}
