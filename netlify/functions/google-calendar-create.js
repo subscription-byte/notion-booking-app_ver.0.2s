@@ -253,13 +253,15 @@ exports.handler = async (event, context) => {
       }
 
       // イベント更新
+      const lineUserIdForDesc = sessionEvent.extendedProperties?.private?.lineUserId || '';
       const description = `予約者: ${properties.summary || ''}
 Xリンク: ${properties.xLink || ''}
 備考: ${properties.remarks || ''}
 経路: ${properties.route || ''}
 通話方法: ${properties.callMethod || ''}
 myfans登録状況: ${properties.myfansStatus || ''}
-P登録状況: ${properties.premiumStatus || ''}`;
+P登録状況: ${properties.premiumStatus || ''}
+LINE User ID: ${lineUserIdForDesc}`;
 
       // 場所情報を設定（一覧で見やすいように）
       const lineChannelForLocation = sessionEvent.extendedProperties?.private?.lineChannel || 'personA';
@@ -368,7 +370,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
           const zoomLine = zoomJoinUrl ? `\nZoom: ${zoomJoinUrl}` : '';
           const message = `【予約完了】\n\n日付: ${formattedDate}\nお名前: ${properties.summary}\n${properties.remarks ? `備考: ${properties.remarks}\n` : ''}${zoomLine}\n予約が完了しました！\n担当者から折り返しご連絡いたします。`;
 
-          await fetch('https://api.line.me/v2/bot/message/push', {
+          const lineRes = await fetch('https://api.line.me/v2/bot/message/push', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -380,7 +382,12 @@ P登録状況: ${properties.premiumStatus || ''}`;
             })
           });
 
-          console.log('LINE notification sent successfully');
+          if (!lineRes.ok) {
+            const errBody = await lineRes.text();
+            await sendChatWorkSystemAlert(`[エラー] 予約完了LINE通知失敗（${lineChannel}）\nお名前: ${properties.summary}\nステータス: ${lineRes.status}\n${errBody}`);
+          } else {
+            console.log('LINE notification sent successfully');
+          }
         } catch (lineError) {
           console.error('LINE notification error:', lineError);
           await sendChatWorkSystemAlert(`[エラー] 予約完了LINE通知失敗（${lineChannel}）\nお名前: ${properties.summary}\n${lineError.message}`);

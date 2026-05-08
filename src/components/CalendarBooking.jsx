@@ -2582,12 +2582,13 @@ const CalendarBooking = () => {
                         </span>
                       )}
                     </label>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名をご入力ください' : 'X上でのお名前をご入力ください'}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">{routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名' : 'X上でのお名前をご入力ください'}</p>
                     <input
                       type="text"
                       value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
+                      onChange={(e) => !sessionId && setCustomerName(e.target.value)}
+                      readOnly={!!sessionId}
+                      className={`w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-300 text-sm sm:text-lg backdrop-blur ${sessionId ? 'border-green-200 bg-green-50/80 text-gray-600 cursor-default' : 'border-purple-200 focus:border-purple-500 focus:outline-none bg-white/80'}`}
                       placeholder={routeConfig?.mode === 'lineLogin' ? 'LINE上での表示名を入力' : 'X上でのお名前を入力'}
                       required
                     />
