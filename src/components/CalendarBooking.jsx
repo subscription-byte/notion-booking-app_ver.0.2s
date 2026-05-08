@@ -3,6 +3,7 @@ import FluidCanvas from './FluidCanvas';
 import { getRouteConfig } from '../config/routeConfig';
 import { BUSINESS_HOURS, generateTimeSlots, getWeekdayDates } from '../config/businessConfig';
 import { isFixedBlockedTime, isInPersonBlocked, isShootingBlocked } from '../config/blockingRules';
+import blockingRulesData from '../config/data/blockingRules.json';
 import { isUnavailableDay } from '../config/holidays';
 import { ALERT_MESSAGES, SYSTEM_SETTINGS } from '../config/uiConfig';
 import { CALENDAR_CONFIG } from '../config/apiConfig';
@@ -1077,8 +1078,9 @@ const CalendarBooking = () => {
     const slotStart = new Date(`${dateString}T${time}:00+09:00`);
     const slotEnd = new Date(`${dateString}T${String(timeHour + 1).padStart(2, '0')}:00+09:00`);
 
-    // 開始まで24時間未満の枠は予約不可
-    if (slotStart.getTime() - Date.now() < 24 * 60 * 60 * 1000) {
+    // 開始まで minAdvanceHours 未満の枠は予約不可
+    const minAdvanceMs = blockingRulesData.bookingConstraints.minAdvanceHours * 60 * 60 * 1000;
+    if (slotStart.getTime() - Date.now() < minAdvanceMs) {
       return 'booked';
     }
 

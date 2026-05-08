@@ -26,5 +26,8 @@
       "startHour": 12,
       "afterHours": 3
     }
+  },
+  "bookingConstraints": {
+    "minAdvanceHours": 24
   }
 }
