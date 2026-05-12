@@ -14,11 +14,13 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'userId and displayName are required' }) };
     }
 
-    // 友達追加チェック（未追加の場合は早期return）
-    const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-    if (LINE_CHANNEL_ACCESS_TOKEN) {
+    // 友達追加チェック（ref='personC'の場合はPersonCのトークンを使用）
+    const lineToken = ref === 'personC'
+      ? process.env.LINE_CHANNEL_ACCESS_TOKEN_C
+      : process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    if (lineToken) {
       const friendRes = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
-        headers: { 'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` }
+        headers: { 'Authorization': `Bearer ${lineToken}` }
       });
       if (!friendRes.ok) {
         return {
