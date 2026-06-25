@@ -20,6 +20,7 @@ export const ROUTE_CONFIG = {
     routeTag: '',              // 経路タグ（空＝手動入力）
     requireXLink: false,       // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須（falseでプルダウン非表示）
+    lineAddFriendUrl: 'https://line.me/R/ti/p/@567kljll',
   },
 
   // personB（?ref=personB）
@@ -36,6 +37,7 @@ export const ROUTE_CONFIG = {
     routeTag: '',              // 経路タグ（空＝手動入力）
     requireXLink: false,       // Xリンク入力必須
     requireRouteTag: false,    // 経路タグ選択必須
+    lineAddFriendUrl: 'https://line.me/R/ti/p/@232omrrz',
   },
 };
 

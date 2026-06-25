@@ -1643,7 +1643,7 @@ const CalendarBooking = () => {
                   予約確認・リマインドをLINEでお送りするため、先に公式アカウントを友達追加してください。
                 </p>
                 <a
-                  href="https://line.me/R/ti/p/@567kljll"
+                  href={routeConfig?.lineAddFriendUrl || 'https://line.me/R/ti/p/@567kljll'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full py-3 rounded-xl font-bold text-lg bg-green-500 text-white mb-3"
