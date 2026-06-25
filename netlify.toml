@@ -5,7 +5,7 @@
 [build.environment]
   REACT_APP_LINE_CHANNEL_ID = "2008606907"
   REACT_APP_LIFF_ID = "2008606907-O9j9wsuE"
-  REACT_APP_LIFF_ID_C = "2009433243-uvLIAMqa"
+  REACT_APP_LIFF_ID_C = "2008606907-sa5q4aq3"
 
 [functions."scheduled-reminder"]
   schedule = "0 6 * * *"
