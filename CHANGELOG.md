@@ -2,6 +2,42 @@
 
 > 日付は `git log --format="%ad %s" --date=short` の実際のコミット日付を基準に記載する。
 
+### 2026年5月12日
+- **バグ修正**: PersonCの友達追加チェックに正しいLINEトークンを使用するよう修正
+  - `line-session-create.js`: `ref === 'personC'` の判定を追加し、PersonCは `LINE_CHANNEL_ACCESS_TOKEN_C`、それ以外は `LINE_CHANNEL_ACCESS_TOKEN` を使用
+  - 修正前はPersonC経由でもPersonA用トークンでプロフィールAPIを叩いていたため、チェックが正常に機能していなかった
+
+### 2026年5月8日
+- **セキュリティ**: LINE通知APIのエラーを検知しChatWorkにアラートを送信
+  - `google-calendar-create.js`: `fetch()` はHTTPエラーで例外を投げないため、`lineRes.ok` チェックを明示的に追加
+  - 失敗時はLINEチャネル・お名前・ステータスコード・エラー本文をChatWorkに通知
+- **セキュリティ**: LINEセッション予約のカレンダー説明にLINE UserIDを記録
+  - `google-calendar-create.js`: LINEセッション経由の予約時にカレンダーイベント説明へ `LINE User ID: Uxxxx` を追記
+  - トラブル時の本人確認・ログ調査用
+- **UX改善**: LINE連携後の名前欄をロック（改ざん防止）
+  - `CalendarBooking.jsx`: `readOnly={!!sessionId}` を追加し、LINE連携済みの場合は名前欄を緑色の読み取り専用に変更
+- **設定外出し**: 予約受付の最低前日数を設定ファイルで管理
+  - `src/config/data/blockingRules.json`: `bookingConstraints.minAdvanceHours: 24` を追加
+  - `CalendarBooking.jsx`: ハードコード値を `blockingRulesData.bookingConstraints.minAdvanceHours` 参照に変更
+
+### 2026年5月7日
+- **機能追加**: LINE未追加ユーザーへの友達追加誘導
+  - `line-session-create.js`: セッション作成前にLINEプロフィールAPIで友達追加状況を確認し、未追加の場合 `{ error: 'not_friend' }` を返す
+  - `CalendarBooking.jsx`: `showAddFriend` stateを追加し、未追加ユーザーには友達追加ボタン（`https://line.me/R/ti/p/@567kljll`）とリトライボタンを表示する専用画面に切り替え
+
+### 2026年4月27日
+- **UX改善**: LINE連携フローのローディング表示・成功トーストを追加
+  - `CalendarBooking.jsx`: 連携ボタンクリック後に全画面ローディングオーバーレイを表示
+  - `alert()` を廃止し、連携完了後は画面上部に緑色の成功トーストを表示
+  - pending flagを `sessionStorage` と `localStorage` 両方に保存（iOSのLINEブラウザでOAuthリダイレクト中にsessionStorageがクリアされる問題に対応）
+  - LIFFの初期化完了まで連携ボタンを無効化し、初期化前クリックによる例外を防止
+
+### 2026年4月14日
+- **バグ修正**: 通常予約（X DM経由）でZoomミーティングが作成されない問題を修正
+  - `google-calendar-create.js`: Zoom作成ロジックをLINEセッション経路限定から全経路（通常予約・LINE）に拡張
+- **リファクタリング**: コードの品質改善
+  - `CalendarBooking.jsx`: 処理フローの整理（I-1/I-3/I-4/I-5/I-6項目）
+
 ### 2026年4月10日
 - **機能追加**: 開始24時間未満の予約枠を一律ブロック
   - `CalendarBooking.jsx`: `getBookingStatus` でslotStartまで24h未満の場合は `booked` 扱いで表示

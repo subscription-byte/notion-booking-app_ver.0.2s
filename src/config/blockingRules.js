@@ -45,7 +45,7 @@ export const EVENT_BLOCKING_RULES = {
   // 対面通話のブロックルール
   inPerson: {
     enabled: true,
-    keywords: ['対面'],           // 名前に含まれる場合も該当
+    keywords: ['対面', '面談'],    // 名前に含まれる場合も該当
     callMethodValue: '対面',      // 通話方法の値
     beforeHours: 3,               // 開始前のブロック時間
     afterHours: 3,                // 終了後のブロック時間
