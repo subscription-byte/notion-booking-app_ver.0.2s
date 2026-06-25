@@ -22,12 +22,15 @@ exports.handler = async (event, context) => {
       const friendRes = await fetch(`https://api.line.me/v2/bot/profile/${userId}`, {
         headers: { 'Authorization': `Bearer ${lineToken}` }
       });
-      if (!friendRes.ok) {
+      if (friendRes.status === 404) {
         return {
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ error: 'not_friend' })
         };
+      }
+      if (!friendRes.ok) {
+        console.warn(`Friend check non-fatal error: status=${friendRes.status}, ref=${ref}`);
       }
     }
 
