@@ -147,6 +147,7 @@ const CalendarBooking = () => {
         }).catch(e => {
           console.error('LIFF init error:', e);
           setIsLiffLoading(false);
+          setIsLiffInitialized(true);
         });
       }
     }
