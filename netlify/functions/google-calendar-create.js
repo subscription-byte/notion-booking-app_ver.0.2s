@@ -88,8 +88,17 @@ async function createZoomMeeting(topic, startDateStr, durationMin = 60, registra
   }
   const data = await res.json();
   // 登録制の場合は registrant を追加 → Zoomが本人へ確認メール（参加リンク入り）を自動送信
+  // 登録者追加が失敗しても、ミーティング作成・カレンダー書き込みは通す（メール送付のみ分離）
   if (registrant && registrant.email) {
-    await addZoomRegistrant(token, data.id, registrant);
+    try {
+      await addZoomRegistrant(token, data.id, registrant);
+      console.log('✅ Zoom registrant added (confirmation email sent):', registrant.email);
+    } catch (regError) {
+      console.error('❌ Zoom registrant add failed (meeting/link OK, email not sent):', regError.message);
+      await sendChatWorkSystemAlert(
+        `[エラー] Zoom登録者追加に失敗（確認メール未送信・予約とカレンダー書き込みは完了済み）\nメール: ${registrant.email}\n${regError.message}`
+      );
+    }
   }
   return data.join_url;
 }
