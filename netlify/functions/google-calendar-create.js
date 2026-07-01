@@ -38,14 +38,27 @@ async function getZoomAccessToken() {
 }
 
 // 登録者(registrant)を追加 → Zoomが参加リンク入りの確認メールを本人へ自動送信する
-async function addZoomRegistrant(token, meetingId, { email, firstName, lastName }) {
+// Zoomは first_name / last_name とも必須（空文字は 400 code:300）。
+// 氏名は1項目でしか取得しないため、空白で区切れれば 姓/名 に振り分け、区切れなければ
+// 氏名まるごとを first_name に入れ last_name は必須穴埋めとして「様」を使う。
+async function addZoomRegistrant(token, meetingId, { email, name }) {
+  const raw = (name || 'ゲスト').trim();
+  const parts = raw.split(/[\s　]+/).filter(Boolean);
+  let firstName, lastName;
+  if (parts.length >= 2) {
+    lastName = parts[0];                  // 姓
+    firstName = parts.slice(1).join(' '); // 名
+  } else {
+    firstName = raw;
+    lastName = '様';
+  }
   const res = await fetch(`https://api.zoom.us/v2/meetings/${meetingId}/registrants`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email,
-      first_name: firstName || 'ゲスト',
-      last_name: lastName || '',
+      first_name: firstName,
+      last_name: lastName,
     })
   });
   if (!res.ok) {
@@ -588,7 +601,7 @@ P登録状況: ${properties.premiumStatus || ''}`;
           properties.summary || '予約',
           bookingDateStr,
           60,
-          properties.email ? { email: properties.email, firstName: properties.summary || 'ゲスト' } : null
+          properties.email ? { email: properties.email, name: properties.summary || 'ゲスト' } : null
         );
         console.log('✅ Zoom meeting created:', zoomJoinUrlNorm);
 
