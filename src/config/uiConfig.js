@@ -41,6 +41,10 @@ export const ALERT_MESSAGES = {
   xLinkRequired: 'Xリンクを入力してください',
   xLinkInvalid: 'X（旧Twitter）のリンク（x.com/twitter.com）または@で始まるIDを入力してください。\nmyfans.jp等のリンクは入力できません。',
   routeTagRequired: '経路タグを選択してください',
+  emailRequired: 'メールアドレスを入力してください',
+  emailInvalid: '正しいメールアドレスの形式で入力してください（例: name@example.com）',
+  myfansLinkRequired: 'myfansのプロフィールリンクを入力してください',
+  myfansLinkInvalid: 'myfansのリンク（myfans.jp を含むURL）を入力してください',
 
   // 予約処理
   bookingFailed: '予約の作成に失敗しました。もう一度お試しください。',

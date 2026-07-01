@@ -37,10 +37,39 @@ async function getZoomAccessToken() {
   return data.access_token;
 }
 
-async function createZoomMeeting(topic, startDateStr, durationMin = 60) {
+// 登録者(registrant)を追加 → Zoomが参加リンク入りの確認メールを本人へ自動送信する
+async function addZoomRegistrant(token, meetingId, { email, firstName, lastName }) {
+  const res = await fetch(`https://api.zoom.us/v2/meetings/${meetingId}/registrants`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      first_name: firstName || 'ゲスト',
+      last_name: lastName || '',
+    })
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Zoom registrant error: ${res.status} ${err}`);
+  }
+  return res.json();
+}
+
+// registrant（{ email, firstName }）を渡すと登録制で作成し、確認メールをZoomから本人へ送信する
+async function createZoomMeeting(topic, startDateStr, durationMin = 60, registrant = null) {
   const token = await getZoomAccessToken();
   // start_time must be UTC ISO 8601 (yyyy-MM-ddTHH:mm:ssZ)
   const startUtc = new Date(startDateStr).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const settings = {
+    auto_recording: 'cloud',
+    auto_start_meeting_summary: true,
+    who_will_receive_summary: 1,
+    auto_start_ai_companion_questions: false,
+  };
+  // メールが渡された場合のみ登録制を有効化（X経由のみ。approval_type:0=自動承認）
+  if (registrant && registrant.email) {
+    settings.approval_type = 0;
+  }
   const res = await fetch('https://api.zoom.us/v2/users/me/meetings', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -50,12 +79,7 @@ async function createZoomMeeting(topic, startDateStr, durationMin = 60) {
       start_time: startUtc,
       duration: durationMin,
       timezone: 'Asia/Tokyo',
-      settings: {
-        auto_recording: 'cloud',
-        auto_start_meeting_summary: true,
-        who_will_receive_summary: 1,
-        auto_start_ai_companion_questions: false,
-      }
+      settings,
     })
   });
   if (!res.ok) {
@@ -63,6 +87,10 @@ async function createZoomMeeting(topic, startDateStr, durationMin = 60) {
     throw new Error(`Zoom meeting create error: ${res.status} ${err}`);
   }
   const data = await res.json();
+  // 登録制の場合は registrant を追加 → Zoomが本人へ確認メール（参加リンク入り）を自動送信
+  if (registrant && registrant.email) {
+    await addZoomRegistrant(token, data.id, registrant);
+  }
   return data.join_url;
 }
 
@@ -293,6 +321,7 @@ LINE User ID: ${lineUserIdForDesc}`;
               callMethod: properties.callMethod || '',
               myfansStatus: properties.myfansStatus || '',
               premiumStatus: properties.premiumStatus || '',
+              myfansLink: properties.myfansLink || '',
               lineUserId: lineUserId,
               lineChannel: sessionEvent.extendedProperties?.private?.lineChannel || 'personA',
               bookingStatus: '予約完了',
@@ -533,6 +562,8 @@ P登録状況: ${properties.premiumStatus || ''}`;
             lineUserId: properties.lineUserId || '',
             myfansStatus: properties.myfansStatus || '',
             premiumStatus: properties.premiumStatus || '',
+            myfansLink: properties.myfansLink || '',
+            email: properties.email || '',
             bookingStatus: '予約完了',
             sessionId: properties.sessionId || '',
           }
@@ -544,7 +575,12 @@ P登録状況: ${properties.premiumStatus || ''}`;
     let zoomJoinUrlNorm = null;
     if (process.env.ZOOM_ENABLED === 'true') {
       try {
-        zoomJoinUrlNorm = await createZoomMeeting(properties.summary || '予約', bookingDateStr);
+        zoomJoinUrlNorm = await createZoomMeeting(
+          properties.summary || '予約',
+          bookingDateStr,
+          60,
+          properties.email ? { email: properties.email, firstName: properties.summary || 'ゲスト' } : null
+        );
         console.log('✅ Zoom meeting created:', zoomJoinUrlNorm);
 
         const descWithZoom = description + `\nZOOMリンク: ${zoomJoinUrlNorm}`;

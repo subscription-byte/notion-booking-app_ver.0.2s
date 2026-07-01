@@ -20,6 +20,8 @@ const CalendarBooking = () => {
   const [remarks, setRemarks] = useState('');
   const [myfansStatus, setMyfansStatus] = useState(''); // myfans登録状況
   const [premiumStatus, setPremiumStatus] = useState(''); // プレミアムクリエイター登録状況
+  const [email, setEmail] = useState(''); // メールアドレス（X経由のみ・Zoom案内送付先）
+  const [myfansLink, setMyfansLink] = useState(''); // myfansプロフィールリンク（myfans登録済の場合のみ）
   const [weekOffset, setWeekOffset] = useState(0);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
   const [showConfirmScreen, setShowConfirmScreen] = useState(false);
@@ -93,6 +95,8 @@ const CalendarBooking = () => {
         if (cached.xLink) setXLink(cached.xLink);
         if (cached.myfansStatus) setMyfansStatus(cached.myfansStatus);
         if (cached.premiumStatus) setPremiumStatus(cached.premiumStatus);
+        if (cached.email) setEmail(cached.email);
+        if (cached.myfansLink) setMyfansLink(cached.myfansLink);
       } catch (e) {
         // キャッシュ読み込み失敗は無視
       }
@@ -657,6 +661,8 @@ const CalendarBooking = () => {
         callMethod: bookingData.callMethod || '',
         myfansStatus: bookingData.myfansStatus || '',
         premiumStatus: bookingData.premiumStatus || '',
+        email: bookingData.email || '',
+        myfansLink: bookingData.myfansLink || '',
         assignee: '町谷有里',
         lineUserId: ''
       };
@@ -1198,7 +1204,9 @@ const CalendarBooking = () => {
         routeTag: routeTag,
         sessionId: sessionId || null,
         myfansStatus: myfansStatus,
-        premiumStatus: premiumStatus
+        premiumStatus: premiumStatus,
+        email: email,
+        myfansLink: myfansLink
       };
 
       let success;
@@ -2613,6 +2621,25 @@ const CalendarBooking = () => {
                   </div>
                   )}
 
+                  {/* メールアドレス（X経由のみ・Zoom案内送付先） */}
+                  {routeConfig?.mode === 'nameAndX' && (
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-envelope mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      メールアドレス <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1.5 sm:mb-2">Zoomのご案内をこのアドレスにお送りします</p>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
+                      placeholder="name@example.com"
+                      required
+                    />
+                  </div>
+                  )}
+
                   {/* myfans登録状況 */}
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
@@ -2685,6 +2712,24 @@ const CalendarBooking = () => {
                   </div>
                   )}
 
+                  {/* myfansプロフィールリンク（myfans登録済の場合のみ必須） */}
+                  {myfansStatus === '登録済' && (
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
+                      <i className="fas fa-link mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                      myfansプロフィールリンク <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={myfansLink}
+                      onChange={(e) => setMyfansLink(e.target.value)}
+                      className="w-full p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-all duration-300 text-sm sm:text-lg bg-white/80 backdrop-blur"
+                      placeholder="https://myfans.jp/username"
+                      required
+                    />
+                  </div>
+                  )}
+
                   <div>
                     <label className="block text-gray-700 font-bold mb-1.5 sm:mb-3 flex items-center text-xs sm:text-base">
                       <i className="fas fa-comment-dots mr-1 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
@@ -2743,14 +2788,43 @@ const CalendarBooking = () => {
                           alert('プレミアムクリエイター登録状況を選択してください');
                           return;
                         }
+                        // メールアドレス（X経由のみ必須・Zoom案内送付先）
+                        if (routeConfig?.mode === 'nameAndX') {
+                          if (!email.trim()) {
+                            alert(ALERT_MESSAGES.emailRequired);
+                            return;
+                          }
+                          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+                            alert(ALERT_MESSAGES.emailInvalid);
+                            return;
+                          }
+                        }
+                        // myfansリンク（myfans登録済の場合のみ必須）
+                        if (myfansStatus === '登録済') {
+                          if (!myfansLink.trim()) {
+                            alert(ALERT_MESSAGES.myfansLinkRequired);
+                            return;
+                          }
+                          if (!myfansLink.includes('myfans.jp')) {
+                            alert(ALERT_MESSAGES.myfansLinkInvalid);
+                            return;
+                          }
+                        }
+                        // 入力キャッシュ更新（次回プリフィル用）
+                        try {
+                          localStorage.setItem('bookingUserCache', JSON.stringify({
+                            customerName, xLink, myfansStatus, premiumStatus, email, myfansLink,
+                          }));
+                        } catch (e) { /* 保存失敗は無視 */ }
                         setShowBookingForm(false);
                         setShowConfirmScreen(true);
                       }}
                       disabled={
                         !customerName.trim() ||
                         (routeConfig?.requireXLink && !xLink.trim()) ||
+                        (routeConfig?.mode === 'nameAndX' && !email.trim()) ||
                         !myfansStatus ||
-                        (myfansStatus === '登録済' && !premiumStatus)
+                        (myfansStatus === '登録済' && (!premiumStatus || !myfansLink.trim()))
                       }
                       className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg active:scale-95 sm:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 sm:hover:scale-105 disabled:hover:scale-100"
                     >
