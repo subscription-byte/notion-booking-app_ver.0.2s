@@ -38,20 +38,14 @@ async function getZoomAccessToken() {
 }
 
 // 登録者(registrant)を追加 → Zoomが参加リンク入りの確認メールを本人へ自動送信する
-// Zoomは first_name / last_name とも必須（空文字は 400 code:300）。
-// 氏名は1項目でしか取得しないため、空白で区切れれば 姓/名 に振り分け、区切れなければ
-// 氏名まるごとを first_name に入れ last_name は必須穴埋めとして「様」を使う。
+// Zoomは first_name / last_name とも必須（空文字は 400 code:300）で、確認メールでは
+// 「{last_name}{first_name} さん」と連結表示される。クリエイター名は姓/名に分けられず
+// 1文字入力もあり得るため、氏名まるごとを last_name に入れ、first_name は不可視の
+// ゼロ幅スペース(U+200B)で穴埋めする。通常スペースはZoom側でtrimされ空扱いになり弾かれる
+// 可能性が高いため、trim対象外のゼロ幅スペースを使用（表示は「{氏名} さん」想定）。
 async function addZoomRegistrant(token, meetingId, { email, name }) {
-  const raw = (name || 'ゲスト').trim();
-  const parts = raw.split(/[\s　]+/).filter(Boolean);
-  let firstName, lastName;
-  if (parts.length >= 2) {
-    lastName = parts[0];                  // 姓
-    firstName = parts.slice(1).join(' '); // 名
-  } else {
-    firstName = raw;
-    lastName = '様';
-  }
+  const lastName = (name || '').trim() || 'ゲスト';
+  const firstName = '​'; // ゼロ幅スペース（非表示・非空・trim対象外）
   const res = await fetch(`https://api.zoom.us/v2/meetings/${meetingId}/registrants`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -68,7 +62,7 @@ async function addZoomRegistrant(token, meetingId, { email, name }) {
   return res.json();
 }
 
-// registrant（{ email, firstName }）を渡すと登録制で作成し、確認メールをZoomから本人へ送信する
+// registrant（{ email, name }）を渡すと登録制で作成し、確認メールをZoomから本人へ送信する
 async function createZoomMeeting(topic, startDateStr, durationMin = 60, registrant = null) {
   const token = await getZoomAccessToken();
   // start_time must be UTC ISO 8601 (yyyy-MM-ddTHH:mm:ssZ)
