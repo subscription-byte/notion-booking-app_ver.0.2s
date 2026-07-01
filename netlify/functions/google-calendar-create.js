@@ -304,7 +304,7 @@ Xリンク: ${properties.xLink || ''}
 経路: ${properties.route || ''}
 通話方法: ${properties.callMethod || ''}
 myfans登録状況: ${properties.myfansStatus || ''}
-P登録状況: ${properties.premiumStatus || ''}
+P登録状況: ${properties.premiumStatus || ''}${properties.myfansLink ? `\nmyfansリンク: ${properties.myfansLink}` : ''}
 LINE User ID: ${lineUserIdForDesc}`;
 
       // 場所情報を設定（一覧で見やすいように）
@@ -547,7 +547,7 @@ Xリンク: ${properties.xLink || ''}
 経路: ${properties.route || ''}
 通話方法: ${properties.callMethod || ''}
 myfans登録状況: ${properties.myfansStatus || ''}
-P登録状況: ${properties.premiumStatus || ''}`;
+P登録状況: ${properties.premiumStatus || ''}${properties.myfansLink ? `\nmyfansリンク: ${properties.myfansLink}` : ''}`;
 
     // 場所情報を設定（一覧で見やすいように）
     const location = 'X DM';

@@ -50,6 +50,7 @@ const CalendarBooking = () => {
   // キャッシュ有効期限（ミリ秒）: 15分（セッションタイムアウトと同じ）
   const CACHE_EXPIRY_MS = 15 * 60 * 1000;
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 予約確定〜完了遷移までページ全体の操作をブロック（isLoadingはfetch内部でfalseに戻るため別管理）
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isWeekChanging, setIsWeekChanging] = useState(false);
   const [isLiffLoading, setIsLiffLoading] = useState(false);
@@ -1169,6 +1170,7 @@ const CalendarBooking = () => {
     // 連打防止: Refで同期的にブロック（stateは非同期なので2連タップを防げない）
     if (isBookingRef.current) return;
     isBookingRef.current = true;
+    setIsSubmitting(true); // 完了遷移までページ全体をブロック
     setIsLoading(true);
 
     try {
@@ -1323,6 +1325,7 @@ const CalendarBooking = () => {
       // 最終的にローディング解除
       isBookingRef.current = false;
       setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -1411,6 +1414,20 @@ const CalendarBooking = () => {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden overscroll-none touch-pan-y" style={{ overscrollBehavior: 'none' }}>
+      {/* 予約確定〜完了遷移までの全操作ブロック（連打・多重送信・誤操作防止） */}
+      {isSubmitting && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm cursor-wait"
+          style={{ touchAction: 'none' }}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className="bg-white/90 rounded-2xl px-6 py-5 shadow-2xl flex flex-col items-center">
+            <i className="fas fa-spinner fa-spin text-3xl text-purple-600 mb-2"></i>
+            <span className="text-sm font-bold text-gray-700">予約を確定しています…</span>
+          </div>
+        </div>
+      )}
+
       {/* Fluid Background Canvas */}
       <FluidCanvas />
 
@@ -2012,10 +2029,10 @@ const CalendarBooking = () => {
                   </button>
                   <button
                     onClick={handleBooking}
-                    disabled={isLoading}
+                    disabled={isLoading || isSubmitting}
                     className="flex-1 py-2.5 sm:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm sm:text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-300 active:scale-95 sm:hover:scale-105 disabled:hover:scale-100"
                   >
-                    {isLoading ? (
+                    {(isLoading || isSubmitting) ? (
                       <>
                         <i className="fas fa-spinner fa-spin mr-2"></i>
                         処理中...
