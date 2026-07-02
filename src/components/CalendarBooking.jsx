@@ -2002,6 +2002,58 @@ const CalendarBooking = () => {
                     </div>
                     )}
 
+                    {/* メールアドレス（X経由のみ） */}
+                    {routeConfig?.mode === 'nameAndX' && email && (
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-envelope mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                        メールアドレス
+                      </span>
+                      <span className="text-sm sm:text-base font-bold text-gray-800 break-all">
+                        {email}
+                      </span>
+                    </div>
+                    )}
+
+                    {/* myfans登録状況 */}
+                    {myfansStatus && (
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-check-circle mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                        myfans登録
+                      </span>
+                      <span className="text-sm sm:text-lg font-bold text-gray-800">
+                        {myfansStatus}
+                      </span>
+                    </div>
+                    )}
+
+                    {/* プレミアムクリエイター登録状況（myfans登録済のみ） */}
+                    {myfansStatus === '登録済' && premiumStatus && (
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-star mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                        プレミアム登録
+                      </span>
+                      <span className="text-sm sm:text-lg font-bold text-gray-800">
+                        {premiumStatus}
+                      </span>
+                    </div>
+                    )}
+
+                    {/* myfansリンク（myfans登録済のみ） */}
+                    {myfansStatus === '登録済' && myfansLink && (
+                    <div className="flex items-center justify-between py-2 sm:py-3 border-b border-gray-200">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700 flex items-center">
+                        <i className="fas fa-link mr-1.5 sm:mr-2 text-purple-500 text-xs sm:text-base"></i>
+                        myfansリンク
+                      </span>
+                      <span className="text-sm sm:text-base font-bold text-gray-800 break-all">
+                        {myfansLink}
+                      </span>
+                    </div>
+                    )}
+
                     {remarks && (
                       <div className="py-3">
                         <span className="font-semibold text-gray-700 flex items-center mb-2">
